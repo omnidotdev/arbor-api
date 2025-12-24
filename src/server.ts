@@ -1,5 +1,6 @@
 import { cors } from "@elysiajs/cors";
 import { Elysia } from "elysia";
+import webhooks from "webhooks";
 
 import appConfig from "lib/config/app.config";
 import { CORS_ALLOWED_ORIGINS, PORT, isDevEnv } from "lib/config/env.config";
@@ -23,6 +24,7 @@ const app = new Elysia({
       methods: ["GET", "POST", "OPTIONS"],
     }),
   )
+  .use(webhooks)
   .get("/", () => ({ status: "ok" }))
   .listen(PORT);
 

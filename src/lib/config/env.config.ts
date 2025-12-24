@@ -1,31 +1,19 @@
-const { NODE_ENV } = process.env;
-
 /**
- * Port to run the server on.
+ * Environment variables.
  */
-export const PORT = process.env.PORT || 4000;
+export const {
+  NODE_ENV,
+  PORT = 4000,
+  HOST = "0.0.0.0",
+  DATABASE_URL,
+  AUTH_BASE_URL,
+  CORS_ALLOWED_ORIGINS,
+  PROTECT_ROUTES,
+  AUTH_DEBUG,
+  STRIPE_API_KEY,
+  STRIPE_WEBHOOK_SECRET,
+} = process.env;
 
-/**
- * Host to run the server on.
- */
-export const HOST = process.env.HOST || "0.0.0.0";
-
-/**
- * Database connection URL.
- */
-export const DATABASE_URL = process.env.DATABASE_URL;
-
-/**
- * Allowed origins for CORS.
- */
-export const CORS_ALLOWED_ORIGINS = process.env.CORS_ALLOWED_ORIGINS;
-
-/**
- * Whether the current environment is development.
- */
-export const isDevEnv = NODE_ENV === "development";
-
-/**
- * Whether the current environment is production.
- */
-export const isProdEnv = NODE_ENV === "production";
+export const isDevEnv = NODE_ENV === "development",
+  isProdEnv = NODE_ENV === "production",
+  protectRoutes = isProdEnv || PROTECT_ROUTES === "true";
