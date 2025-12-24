@@ -7,24 +7,10 @@ import type { KnipConfig } from "knip";
 const knipConfig: KnipConfig = {
   ignore: [
     "**/generated/**",
-    "src/lib/config/drizzle.config.ts",
-    "src/lib/config/env.config.ts",
     "src/scripts/**",
-    "src/lib/db/**",
-    // auth plugin used when GraphQL is integrated
-    "src/lib/graphql/**",
+    "src/lib/config/drizzle.config.ts",
   ],
-  ignoreDependencies: [
-    "drizzle-kit",
-    "drizzle-orm",
-    "pg",
-    "@types/pg",
-    // used by auth plugin
-    "@envelop/generic-auth",
-    "@tanstack/query-core",
-    "ms",
-    "@types/ms",
-  ],
+  ignoreDependencies: ["drizzle-kit", "drizzle-orm", "pg"],
   tags: ["-knipignore"],
 };
 
