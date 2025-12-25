@@ -7,11 +7,12 @@ import { CORS_ALLOWED_ORIGINS, PORT, isDevEnv } from "lib/config/env.config";
 /**
  * Elysia server.
  */
-const app = new Elysia({
+const server = new Elysia({
   ...(isDevEnv && {
     serve: {
       // https://elysiajs.com/patterns/configuration#serve-tls
       // https://bun.sh/guides/http/tls
+      // NB: Elysia (and Bun) trust the well-known CA list curated by Mozilla (https://wiki.mozilla.org/CA/Included_Certificates), but they can be customized here if needed (`tls.ca` option)
       tls: {
         certFile: "cert.pem",
         keyFile: "key.pem",
@@ -21,7 +22,7 @@ const app = new Elysia({
 })
   .use(
     cors({
-      origin: CORS_ALLOWED_ORIGINS?.split(",") ?? [],
+      origin: CORS_ALLOWED_ORIGINS!.split(","),
       methods: ["GET", "POST", "OPTIONS"],
     }),
   )
@@ -30,5 +31,5 @@ const app = new Elysia({
 
 // biome-ignore lint/suspicious/noConsole: root logging
 console.log(
-  `🦊 ${appConfig.name} Elysia server running at ${app.server?.url.toString().slice(0, -1)}`,
+  `🦊 ${appConfig.name} Elysia server running at ${server.server?.url.toString().slice(0, -1)}`,
 );

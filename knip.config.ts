@@ -9,6 +9,7 @@ const knipConfig: KnipConfig = {
     "**/generated/**",
     "src/scripts/**",
     "src/lib/config/drizzle.config.ts",
+    "src/lib/config/env.config.ts",
   ],
   ignoreDependencies: ["drizzle-kit", "drizzle-orm", "pg"],
   tags: ["-knipignore"],

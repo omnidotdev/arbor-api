@@ -1,8 +1,8 @@
 /**
  * Application configuration.
  */
-const appConfig = {
-  name: "Arbor API",
+const app = {
+  name: "Arbor",
 };
 
-export default appConfig;
+export default app;
