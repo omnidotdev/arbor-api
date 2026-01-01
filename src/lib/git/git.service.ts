@@ -43,16 +43,19 @@ export interface TagInfo {
 
 /**
  * Core git operations service using isomorphic-git.
+ *
+ * NOTE: We use `gitdir` instead of `dir` for all isomorphic-git calls
+ * because our repositories are bare (no working tree).
  */
 export const gitService = {
   /**
    * Get the current HEAD commit SHA.
    */
   async getHead(owner: string, repo: string): Promise<string | null> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      const sha = await git.resolveRef({ fs, dir, ref: "HEAD" });
+      const sha = await git.resolveRef({ fs, gitdir, ref: "HEAD" });
       return sha;
     } catch {
       return null;
@@ -67,15 +70,15 @@ export const gitService = {
     repo: string,
     ref: string,
   ): Promise<string | null> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      const sha = await git.resolveRef({ fs, dir, ref });
+      const sha = await git.resolveRef({ fs, gitdir, ref });
       return sha;
     } catch {
       // Try as a short SHA
       try {
-        const sha = await git.expandOid({ fs, dir, oid: ref });
+        const sha = await git.expandOid({ fs, gitdir, oid: ref });
         return sha;
       } catch {
         return null;
@@ -91,12 +94,12 @@ export const gitService = {
     repo: string,
     sha: string,
   ): Promise<CommitInfo | null> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
       const result: ReadCommitResult = await git.readCommit({
         fs,
-        dir,
+        gitdir,
         oid: sha,
       });
       const { commit, oid } = result;
@@ -130,13 +133,13 @@ export const gitService = {
     ref: string,
     options: { depth?: number; skip?: number } = {},
   ): Promise<CommitInfo[]> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
     const { depth = 20, skip = 0 } = options;
 
     try {
       const commits = await git.log({
         fs,
-        dir,
+        gitdir,
         ref,
         depth: depth + skip,
       });
@@ -170,13 +173,13 @@ export const gitService = {
     ref: string,
     path = "",
   ): Promise<TreeEntry[]> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      const sha = await git.resolveRef({ fs, dir, ref });
+      const sha = await git.resolveRef({ fs, gitdir, ref });
 
       // Read the commit to get the tree SHA
-      const commit = await git.readCommit({ fs, dir, oid: sha });
+      const commit = await git.readCommit({ fs, gitdir, oid: sha });
       let treeSha = commit.commit.tree;
 
       // Navigate to the specified path
@@ -184,7 +187,7 @@ export const gitService = {
         const pathParts = path.split("/").filter(Boolean);
 
         for (const part of pathParts) {
-          const tree = await git.readTree({ fs, dir, oid: treeSha });
+          const tree = await git.readTree({ fs, gitdir, oid: treeSha });
           const entry = tree.tree.find((e) => e.path === part);
 
           if (!entry || entry.type !== "tree") {
@@ -196,7 +199,7 @@ export const gitService = {
       }
 
       // Read the tree
-      const tree = await git.readTree({ fs, dir, oid: treeSha });
+      const tree = await git.readTree({ fs, gitdir, oid: treeSha });
 
       return tree.tree.map((entry) => ({
         path: entry.path,
@@ -218,11 +221,11 @@ export const gitService = {
     ref: string,
     path: string,
   ): Promise<string | null> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      const sha = await git.resolveRef({ fs, dir, ref });
-      const commit = await git.readCommit({ fs, dir, oid: sha });
+      const sha = await git.resolveRef({ fs, gitdir, ref });
+      const commit = await git.readCommit({ fs, gitdir, oid: sha });
       let treeSha = commit.commit.tree;
 
       // Navigate to the file
@@ -232,7 +235,7 @@ export const gitService = {
       if (!fileName) return null;
 
       for (const part of pathParts) {
-        const tree = await git.readTree({ fs, dir, oid: treeSha });
+        const tree = await git.readTree({ fs, gitdir, oid: treeSha });
         const entry = tree.tree.find((e) => e.path === part);
 
         if (!entry || entry.type !== "tree") {
@@ -243,7 +246,7 @@ export const gitService = {
       }
 
       // Find the file in the tree
-      const tree = await git.readTree({ fs, dir, oid: treeSha });
+      const tree = await git.readTree({ fs, gitdir, oid: treeSha });
       const fileEntry = tree.tree.find((e) => e.path === fileName);
 
       if (!fileEntry || fileEntry.type !== "blob") {
@@ -251,7 +254,7 @@ export const gitService = {
       }
 
       // Read the blob
-      const blob = await git.readBlob({ fs, dir, oid: fileEntry.oid });
+      const blob = await git.readBlob({ fs, gitdir, oid: fileEntry.oid });
 
       return new TextDecoder().decode(blob.blob);
     } catch {
@@ -268,11 +271,11 @@ export const gitService = {
     ref: string,
     path: string,
   ): Promise<Uint8Array | null> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      const sha = await git.resolveRef({ fs, dir, ref });
-      const commit = await git.readCommit({ fs, dir, oid: sha });
+      const sha = await git.resolveRef({ fs, gitdir, ref });
+      const commit = await git.readCommit({ fs, gitdir, oid: sha });
       let treeSha = commit.commit.tree;
 
       const pathParts = path.split("/").filter(Boolean);
@@ -281,7 +284,7 @@ export const gitService = {
       if (!fileName) return null;
 
       for (const part of pathParts) {
-        const tree = await git.readTree({ fs, dir, oid: treeSha });
+        const tree = await git.readTree({ fs, gitdir, oid: treeSha });
         const entry = tree.tree.find((e) => e.path === part);
 
         if (!entry || entry.type !== "tree") {
@@ -291,14 +294,14 @@ export const gitService = {
         treeSha = entry.oid;
       }
 
-      const tree = await git.readTree({ fs, dir, oid: treeSha });
+      const tree = await git.readTree({ fs, gitdir, oid: treeSha });
       const fileEntry = tree.tree.find((e) => e.path === fileName);
 
       if (!fileEntry || fileEntry.type !== "blob") {
         return null;
       }
 
-      const blob = await git.readBlob({ fs, dir, oid: fileEntry.oid });
+      const blob = await git.readBlob({ fs, gitdir, oid: fileEntry.oid });
 
       return blob.blob;
     } catch {
@@ -310,16 +313,16 @@ export const gitService = {
    * List all branches.
    */
   async listBranches(owner: string, repo: string): Promise<BranchInfo[]> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      const branches = await git.listBranches({ fs, dir });
+      const branches = await git.listBranches({ fs, gitdir });
       let defaultBranch: string | null = null;
 
       // Try to get HEAD to determine default branch
       try {
         // HEAD points to refs/heads/{branch}
-        const headRef = await git.currentBranch({ fs, dir });
+        const headRef = await git.currentBranch({ fs, gitdir });
         defaultBranch = headRef || null;
       } catch {
         // Ignore errors
@@ -331,7 +334,7 @@ export const gitService = {
         try {
           const sha = await git.resolveRef({
             fs,
-            dir,
+            gitdir,
             ref: `refs/heads/${branch}`,
           });
           result.push({
@@ -354,17 +357,17 @@ export const gitService = {
    * List all tags.
    */
   async listTags(owner: string, repo: string): Promise<TagInfo[]> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      const tags = await git.listTags({ fs, dir });
+      const tags = await git.listTags({ fs, gitdir });
       const result: TagInfo[] = [];
 
       for (const tag of tags) {
         try {
           const sha = await git.resolveRef({
             fs,
-            dir,
+            gitdir,
             ref: `refs/tags/${tag}`,
           });
           result.push({ name: tag, sha });
@@ -388,12 +391,12 @@ export const gitService = {
     branchName: string,
     ref: string,
   ): Promise<boolean> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
       await git.branch({
         fs,
-        dir,
+        gitdir,
         ref: branchName,
         checkout: false,
         object: ref,
@@ -412,10 +415,10 @@ export const gitService = {
     repo: string,
     branchName: string,
   ): Promise<boolean> {
-    const dir = getRepositoryPath(owner, repo);
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
-      await git.deleteBranch({ fs, dir, ref: branchName });
+      await git.deleteBranch({ fs, gitdir, ref: branchName });
       return true;
     } catch {
       return false;

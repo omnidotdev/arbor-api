@@ -1,0 +1,1 @@
+ALTER TABLE "repository" ALTER COLUMN "default_branch" SET DEFAULT 'master';

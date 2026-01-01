@@ -1,9 +1,85 @@
-import { lambda, object } from "postgraphile/grafast";
+import { EXPORTABLE } from "graphile-export";
+import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
+import { organizationTable, userTable } from "lib/db/schema";
 import { gitService, repositoryService } from "lib/git";
 
 import type { FieldArgs } from "postgraphile/grafast";
+
+// Helper to get owner slug from repository - exported for EXPORTABLE
+// This function queries the database when relations are not loaded
+export async function getOwnerSlug(
+  repository: any,
+  db: any,
+): Promise<string | null> {
+  // Try organization slug first
+  if (repository.organization?.slug) {
+    return repository.organization.slug;
+  }
+  // Try owner username from loaded relation
+  if (repository.owner?.username) {
+    return repository.owner.username;
+  }
+  if (repository.owner?.slug) {
+    return repository.owner.slug;
+  }
+
+  // If organizationId is set, fetch the organization slug from DB
+  if (repository.organizationId && db) {
+    const org = await db.query.organizationTable.findFirst({
+      where: (table: any, { eq }: any) =>
+        eq(table.id, repository.organizationId),
+      columns: { slug: true },
+    });
+    if (org?.slug) {
+      return org.slug;
+    }
+  }
+
+  // Fetch the owner username from DB using ownerId
+  if (repository.ownerId && db) {
+    const user = await db.query.userTable.findFirst({
+      where: (table: any, { eq }: any) => eq(table.id, repository.ownerId),
+      columns: { username: true },
+    });
+    if (user?.username) {
+      return user.username;
+    }
+  }
+
+  return null;
+}
+
+// Type definitions for internal data structures
+interface RefData {
+  prefix: string;
+  name: string;
+  sha: string;
+  owner: string;
+  repo: string;
+}
+
+interface CommitData {
+  owner: string;
+  repo: string;
+  oid: string;
+  message: string;
+  author: { name: string; email: string; timestamp: number };
+  committer: { name: string; email: string; timestamp: number };
+  parents: string[];
+}
+
+interface TreeEntryData {
+  name: string;
+  path: string;
+  type: "blob" | "tree" | "commit";
+  mode: string;
+  oid: string;
+  owner: string;
+  repo: string;
+  commitOid: string;
+}
 
 /**
  * Git types plugin.
@@ -52,7 +128,7 @@ const GitTypesPlugin = extendSchema((build) => {
         id: ID!
 
         """
-        The reference name without the prefix (e.g., "main" for refs/heads/main).
+        The reference name without the prefix (e.g., "master" for refs/heads/master).
         """
         name: String!
 
@@ -221,9 +297,6 @@ const GitTypesPlugin = extendSchema((build) => {
         totalCount: Int!
       }
 
-      """
-      Extend Repository with git operations.
-      """
       extend type Repository {
         """
         Fetch a ref by its fully qualified name (e.g., "refs/heads/main").
@@ -265,467 +338,61 @@ const GitTypesPlugin = extendSchema((build) => {
     objects: {
       GitActor: {
         plans: {
-          name($actor: any) {
-            return lambda($actor, (actor) => (actor as any)?.name ?? null);
-          },
-          email($actor: any) {
-            return lambda($actor, (actor) => (actor as any)?.email ?? null);
-          },
-          date($actor: any) {
-            return lambda($actor, (actor) => {
-              const a = actor as any;
-              return a?.timestamp
-                ? new Date(a.timestamp * 1000).toISOString()
-                : null;
-            });
-          },
+          name: EXPORTABLE(
+            (lambda) => ($actor: any) => {
+              return lambda($actor, (actor) => (actor as any)?.name ?? null);
+            },
+            [lambda],
+          ),
+          email: EXPORTABLE(
+            (lambda) => ($actor: any) => {
+              return lambda($actor, (actor) => (actor as any)?.email ?? null);
+            },
+            [lambda],
+          ),
+          date: EXPORTABLE(
+            (lambda) => ($actor: any) => {
+              return lambda($actor, (actor) => {
+                const a = actor as any;
+                return a?.timestamp
+                  ? new Date(a.timestamp * 1000).toISOString()
+                  : null;
+              });
+            },
+            [lambda],
+          ),
         },
       },
 
       Ref: {
         plans: {
-          id($ref: any) {
-            return lambda($ref, (ref) => {
-              const r = ref as RefData | null;
-              return r ? `${r.prefix}${r.name}` : null;
-            });
-          },
-          name($ref: any) {
-            return lambda($ref, (ref) => (ref as any)?.name ?? null);
-          },
-          prefix($ref: any) {
-            return lambda($ref, (ref) => (ref as any)?.prefix ?? null);
-          },
-          target($ref: any) {
-            return lambda($ref, async (ref) => {
-              const r = ref as RefData | null;
-              if (!r) return null;
-              const { owner, repo, sha } = r;
-
-              const exists = await repositoryService.exists(owner, repo);
-              if (!exists) return null;
-
-              const commit = await gitService.getCommit(owner, repo, sha);
-              if (!commit) return null;
-
-              return {
-                __typename: "Commit",
-                owner,
-                repo,
-                oid: commit.sha,
-                message: commit.message,
-                author: commit.author,
-                committer: commit.committer,
-                parents: commit.parents,
-              };
-            });
-          },
-        },
-      },
-
-      Commit: {
-        plans: {
-          oid($commit: any) {
-            return lambda($commit, (commit) => (commit as any)?.oid ?? null);
-          },
-          repository($commit: any) {
-            return lambda($commit, (commit) => {
-              const c = commit as CommitData | null;
-              return c ? { owner: c.owner, repo: c.repo } : null;
-            });
-          },
-          message($commit: any) {
-            return lambda(
-              $commit,
-              (commit) => (commit as any)?.message ?? null,
-            );
-          },
-          messageHeadline($commit: any) {
-            return lambda(
-              $commit,
-              (commit) => (commit as any)?.message?.split("\n")[0] ?? "",
-            );
-          },
-          author($commit: any) {
-            return lambda($commit, (commit) => (commit as any)?.author ?? null);
-          },
-          committer($commit: any) {
-            return lambda(
-              $commit,
-              (commit) => (commit as any)?.committer ?? null,
-            );
-          },
-          authoredDate($commit: any) {
-            return lambda($commit, (commit) => {
-              const c = commit as any;
-              return c?.author?.timestamp
-                ? new Date(c.author.timestamp * 1000).toISOString()
-                : null;
-            });
-          },
-          committedDate($commit: any) {
-            return lambda($commit, (commit) => {
-              const c = commit as any;
-              return c?.committer?.timestamp
-                ? new Date(c.committer.timestamp * 1000).toISOString()
-                : null;
-            });
-          },
-          tree($commit: any) {
-            return lambda($commit, async (commit) => {
-              const c = commit as CommitData | null;
-              if (!c) return null;
-              const { owner, repo, oid } = c;
-
-              const entries = await gitService.getTree(owner, repo, oid, "");
-
-              return {
-                __typename: "Tree",
-                owner,
-                repo,
-                oid,
-                entries: entries.map((e) => ({
-                  ...e,
-                  name: e.path,
-                  path: e.path,
-                  owner,
-                  repo,
-                  commitOid: oid,
-                })),
-              };
-            });
-          },
-          parents($commit: any) {
-            return lambda($commit, async (commit) => {
-              const c = commit as CommitData | null;
-              if (!c) return [];
-              const { owner, repo, parents } = c;
-
-              const parentCommits = [];
-              for (const parentSha of parents || []) {
-                const parent = await gitService.getCommit(
-                  owner,
-                  repo,
-                  parentSha,
-                );
-                if (parent) {
-                  parentCommits.push({
-                    __typename: "Commit",
-                    owner,
-                    repo,
-                    oid: parent.sha,
-                    message: parent.message,
-                    author: parent.author,
-                    committer: parent.committer,
-                    parents: parent.parents,
-                  });
-                }
-              }
-              return parentCommits;
-            });
-          },
-          history($commit: any, fieldArgs: FieldArgs) {
-            const $first = fieldArgs.getRaw("first");
-            const $offset = fieldArgs.getRaw("offset");
-
-            return lambda(
-              object({ commit: $commit, first: $first, offset: $offset }),
-              async (args) => {
-                const { commit, first, offset } = args as any;
-                const c = commit as CommitData | null;
-                if (!c) return [];
-                const { owner, repo, oid } = c;
-
-                const commits = await gitService.getLog(owner, repo, oid, {
-                  depth: first ?? 20,
-                  skip: offset ?? 0,
-                });
-
-                return commits.map((cm) => ({
-                  __typename: "Commit",
-                  owner,
-                  repo,
-                  oid: cm.sha,
-                  message: cm.message,
-                  author: cm.author,
-                  committer: cm.committer,
-                  parents: cm.parents,
-                }));
-              },
-            );
-          },
-        },
-      },
-
-      Tree: {
-        plans: {
-          oid($tree: any) {
-            return lambda($tree, (tree) => (tree as any)?.oid ?? null);
-          },
-          repository($tree: any) {
-            return lambda($tree, (tree) => {
-              const t = tree as any;
-              return t ? { owner: t.owner, repo: t.repo } : null;
-            });
-          },
-          entries($tree: any) {
-            return lambda($tree, (tree) => (tree as any)?.entries ?? []);
-          },
-        },
-      },
-
-      TreeEntry: {
-        plans: {
-          name($entry: any) {
-            return lambda($entry, (entry) => (entry as any)?.name ?? null);
-          },
-          path($entry: any) {
-            return lambda($entry, (entry) => (entry as any)?.path ?? null);
-          },
-          type($entry: any) {
-            return lambda($entry, (entry) => (entry as any)?.type ?? null);
-          },
-          mode($entry: any) {
-            return lambda($entry, (entry) => (entry as any)?.mode ?? null);
-          },
-          oid($entry: any) {
-            return lambda($entry, (entry) => (entry as any)?.oid ?? null);
-          },
-          object($entry: any) {
-            return lambda($entry, async (entry) => {
-              const e = entry as TreeEntryData | null;
-              if (!e) return null;
-              const { type, oid, owner, repo, commitOid, path } = e;
-
-              if (type === "tree") {
-                const entries = await gitService.getTree(
-                  owner,
-                  repo,
-                  commitOid,
-                  path,
-                );
-                return {
-                  __typename: "Tree",
-                  owner,
-                  repo,
-                  oid,
-                  entries: entries.map((en) => ({
-                    ...en,
-                    name: en.path,
-                    path: `${path}/${en.path}`,
-                    owner,
-                    repo,
-                    commitOid,
-                  })),
-                };
-              }
-
-              if (type === "blob") {
-                const content = await gitService.getFileContent(
-                  owner,
-                  repo,
-                  commitOid,
-                  path,
-                );
-                const raw = await gitService.getFileRaw(
-                  owner,
-                  repo,
-                  commitOid,
-                  path,
-                );
-
-                const isBinary = content === null && raw !== null;
-                const byteSize = raw?.length ?? 0;
-
-                return {
-                  __typename: "Blob",
-                  owner,
-                  repo,
-                  oid,
-                  text: isBinary ? null : content,
-                  byteSize,
-                  isBinary,
-                };
-              }
-
-              return null;
-            });
-          },
-        },
-      },
-
-      Blob: {
-        plans: {
-          oid($blob: any) {
-            return lambda($blob, (blob) => (blob as any)?.oid ?? null);
-          },
-          repository($blob: any) {
-            return lambda($blob, (blob) => {
-              const b = blob as any;
-              return b ? { owner: b.owner, repo: b.repo } : null;
-            });
-          },
-          text($blob: any) {
-            return lambda($blob, (blob) => (blob as any)?.text ?? null);
-          },
-          byteSize($blob: any) {
-            return lambda($blob, (blob) => (blob as any)?.byteSize ?? 0);
-          },
-          isBinary($blob: any) {
-            return lambda($blob, (blob) => (blob as any)?.isBinary ?? false);
-          },
-        },
-      },
-
-      RefConnection: {
-        plans: {
-          nodes($conn: any) {
-            return lambda($conn, (conn) => (conn as any)?.nodes ?? []);
-          },
-          totalCount($conn: any) {
-            return lambda($conn, (conn) => (conn as any)?.totalCount ?? 0);
-          },
-        },
-      },
-
-      Repository: {
-        plans: {
-          ref($repository: any, fieldArgs: FieldArgs) {
-            const $qualifiedName = fieldArgs.getRaw("qualifiedName");
-
-            return lambda(
-              object({
-                repository: $repository,
-                qualifiedName: $qualifiedName,
-              }),
-              async (args) => {
-                const { repository, qualifiedName } = args as any;
-                if (!repository || !qualifiedName) return null;
-
-                const owner = await getOwnerSlug(repository);
-                const repo = repository.slug;
-
-                const exists = await repositoryService.exists(owner, repo);
-                if (!exists) return null;
-
-                let prefix: string;
-                let name: string;
-
-                if (qualifiedName.startsWith("refs/heads/")) {
-                  prefix = "refs/heads/";
-                  name = qualifiedName.slice(11);
-                } else if (qualifiedName.startsWith("refs/tags/")) {
-                  prefix = "refs/tags/";
-                  name = qualifiedName.slice(10);
-                } else {
-                  return null;
-                }
-
-                const sha = await gitService.resolveRef(
-                  owner,
-                  repo,
-                  qualifiedName,
-                );
-                if (!sha) return null;
-
-                return { prefix, name, sha, owner, repo };
-              },
-            );
-          },
-
-          refs($repository: any, fieldArgs: FieldArgs) {
-            const $refPrefix = fieldArgs.getRaw("refPrefix");
-            const $first = fieldArgs.getRaw("first");
-
-            return lambda(
-              object({
-                repository: $repository,
-                refPrefix: $refPrefix,
-                first: $first,
-              }),
-              async (args) => {
-                const { repository, refPrefix, first } = args as any;
-                if (!repository) {
-                  return { nodes: [], totalCount: 0 };
-                }
-
-                const owner = await getOwnerSlug(repository);
-                const repo = repository.slug;
-
-                const exists = await repositoryService.exists(owner, repo);
-                if (!exists) {
-                  return { nodes: [], totalCount: 0 };
-                }
-
-                let refs: RefData[] = [];
-
-                if (refPrefix === "refs/heads/") {
-                  const branches = await gitService.listBranches(owner, repo);
-                  refs = branches.map((b) => ({
-                    prefix: "refs/heads/",
-                    name: b.name,
-                    sha: b.sha,
-                    owner,
-                    repo,
-                  }));
-                } else if (refPrefix === "refs/tags/") {
-                  const tags = await gitService.listTags(owner, repo);
-                  refs = tags.map((t) => ({
-                    prefix: "refs/tags/",
-                    name: t.name,
-                    sha: t.sha,
-                    owner,
-                    repo,
-                  }));
-                }
-
-                const limited = refs.slice(0, first ?? 100);
-
-                return { nodes: limited, totalCount: refs.length };
-              },
-            );
-          },
-
-          defaultBranchRef($repository: any) {
-            return lambda($repository, async (repository) => {
-              const r = repository as any;
-              if (!r) return null;
-
-              const owner = await getOwnerSlug(r);
-              const repo = r.slug;
-              const defaultBranch = r.defaultBranch || "main";
-
-              const exists = await repositoryService.exists(owner, repo);
-              if (!exists) return null;
-
-              const sha = await gitService.resolveRef(
-                owner,
-                repo,
-                `refs/heads/${defaultBranch}`,
-              );
-              if (!sha) return null;
-
-              return {
-                prefix: "refs/heads/",
-                name: defaultBranch,
-                sha,
-                owner,
-                repo,
-              };
-            });
-          },
-
-          commit($repository: any, fieldArgs: FieldArgs) {
-            const $sha = fieldArgs.getRaw("sha");
-
-            return lambda(
-              object({ repository: $repository, sha: $sha }),
-              async (args) => {
-                const { repository, sha } = args as any;
-                if (!repository || !sha) return null;
-
-                const owner = await getOwnerSlug(repository);
-                const repo = repository.slug;
+          id: EXPORTABLE(
+            (lambda) => ($ref: any) => {
+              return lambda($ref, (ref) => {
+                const r = ref as { prefix: string; name: string } | null;
+                return r ? `${r.prefix}${r.name}` : null;
+              });
+            },
+            [lambda],
+          ),
+          name: EXPORTABLE(
+            (lambda) => ($ref: any) => {
+              return lambda($ref, (ref) => (ref as any)?.name ?? null);
+            },
+            [lambda],
+          ),
+          prefix: EXPORTABLE(
+            (lambda) => ($ref: any) => {
+              return lambda($ref, (ref) => (ref as any)?.prefix ?? null);
+            },
+            [lambda],
+          ),
+          target: EXPORTABLE(
+            (lambda, repositoryService, gitService) => ($ref: any) => {
+              return lambda($ref, async (ref) => {
+                const r = ref as RefData | null;
+                if (!r) return null;
+                const { owner, repo, sha } = r;
 
                 const exists = await repositoryService.exists(owner, repo);
                 if (!exists) return null;
@@ -743,65 +410,634 @@ const GitTypesPlugin = extendSchema((build) => {
                   committer: commit.committer,
                   parents: commit.parents,
                 };
+              });
+            },
+            [lambda, repositoryService, gitService],
+          ),
+        },
+      },
+
+      Commit: {
+        plans: {
+          oid: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda($commit, (commit) => (commit as any)?.oid ?? null);
+            },
+            [lambda],
+          ),
+          repository: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda($commit, (commit) => {
+                const c = commit as CommitData | null;
+                return c ? { owner: c.owner, repo: c.repo } : null;
+              });
+            },
+            [lambda],
+          ),
+          message: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda(
+                $commit,
+                (commit) => (commit as any)?.message ?? null,
+              );
+            },
+            [lambda],
+          ),
+          messageHeadline: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda(
+                $commit,
+                (commit) => (commit as any)?.message?.split("\n")[0] ?? "",
+              );
+            },
+            [lambda],
+          ),
+          author: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda(
+                $commit,
+                (commit) => (commit as any)?.author ?? null,
+              );
+            },
+            [lambda],
+          ),
+          committer: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda(
+                $commit,
+                (commit) => (commit as any)?.committer ?? null,
+              );
+            },
+            [lambda],
+          ),
+          authoredDate: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda($commit, (commit) => {
+                const c = commit as any;
+                return c?.author?.timestamp
+                  ? new Date(c.author.timestamp * 1000).toISOString()
+                  : null;
+              });
+            },
+            [lambda],
+          ),
+          committedDate: EXPORTABLE(
+            (lambda) => ($commit: any) => {
+              return lambda($commit, (commit) => {
+                const c = commit as any;
+                return c?.committer?.timestamp
+                  ? new Date(c.committer.timestamp * 1000).toISOString()
+                  : null;
+              });
+            },
+            [lambda],
+          ),
+          tree: EXPORTABLE(
+            (lambda, gitService) => ($commit: any) => {
+              return lambda($commit, async (commit) => {
+                const c = commit as CommitData | null;
+                if (!c) return null;
+                const { owner, repo, oid } = c;
+
+                const entries = await gitService.getTree(owner, repo, oid, "");
+
+                return {
+                  __typename: "Tree",
+                  owner,
+                  repo,
+                  oid,
+                  entries: entries.map((e) => ({
+                    ...e,
+                    name: e.path,
+                    path: e.path,
+                    owner,
+                    repo,
+                    commitOid: oid,
+                  })),
+                };
+              });
+            },
+            [lambda, gitService],
+          ),
+          parents: EXPORTABLE(
+            (lambda, gitService) => ($commit: any) => {
+              return lambda($commit, async (commit) => {
+                const c = commit as CommitData | null;
+                if (!c) return [];
+                const { owner, repo, parents } = c;
+
+                const parentCommits = [];
+                for (const parentSha of parents || []) {
+                  const parent = await gitService.getCommit(
+                    owner,
+                    repo,
+                    parentSha,
+                  );
+                  if (parent) {
+                    parentCommits.push({
+                      __typename: "Commit",
+                      owner,
+                      repo,
+                      oid: parent.sha,
+                      message: parent.message,
+                      author: parent.author,
+                      committer: parent.committer,
+                      parents: parent.parents,
+                    });
+                  }
+                }
+                return parentCommits;
+              });
+            },
+            [lambda, gitService],
+          ),
+          history: EXPORTABLE(
+            (lambda, object, gitService) =>
+              ($commit: any, fieldArgs: FieldArgs) => {
+                const $first = fieldArgs.getRaw("first");
+                const $offset = fieldArgs.getRaw("offset");
+
+                return lambda(
+                  object({ commit: $commit, first: $first, offset: $offset }),
+                  async (args) => {
+                    const { commit, first, offset } = args as any;
+                    const c = commit as CommitData | null;
+                    if (!c) return [];
+                    const { owner, repo, oid } = c;
+
+                    const commits = await gitService.getLog(owner, repo, oid, {
+                      depth: first ?? 20,
+                      skip: offset ?? 0,
+                    });
+
+                    return commits.map((cm) => ({
+                      __typename: "Commit",
+                      owner,
+                      repo,
+                      oid: cm.sha,
+                      message: cm.message,
+                      author: cm.author,
+                      committer: cm.committer,
+                      parents: cm.parents,
+                    }));
+                  },
+                );
               },
-            );
-          },
+            [lambda, object, gitService],
+          ),
+        },
+      },
+
+      Tree: {
+        plans: {
+          oid: EXPORTABLE(
+            (lambda) => ($tree: any) => {
+              return lambda($tree, (tree) => (tree as any)?.oid ?? null);
+            },
+            [lambda],
+          ),
+          repository: EXPORTABLE(
+            (lambda) => ($tree: any) => {
+              return lambda($tree, (tree) => {
+                const t = tree as any;
+                return t ? { owner: t.owner, repo: t.repo } : null;
+              });
+            },
+            [lambda],
+          ),
+          entries: EXPORTABLE(
+            (lambda) => ($tree: any) => {
+              return lambda($tree, (tree) => (tree as any)?.entries ?? []);
+            },
+            [lambda],
+          ),
+        },
+      },
+
+      TreeEntry: {
+        plans: {
+          name: EXPORTABLE(
+            (lambda) => ($entry: any) => {
+              return lambda($entry, (entry) => (entry as any)?.name ?? null);
+            },
+            [lambda],
+          ),
+          path: EXPORTABLE(
+            (lambda) => ($entry: any) => {
+              return lambda($entry, (entry) => (entry as any)?.path ?? null);
+            },
+            [lambda],
+          ),
+          type: EXPORTABLE(
+            (lambda) => ($entry: any) => {
+              return lambda($entry, (entry) => (entry as any)?.type ?? null);
+            },
+            [lambda],
+          ),
+          mode: EXPORTABLE(
+            (lambda) => ($entry: any) => {
+              return lambda($entry, (entry) => (entry as any)?.mode ?? null);
+            },
+            [lambda],
+          ),
+          oid: EXPORTABLE(
+            (lambda) => ($entry: any) => {
+              return lambda($entry, (entry) => (entry as any)?.oid ?? null);
+            },
+            [lambda],
+          ),
+          object: EXPORTABLE(
+            (lambda, gitService) => ($entry: any) => {
+              return lambda($entry, async (entry) => {
+                const e = entry as TreeEntryData | null;
+                if (!e) return null;
+                const { type, oid, owner, repo, commitOid, path } = e;
+
+                if (type === "tree") {
+                  const entries = await gitService.getTree(
+                    owner,
+                    repo,
+                    commitOid,
+                    path,
+                  );
+                  return {
+                    __typename: "Tree",
+                    owner,
+                    repo,
+                    oid,
+                    entries: entries.map((en) => ({
+                      ...en,
+                      name: en.path,
+                      path: `${path}/${en.path}`,
+                      owner,
+                      repo,
+                      commitOid,
+                    })),
+                  };
+                }
+
+                if (type === "blob") {
+                  const content = await gitService.getFileContent(
+                    owner,
+                    repo,
+                    commitOid,
+                    path,
+                  );
+                  const raw = await gitService.getFileRaw(
+                    owner,
+                    repo,
+                    commitOid,
+                    path,
+                  );
+
+                  const isBinary = content === null && raw !== null;
+                  const byteSize = raw?.length ?? 0;
+
+                  return {
+                    __typename: "Blob",
+                    owner,
+                    repo,
+                    oid,
+                    text: isBinary ? null : content,
+                    byteSize,
+                    isBinary,
+                  };
+                }
+
+                return null;
+              });
+            },
+            [lambda, gitService],
+          ),
+        },
+      },
+
+      Blob: {
+        plans: {
+          oid: EXPORTABLE(
+            (lambda) => ($blob: any) => {
+              return lambda($blob, (blob) => (blob as any)?.oid ?? null);
+            },
+            [lambda],
+          ),
+          repository: EXPORTABLE(
+            (lambda) => ($blob: any) => {
+              return lambda($blob, (blob) => {
+                const b = blob as any;
+                return b ? { owner: b.owner, repo: b.repo } : null;
+              });
+            },
+            [lambda],
+          ),
+          text: EXPORTABLE(
+            (lambda) => ($blob: any) => {
+              return lambda($blob, (blob) => (blob as any)?.text ?? null);
+            },
+            [lambda],
+          ),
+          byteSize: EXPORTABLE(
+            (lambda) => ($blob: any) => {
+              return lambda($blob, (blob) => (blob as any)?.byteSize ?? 0);
+            },
+            [lambda],
+          ),
+          isBinary: EXPORTABLE(
+            (lambda) => ($blob: any) => {
+              return lambda($blob, (blob) => (blob as any)?.isBinary ?? false);
+            },
+            [lambda],
+          ),
+        },
+      },
+
+      RefConnection: {
+        plans: {
+          nodes: EXPORTABLE(
+            (lambda) => ($conn: any) => {
+              return lambda($conn, (conn) => (conn as any)?.nodes ?? []);
+            },
+            [lambda],
+          ),
+          totalCount: EXPORTABLE(
+            (lambda) => ($conn: any) => {
+              return lambda($conn, (conn) => (conn as any)?.totalCount ?? 0);
+            },
+            [lambda],
+          ),
+        },
+      },
+
+      Repository: {
+        plans: {
+          ref: EXPORTABLE(
+            (
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ) =>
+              ($repository: any, fieldArgs: FieldArgs) => {
+                const $qualifiedName = fieldArgs.getRaw("qualifiedName");
+                const $db = context().get("db");
+
+                return lambda(
+                  object({
+                    repository: $repository,
+                    qualifiedName: $qualifiedName,
+                    db: $db,
+                  }),
+                  async (args) => {
+                    const { repository, qualifiedName, db } = args as any;
+                    if (!repository || !qualifiedName) return null;
+
+                    const owner = await getOwnerSlug(repository, db);
+                    if (!owner) return null;
+                    const repo = repository.slug;
+
+                    const exists = await repositoryService.exists(owner, repo);
+                    if (!exists) return null;
+
+                    let prefix: string;
+                    let name: string;
+
+                    if (qualifiedName.startsWith("refs/heads/")) {
+                      prefix = "refs/heads/";
+                      name = qualifiedName.slice(11);
+                    } else if (qualifiedName.startsWith("refs/tags/")) {
+                      prefix = "refs/tags/";
+                      name = qualifiedName.slice(10);
+                    } else {
+                      return null;
+                    }
+
+                    const sha = await gitService.resolveRef(
+                      owner,
+                      repo,
+                      qualifiedName,
+                    );
+                    if (!sha) return null;
+
+                    return { prefix, name, sha, owner, repo };
+                  },
+                );
+              },
+            [
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ],
+          ),
+
+          refs: EXPORTABLE(
+            (
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ) =>
+              ($repository: any, fieldArgs: FieldArgs) => {
+                const $refPrefix = fieldArgs.getRaw("refPrefix");
+                const $first = fieldArgs.getRaw("first");
+                const $db = context().get("db");
+
+                return lambda(
+                  object({
+                    repository: $repository,
+                    refPrefix: $refPrefix,
+                    first: $first,
+                    db: $db,
+                  }),
+                  async (args) => {
+                    const { repository, refPrefix, first, db } = args as any;
+                    if (!repository) {
+                      return { nodes: [], totalCount: 0 };
+                    }
+
+                    const owner = await getOwnerSlug(repository, db);
+                    if (!owner) {
+                      return { nodes: [], totalCount: 0 };
+                    }
+                    const repo = repository.slug;
+
+                    const exists = await repositoryService.exists(owner, repo);
+                    if (!exists) {
+                      return { nodes: [], totalCount: 0 };
+                    }
+
+                    let refs: Array<{
+                      prefix: string;
+                      name: string;
+                      sha: string;
+                      owner: string;
+                      repo: string;
+                    }> = [];
+
+                    if (refPrefix === "refs/heads/") {
+                      const branches = await gitService.listBranches(
+                        owner,
+                        repo,
+                      );
+                      refs = branches.map((b) => ({
+                        prefix: "refs/heads/",
+                        name: b.name,
+                        sha: b.sha,
+                        owner,
+                        repo,
+                      }));
+                    } else if (refPrefix === "refs/tags/") {
+                      const tags = await gitService.listTags(owner, repo);
+                      refs = tags.map((t) => ({
+                        prefix: "refs/tags/",
+                        name: t.name,
+                        sha: t.sha,
+                        owner,
+                        repo,
+                      }));
+                    }
+
+                    const limited = refs.slice(0, first ?? 100);
+
+                    return { nodes: limited, totalCount: refs.length };
+                  },
+                );
+              },
+            [
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ],
+          ),
+
+          defaultBranchRef: EXPORTABLE(
+            (
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ) =>
+              ($repository: any) => {
+                const $db = context().get("db");
+
+                return lambda(
+                  object({ repository: $repository, db: $db }),
+                  async (args) => {
+                    const { repository, db } = args as any;
+                    const r = repository as any;
+                    if (!r) return null;
+
+                    const owner = await getOwnerSlug(r, db);
+                    if (!owner) return null;
+                    const repo = r.slug;
+                    const defaultBranch = r.defaultBranch || "master";
+
+                    const exists = await repositoryService.exists(owner, repo);
+                    if (!exists) return null;
+
+                    const sha = await gitService.resolveRef(
+                      owner,
+                      repo,
+                      `refs/heads/${defaultBranch}`,
+                    );
+                    if (!sha) return null;
+
+                    return {
+                      prefix: "refs/heads/",
+                      name: defaultBranch,
+                      sha,
+                      owner,
+                      repo,
+                    };
+                  },
+                );
+              },
+            [
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ],
+          ),
+
+          commit: EXPORTABLE(
+            (
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ) =>
+              ($repository: any, fieldArgs: FieldArgs) => {
+                const $sha = fieldArgs.getRaw("sha");
+                const $db = context().get("db");
+
+                return lambda(
+                  object({ repository: $repository, sha: $sha, db: $db }),
+                  async (args) => {
+                    const { repository, sha, db } = args as any;
+                    if (!repository || !sha) return null;
+
+                    const owner = await getOwnerSlug(repository, db);
+                    if (!owner) return null;
+                    const repo = repository.slug;
+
+                    const exists = await repositoryService.exists(owner, repo);
+                    if (!exists) return null;
+
+                    const commit = await gitService.getCommit(owner, repo, sha);
+                    if (!commit) return null;
+
+                    return {
+                      __typename: "Commit",
+                      owner,
+                      repo,
+                      oid: commit.sha,
+                      message: commit.message,
+                      author: commit.author,
+                      committer: commit.committer,
+                      parents: commit.parents,
+                    };
+                  },
+                );
+              },
+            [
+              lambda,
+              object,
+              context,
+              getOwnerSlug,
+              repositoryService,
+              gitService,
+            ],
+          ),
         },
       },
     },
 
     interfaces: {
       GitObject: {
-        resolveType(obj: any) {
-          return (obj as any)?.__typename ?? null;
-        },
+        resolveType: EXPORTABLE(
+          () => (obj: any) => {
+            return (obj as any)?.__typename ?? null;
+          },
+          [],
+        ),
       },
     },
   };
 });
-
-// Helper to get owner slug from repository
-async function getOwnerSlug(repository: any): Promise<string> {
-  if (repository.organization?.slug) {
-    return repository.organization.slug;
-  }
-  if (repository.owner?.username) {
-    return repository.owner.username;
-  }
-  if (repository.owner?.slug) {
-    return repository.owner.slug;
-  }
-  return repository.ownerId;
-}
-
-// Type definitions for internal data structures
-interface RefData {
-  prefix: string;
-  name: string;
-  sha: string;
-  owner: string;
-  repo: string;
-}
-
-interface CommitData {
-  owner: string;
-  repo: string;
-  oid: string;
-  message: string;
-  author: { name: string; email: string; timestamp: number };
-  committer: { name: string; email: string; timestamp: number };
-  parents: string[];
-}
-
-interface TreeEntryData {
-  name: string;
-  path: string;
-  type: "blob" | "tree" | "commit";
-  mode: string;
-  oid: string;
-  owner: string;
-  repo: string;
-  commitOid: string;
-}
 
 export default GitTypesPlugin;

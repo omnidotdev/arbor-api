@@ -23,6 +23,175 @@ import {
  */
 const gitRoutes = new Elysia({ prefix: "/git" })
   // ============================================================
+  // Repository Browsing API
+  // ============================================================
+
+  /**
+   * List branches for a repository.
+   * GET /:owner/:repo/branches
+   */
+  .get(
+    "/:owner/:repo/branches",
+    async ({ params, set }) => {
+      const { owner, repo } = params;
+
+      const exists = await repositoryService.exists(owner, repo);
+      if (!exists) {
+        set.status = 404;
+        return { error: "Repository not found" };
+      }
+
+      const branches = await gitService.listBranches(owner, repo);
+      return branches;
+    },
+    {
+      params: t.Object({
+        owner: t.String(),
+        repo: t.String(),
+      }),
+    },
+  )
+
+  /**
+   * Get commit log for a ref.
+   * GET /:owner/:repo/commits/:ref
+   */
+  .get(
+    "/:owner/:repo/commits/:ref",
+    async ({ params, query, set }) => {
+      const { owner, repo, ref } = params;
+      const page = Number(query.page) || 1;
+      const limit = Math.min(Number(query.limit) || 20, 100);
+      const skip = (page - 1) * limit;
+
+      const exists = await repositoryService.exists(owner, repo);
+      if (!exists) {
+        set.status = 404;
+        return { error: "Repository not found" };
+      }
+
+      const commits = await gitService.getLog(owner, repo, ref, {
+        depth: limit,
+        skip,
+      });
+
+      return commits;
+    },
+    {
+      params: t.Object({
+        owner: t.String(),
+        repo: t.String(),
+        ref: t.String(),
+      }),
+      query: t.Object({
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String()),
+      }),
+    },
+  )
+
+  /**
+   * Get tree (directory listing) at a ref and optional path.
+   * GET /:owner/:repo/tree/:ref
+   * GET /:owner/:repo/tree/:ref/*
+   */
+  .get(
+    "/:owner/:repo/tree/:ref",
+    async ({ params, set }) => {
+      const { owner, repo, ref } = params;
+
+      const exists = await repositoryService.exists(owner, repo);
+      if (!exists) {
+        set.status = 404;
+        return { error: "Repository not found" };
+      }
+
+      const tree = await gitService.getTree(owner, repo, ref, "");
+      return tree;
+    },
+    {
+      params: t.Object({
+        owner: t.String(),
+        repo: t.String(),
+        ref: t.String(),
+      }),
+    },
+  )
+
+  .get(
+    "/:owner/:repo/tree/:ref/*",
+    async ({ params, set }) => {
+      const { owner, repo, ref } = params;
+      const path = params["*"] || "";
+
+      const exists = await repositoryService.exists(owner, repo);
+      if (!exists) {
+        set.status = 404;
+        return { error: "Repository not found" };
+      }
+
+      const tree = await gitService.getTree(owner, repo, ref, path);
+      return tree;
+    },
+    {
+      params: t.Object({
+        owner: t.String(),
+        repo: t.String(),
+        ref: t.String(),
+        "*": t.String(),
+      }),
+    },
+  )
+
+  /**
+   * Get blob (file content) at a ref and path.
+   * GET /:owner/:repo/blob/:ref/*
+   */
+  .get(
+    "/:owner/:repo/blob/:ref/*",
+    async ({ params, set }) => {
+      const { owner, repo, ref } = params;
+      const path = params["*"] || "";
+
+      if (!path) {
+        set.status = 400;
+        return { error: "Path is required" };
+      }
+
+      const exists = await repositoryService.exists(owner, repo);
+      if (!exists) {
+        set.status = 404;
+        return { error: "Repository not found" };
+      }
+
+      const content = await gitService.getFileContent(owner, repo, ref, path);
+      const raw = await gitService.getFileRaw(owner, repo, ref, path);
+
+      if (content === null && raw === null) {
+        set.status = 404;
+        return { error: "File not found" };
+      }
+
+      const isBinary = content === null && raw !== null;
+
+      return {
+        content: isBinary ? null : content,
+        encoding: isBinary ? "base64" : "utf-8",
+        size: raw?.length ?? 0,
+        isBinary,
+      };
+    },
+    {
+      params: t.Object({
+        owner: t.String(),
+        repo: t.String(),
+        ref: t.String(),
+        "*": t.String(),
+      }),
+    },
+  )
+
+  // ============================================================
   // Raw File Downloads (Binary)
   // ============================================================
 
