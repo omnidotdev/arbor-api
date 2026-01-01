@@ -1,7 +1,8 @@
 import { spawn } from "node:child_process";
-import { Readable } from "node:stream";
 
 import { getRepositoryPath } from "./storage.config";
+
+import type { Readable } from "node:stream";
 
 /**
  * Git Smart HTTP Protocol Service.
@@ -18,7 +19,9 @@ export type GitService = "git-upload-pack" | "git-receive-pack";
 /**
  * Validate and parse git service name from query parameter.
  */
-export function parseGitService(service: string | undefined): GitService | null {
+export function parseGitService(
+  service: string | undefined,
+): GitService | null {
   if (service === "git-upload-pack" || service === "git-receive-pack") {
     return service;
   }

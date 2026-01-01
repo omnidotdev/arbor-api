@@ -14,7 +14,11 @@ import {
   SmartTagPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
-import { GitMutationsPlugin, GitTypesPlugin } from "lib/graphql/plugins/git";
+import {
+  GitMutationsPlugin,
+  GitTypesPlugin,
+  RepositoryCreatePlugin,
+} from "lib/graphql/plugins/git";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
 /**
@@ -39,6 +43,7 @@ const graphilePreset: GraphileConfig.Preset = {
     // Git GraphQL types and mutations
     GitTypesPlugin,
     GitMutationsPlugin,
+    RepositoryCreatePlugin,
   ],
   disablePlugins: ["PgIndexBehaviorsPlugin"],
   schema: {

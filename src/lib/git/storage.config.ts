@@ -6,14 +6,13 @@ import { join } from "node:path";
  */
 export const gitStorageConfig = {
   /** Base path for all git repositories */
-  repositoriesPath:
-    process.env.GIT_REPOS_PATH || "/var/lib/arbor/repos",
+  repositoriesPath: process.env.GIT_REPOS_PATH || "/var/lib/arbor/repos",
 
   /** Maximum repository size in bytes (default: 1GB) */
   maxRepoSize: Number(process.env.GIT_MAX_REPO_SIZE) || 1024 * 1024 * 1024,
 
   /** Default branch name for new repositories */
-  defaultBranch: process.env.GIT_DEFAULT_BRANCH || "main",
+  defaultBranch: process.env.GIT_DEFAULT_BRANCH || "master",
 };
 
 /**

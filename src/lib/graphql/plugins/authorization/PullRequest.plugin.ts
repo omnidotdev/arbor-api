@@ -91,7 +91,11 @@ const validatePullRequestPermissions = (
           if (scope === "create") {
             const repositoryId = (input as InsertPullRequest).repositoryId;
 
-            const canWrite = await hasWriteAccess(db, repositoryId, observer.id);
+            const canWrite = await hasWriteAccess(
+              db,
+              repositoryId,
+              observer.id,
+            );
             if (!canWrite) throw new Error("Unauthorized");
           } else {
             // Update or delete - get the PR first

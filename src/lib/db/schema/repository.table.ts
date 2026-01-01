@@ -40,7 +40,7 @@ export const repositoryTable = pgTable(
     slug: text().notNull(),
     description: text(),
     visibility: visibility().notNull().default("public"),
-    defaultBranch: text().notNull().default("main"),
+    defaultBranch: text().notNull().default("master"),
     createdAt: generateDefaultDate(),
     updatedAt: generateDefaultDate(),
   },
