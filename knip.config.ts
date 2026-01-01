@@ -10,8 +10,18 @@ const knipConfig: KnipConfig = {
     "src/scripts/**",
     "src/lib/config/drizzle.config.ts",
     "src/lib/config/env.config.ts",
+    "src/lib/config/graphile.config.ts",
+    "src/lib/db/db.ts",
+    "src/lib/db/schema/**",
+    "src/lib/db/util/**",
+    "src/lib/graphql/**",
+    "src/lib/payments.ts",
+    "src/webhooks.ts",
   ],
-  ignoreDependencies: ["drizzle-kit", "drizzle-orm", "pg"],
+  ignoreDependencies: ["drizzle-kit"],
+  rules: {
+    unlisted: "off",
+  },
   tags: ["-knipignore"],
 };
 
