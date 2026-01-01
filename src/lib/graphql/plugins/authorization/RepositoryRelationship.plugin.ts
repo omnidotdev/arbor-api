@@ -1,0 +1,253 @@
+import { EXPORTABLE } from "graphile-export";
+import { context, sideEffect } from "postgraphile/grafast";
+import { wrapPlans } from "postgraphile/utils";
+
+import type { InsertRepositoryRelationship } from "lib/db/schema";
+import type { PlanWrapperFn } from "postgraphile/utils";
+import type { MutationScope } from "./types";
+
+/**
+ * Check if user has write access to a repository.
+ */
+const hasWriteAccess = async (
+  db: any,
+  repositoryId: string,
+  userId: string,
+): Promise<boolean> => {
+  const repository = await db.query.repositoryTable.findFirst({
+    where: (table: any, { eq }: any) => eq(table.id, repositoryId),
+    with: {
+      collaborators: {
+        where: (table: any, { eq }: any) => eq(table.userId, userId),
+      },
+    },
+  });
+
+  if (!repository) return false;
+
+  const isOwner = repository.ownerId === userId;
+  const collaborator = repository.collaborators[0];
+  const hasWritePermission =
+    collaborator?.permission === "write" ||
+    collaborator?.permission === "admin";
+
+  return isOwner || hasWritePermission;
+};
+
+/**
+ * Validate repository relationship permissions.
+ *
+ * - Create: Requires write access to source repository
+ * - Update: Requires write access to source repository
+ * - Delete: Requires write access to source repository
+ */
+const validatePermissions = (propName: string, scope: MutationScope) =>
+  EXPORTABLE(
+    (context, sideEffect, propName, scope, hasWriteAccess): PlanWrapperFn =>
+      (plan, _, fieldArgs) => {
+        const $input = fieldArgs.getRaw(["input", propName]);
+        const $observer = context().get("observer");
+        const $db = context().get("db");
+
+        sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
+          if (!observer) throw new Error("Unauthorized");
+
+          if (scope === "create") {
+            const { sourceRepositoryId } =
+              input as InsertRepositoryRelationship;
+
+            if (!sourceRepositoryId) throw new Error("Unauthorized");
+
+            const canWrite = await hasWriteAccess(
+              db,
+              sourceRepositoryId,
+              observer.id,
+            );
+            if (!canWrite) throw new Error("Unauthorized");
+          } else {
+            // Update or delete - fetch the relationship first
+            const relationship =
+              await db.query.repositoryRelationshipTable.findFirst({
+                where: (table: any, { eq }: any) => eq(table.id, input),
+              });
+
+            if (!relationship) throw new Error("Unauthorized");
+
+            const canWrite = await hasWriteAccess(
+              db,
+              relationship.sourceRepositoryId,
+              observer.id,
+            );
+            if (!canWrite) throw new Error("Unauthorized");
+          }
+        });
+
+        return plan();
+      },
+    [context, sideEffect, propName, scope, hasWriteAccess],
+  );
+
+/**
+ * Validate repository relationship type permissions.
+ *
+ * - Create: Any authenticated user can create org-specific types (if admin+ in org)
+ * - Update: Admin+ in organization
+ * - Delete: Admin+ in organization
+ */
+const validateTypePermissions = (propName: string, scope: MutationScope) =>
+  EXPORTABLE(
+    (context, sideEffect, propName, scope): PlanWrapperFn =>
+      (plan, _, fieldArgs) => {
+        const $input = fieldArgs.getRaw(["input", propName]);
+        const $observer = context().get("observer");
+        const $db = context().get("db");
+
+        sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
+          if (!observer) throw new Error("Unauthorized");
+
+          if (scope === "create") {
+            const { organizationId } = input as { organizationId?: string };
+
+            // System-wide types can only be created by system (blocked)
+            if (!organizationId) throw new Error("Unauthorized");
+
+            const orgMember = await db.query.organizationMemberTable.findFirst({
+              where: (table: any, { and, eq }: any) =>
+                and(
+                  eq(table.organizationId, organizationId),
+                  eq(table.userId, observer.id),
+                ),
+            });
+
+            if (!orgMember) throw new Error("Unauthorized");
+            if (orgMember.role !== "admin" && orgMember.role !== "owner")
+              throw new Error("Unauthorized");
+          } else {
+            // Update or delete
+            const relType =
+              await db.query.repositoryRelationshipTypeTable.findFirst({
+                where: (table: any, { eq }: any) => eq(table.id, input),
+              });
+
+            if (!relType) throw new Error("Unauthorized");
+
+            // System-wide types cannot be modified
+            if (!relType.organizationId) throw new Error("Unauthorized");
+
+            const orgMember = await db.query.organizationMemberTable.findFirst({
+              where: (table: any, { and, eq }: any) =>
+                and(
+                  eq(table.organizationId, relType.organizationId),
+                  eq(table.userId, observer.id),
+                ),
+            });
+
+            if (!orgMember) throw new Error("Unauthorized");
+            if (orgMember.role !== "admin" && orgMember.role !== "owner")
+              throw new Error("Unauthorized");
+          }
+        });
+
+        return plan();
+      },
+    [context, sideEffect, propName, scope],
+  );
+
+/**
+ * Validate external dependency permissions.
+ *
+ * - Create: Requires write access to repository
+ * - Update: Requires write access to repository
+ * - Delete: Requires write access to repository
+ */
+const validateExternalDependencyPermissions = (
+  propName: string,
+  scope: MutationScope,
+) =>
+  EXPORTABLE(
+    (context, sideEffect, propName, scope, hasWriteAccess): PlanWrapperFn =>
+      (plan, _, fieldArgs) => {
+        const $input = fieldArgs.getRaw(["input", propName]);
+        const $observer = context().get("observer");
+        const $db = context().get("db");
+
+        sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
+          if (!observer) throw new Error("Unauthorized");
+
+          if (scope === "create") {
+            const { repositoryId } = input as { repositoryId: string };
+
+            if (!repositoryId) throw new Error("Unauthorized");
+
+            const canWrite = await hasWriteAccess(
+              db,
+              repositoryId,
+              observer.id,
+            );
+            if (!canWrite) throw new Error("Unauthorized");
+          } else {
+            // Update or delete
+            const dep = await db.query.externalDependencyTable.findFirst({
+              where: (table: any, { eq }: any) => eq(table.id, input),
+            });
+
+            if (!dep) throw new Error("Unauthorized");
+
+            const canWrite = await hasWriteAccess(
+              db,
+              dep.repositoryId,
+              observer.id,
+            );
+            if (!canWrite) throw new Error("Unauthorized");
+          }
+        });
+
+        return plan();
+      },
+    [context, sideEffect, propName, scope, hasWriteAccess],
+  );
+
+/**
+ * Authorization plugin for repository relationships.
+ */
+const RepositoryRelationshipPlugin = wrapPlans({
+  Mutation: {
+    // Repository relationships
+    createRepositoryRelationship: validatePermissions(
+      "repositoryRelationship",
+      "create",
+    ),
+    updateRepositoryRelationship: validatePermissions("rowId", "update"),
+    deleteRepositoryRelationship: validatePermissions("rowId", "delete"),
+
+    // Relationship types
+    createRepositoryRelationshipType: validateTypePermissions(
+      "repositoryRelationshipType",
+      "create",
+    ),
+    updateRepositoryRelationshipType: validateTypePermissions(
+      "rowId",
+      "update",
+    ),
+    deleteRepositoryRelationshipType: validateTypePermissions(
+      "rowId",
+      "delete",
+    ),
+
+    // External dependencies
+    createExternalDependency: validateExternalDependencyPermissions(
+      "externalDependency",
+      "create",
+    ),
+    updateExternalDependency: validateExternalDependencyPermissions(
+      "rowId",
+      "update",
+    ),
+    deleteExternalDependency: validateExternalDependencyPermissions(
+      "rowId",
+      "delete",
+    ),
+  },
+});
+
+export default RepositoryRelationshipPlugin;

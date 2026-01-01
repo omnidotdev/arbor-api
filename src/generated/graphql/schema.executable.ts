@@ -79,6 +79,89 @@ const executor = new PgExecutor({
     });
   }
 });
+const repositoryRelationshipMetadataIdentifier = sql.identifier("public", "repository_relationship_metadata");
+const spec_repositoryRelationshipMetadata = {
+  name: "repositoryRelationshipMetadata",
+  identifier: repositoryRelationshipMetadataIdentifier,
+  attributes: {
+    __proto__: null,
+    id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    relationship_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    key: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    value: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    created_at: {
+      description: undefined,
+      codec: TYPES.timestamptz,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    }
+  },
+  description: undefined,
+  extensions: {
+    oid: "179507",
+    isTableLike: true,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "repository_relationship_metadata"
+    },
+    tags: {
+      __proto__: null
+    }
+  },
+  executor: executor
+};
+const repositoryRelationshipMetadataCodec = recordCodec(spec_repositoryRelationshipMetadata);
 const organizationMemberIdentifier = sql.identifier("public", "organization_member");
 const roleCodec = enumCodec({
   name: "role",
@@ -283,6 +366,225 @@ const spec_repositoryCollaborator = {
   executor: executor
 };
 const repositoryCollaboratorCodec = recordCodec(spec_repositoryCollaborator);
+const externalDependencyIdentifier = sql.identifier("public", "external_dependency");
+const detectionSourceCodec = enumCodec({
+  name: "detectionSource",
+  identifier: sql.identifier("public", "detection_source"),
+  values: ["manual", "package_json", "go_mod", "cargo_toml", "arbor_manifest", "openapi", "graphql_schema"],
+  description: undefined,
+  extensions: {
+    oid: "179626",
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "detection_source"
+    },
+    tags: {
+      __proto__: null
+    }
+  }
+});
+const spec_externalDependency = {
+  name: "externalDependency",
+  identifier: externalDependencyIdentifier,
+  attributes: {
+    __proto__: null,
+    id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    repository_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    package_manager: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    package_name: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    version_constraint: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    detection_source: {
+      description: undefined,
+      codec: detectionSourceCodec,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    created_at: {
+      description: undefined,
+      codec: TYPES.timestamptz,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    }
+  },
+  description: undefined,
+  extensions: {
+    oid: "179491",
+    isTableLike: true,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "external_dependency"
+    },
+    tags: {
+      __proto__: null
+    }
+  },
+  executor: executor
+};
+const externalDependencyCodec = recordCodec(spec_externalDependency);
+const repositoryRelationshipTypeIdentifier = sql.identifier("public", "repository_relationship_type");
+const spec_repositoryRelationshipType = {
+  name: "repositoryRelationshipType",
+  identifier: repositoryRelationshipTypeIdentifier,
+  attributes: {
+    __proto__: null,
+    id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    name: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    description: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    is_directed: {
+      description: undefined,
+      codec: TYPES.boolean,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    organization_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    created_at: {
+      description: undefined,
+      codec: TYPES.timestamptz,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    }
+  },
+  description: undefined,
+  extensions: {
+    oid: "179541",
+    isTableLike: true,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "repository_relationship_type"
+    },
+    tags: {
+      __proto__: null
+    }
+  },
+  executor: executor
+};
+const repositoryRelationshipTypeCodec = recordCodec(spec_repositoryRelationshipType);
 const userIdentifier = sql.identifier("public", "user");
 const spec_user = {
   name: "user",
@@ -740,6 +1042,185 @@ const spec_repository = {
   executor: executor
 };
 const repositoryCodec = recordCodec(spec_repository);
+const repositoryRelationshipIdentifier = sql.identifier("public", "repository_relationship");
+const spec_repositoryRelationship = {
+  name: "repositoryRelationship",
+  identifier: repositoryRelationshipIdentifier,
+  attributes: {
+    __proto__: null,
+    id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    source_repository_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    target_repository_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    relationship_type_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    detection_source: {
+      description: undefined,
+      codec: detectionSourceCodec,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    confidence: {
+      description: undefined,
+      codec: TYPES.float4,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    version_constraint: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    branch: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    created_at: {
+      description: undefined,
+      codec: TYPES.timestamptz,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    updated_at: {
+      description: undefined,
+      codec: TYPES.timestamptz,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    }
+  },
+  description: undefined,
+  extensions: {
+    oid: "179521",
+    isTableLike: true,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "repository_relationship"
+    },
+    tags: {
+      __proto__: null
+    }
+  },
+  executor: executor
+};
+const repositoryRelationshipCodec = recordCodec(spec_repositoryRelationship);
+const repository_relationship_metadataUniques = [{
+  isPrimary: true,
+  attributes: ["id"],
+  description: undefined,
+  extensions: {
+    tags: {
+      __proto__: null
+    }
+  }
+}];
+const registryConfig_pgResources_repository_relationship_metadata_repository_relationship_metadata = {
+  executor: executor,
+  name: "repository_relationship_metadata",
+  identifier: "main.public.repository_relationship_metadata",
+  from: repositoryRelationshipMetadataIdentifier,
+  codec: repositoryRelationshipMetadataCodec,
+  uniques: repository_relationship_metadataUniques,
+  isVirtual: false,
+  description: undefined,
+  extensions: {
+    description: undefined,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "repository_relationship_metadata"
+    },
+    isInsertable: true,
+    isUpdatable: true,
+    isDeletable: true,
+    tags: {},
+    canSelect: true,
+    canInsert: true,
+    canUpdate: true,
+    canDelete: true
+  }
+};
 const organization_memberUniques = [{
   isPrimary: true,
   attributes: ["organization_id", "user_id"],
@@ -801,6 +1282,78 @@ const registryConfig_pgResources_repository_collaborator_repository_collaborator
       serviceName: "main",
       schemaName: "public",
       name: "repository_collaborator"
+    },
+    isInsertable: true,
+    isUpdatable: true,
+    isDeletable: true,
+    tags: {},
+    canSelect: true,
+    canInsert: true,
+    canUpdate: true,
+    canDelete: true
+  }
+};
+const external_dependencyUniques = [{
+  isPrimary: true,
+  attributes: ["id"],
+  description: undefined,
+  extensions: {
+    tags: {
+      __proto__: null
+    }
+  }
+}];
+const registryConfig_pgResources_external_dependency_external_dependency = {
+  executor: executor,
+  name: "external_dependency",
+  identifier: "main.public.external_dependency",
+  from: externalDependencyIdentifier,
+  codec: externalDependencyCodec,
+  uniques: external_dependencyUniques,
+  isVirtual: false,
+  description: undefined,
+  extensions: {
+    description: undefined,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "external_dependency"
+    },
+    isInsertable: true,
+    isUpdatable: true,
+    isDeletable: true,
+    tags: {},
+    canSelect: true,
+    canInsert: true,
+    canUpdate: true,
+    canDelete: true
+  }
+};
+const repository_relationship_typeUniques = [{
+  isPrimary: true,
+  attributes: ["id"],
+  description: undefined,
+  extensions: {
+    tags: {
+      __proto__: null
+    }
+  }
+}];
+const registryConfig_pgResources_repository_relationship_type_repository_relationship_type = {
+  executor: executor,
+  name: "repository_relationship_type",
+  identifier: "main.public.repository_relationship_type",
+  from: repositoryRelationshipTypeIdentifier,
+  codec: repositoryRelationshipTypeCodec,
+  uniques: repository_relationship_typeUniques,
+  isVirtual: false,
+  description: undefined,
+  extensions: {
+    description: undefined,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "repository_relationship_type"
     },
     isInsertable: true,
     isUpdatable: true,
@@ -960,6 +1513,42 @@ const registryConfig_pgResources_organization_organization = {
     canDelete: true
   }
 };
+const repository_relationshipUniques = [{
+  isPrimary: true,
+  attributes: ["id"],
+  description: undefined,
+  extensions: {
+    tags: {
+      __proto__: null
+    }
+  }
+}];
+const registryConfig_pgResources_repository_relationship_repository_relationship = {
+  executor: executor,
+  name: "repository_relationship",
+  identifier: "main.public.repository_relationship",
+  from: repositoryRelationshipIdentifier,
+  codec: repositoryRelationshipCodec,
+  uniques: repository_relationshipUniques,
+  isVirtual: false,
+  description: undefined,
+  extensions: {
+    description: undefined,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "repository_relationship"
+    },
+    isInsertable: true,
+    isUpdatable: true,
+    isDeletable: true,
+    tags: {},
+    canSelect: true,
+    canInsert: true,
+    canUpdate: true,
+    canDelete: true
+  }
+};
 const registryConfig = {
   pgExecutors: {
     __proto__: null,
@@ -967,29 +1556,58 @@ const registryConfig = {
   },
   pgCodecs: {
     __proto__: null,
-    organizationMember: organizationMemberCodec,
+    repositoryRelationshipMetadata: repositoryRelationshipMetadataCodec,
     uuid: TYPES.uuid,
-    role: roleCodec,
+    text: TYPES.text,
     timestamptz: TYPES.timestamptz,
+    organizationMember: organizationMemberCodec,
+    role: roleCodec,
     repositoryCollaborator: repositoryCollaboratorCodec,
     permission: permissionCodec,
+    externalDependency: externalDependencyCodec,
+    detectionSource: detectionSourceCodec,
+    repositoryRelationshipType: repositoryRelationshipTypeCodec,
+    bool: TYPES.boolean,
     user: userCodec,
-    text: TYPES.text,
     visibility: visibilityCodec,
     tier: tierCodec,
+    float4: TYPES.float4,
     organization: organizationCodec,
-    repository: repositoryCodec
+    repository: repositoryCodec,
+    repositoryRelationship: repositoryRelationshipCodec
   },
   pgResources: {
     __proto__: null,
+    repository_relationship_metadata: registryConfig_pgResources_repository_relationship_metadata_repository_relationship_metadata,
     organization_member: registryConfig_pgResources_organization_member_organization_member,
     repository_collaborator: registryConfig_pgResources_repository_collaborator_repository_collaborator,
+    external_dependency: registryConfig_pgResources_external_dependency_external_dependency,
+    repository_relationship_type: registryConfig_pgResources_repository_relationship_type_repository_relationship_type,
     user: registryConfig_pgResources_user_user,
     repository: registryConfig_pgResources_repository_repository,
-    organization: registryConfig_pgResources_organization_organization
+    organization: registryConfig_pgResources_organization_organization,
+    repository_relationship: registryConfig_pgResources_repository_relationship_repository_relationship
   },
   pgRelations: {
     __proto__: null,
+    externalDependency: {
+      __proto__: null,
+      repositoryByMyRepositoryId: {
+        localCodec: externalDependencyCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_repository,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["repository_id"],
+        remoteAttributes: ["id"],
+        isUnique: true,
+        isReferencee: false,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      }
+    },
     organization: {
       __proto__: null,
       organizationMembersByTheirOrganizationId: {
@@ -1010,6 +1628,21 @@ const registryConfig = {
       repositoriesByTheirOrganizationId: {
         localCodec: organizationCodec,
         remoteResourceOptions: registryConfig_pgResources_repository_repository,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["id"],
+        remoteAttributes: ["organization_id"],
+        isUnique: false,
+        isReferencee: true,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      },
+      repositoryRelationshipTypesByTheirOrganizationId: {
+        localCodec: organizationCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_relationship_type_repository_relationship_type,
         localCodecPolymorphicTypes: undefined,
         localAttributes: ["id"],
         remoteAttributes: ["organization_id"],
@@ -1102,6 +1735,51 @@ const registryConfig = {
             behavior: []
           }
         }
+      },
+      externalDependenciesByTheirRepositoryId: {
+        localCodec: repositoryCodec,
+        remoteResourceOptions: registryConfig_pgResources_external_dependency_external_dependency,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["id"],
+        remoteAttributes: ["repository_id"],
+        isUnique: false,
+        isReferencee: true,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      },
+      repositoryRelationshipsByTheirSourceRepositoryId: {
+        localCodec: repositoryCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_relationship_repository_relationship,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["id"],
+        remoteAttributes: ["source_repository_id"],
+        isUnique: false,
+        isReferencee: true,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      },
+      repositoryRelationshipsByTheirTargetRepositoryId: {
+        localCodec: repositoryCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_relationship_repository_relationship,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["id"],
+        remoteAttributes: ["target_repository_id"],
+        isUnique: false,
+        isReferencee: true,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
       }
     },
     repositoryCollaborator: {
@@ -1129,6 +1807,120 @@ const registryConfig = {
         remoteAttributes: ["id"],
         isUnique: true,
         isReferencee: false,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      }
+    },
+    repositoryRelationship: {
+      __proto__: null,
+      repositoryRelationshipTypeByMyRelationshipTypeId: {
+        localCodec: repositoryRelationshipCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_relationship_type_repository_relationship_type,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["relationship_type_id"],
+        remoteAttributes: ["id"],
+        isUnique: true,
+        isReferencee: false,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      },
+      repositoryByMySourceRepositoryId: {
+        localCodec: repositoryRelationshipCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_repository,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["source_repository_id"],
+        remoteAttributes: ["id"],
+        isUnique: true,
+        isReferencee: false,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      },
+      repositoryByMyTargetRepositoryId: {
+        localCodec: repositoryRelationshipCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_repository,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["target_repository_id"],
+        remoteAttributes: ["id"],
+        isUnique: true,
+        isReferencee: false,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      },
+      repositoryRelationshipMetadataByTheirRelationshipId: {
+        localCodec: repositoryRelationshipCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_relationship_metadata_repository_relationship_metadata,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["id"],
+        remoteAttributes: ["relationship_id"],
+        isUnique: false,
+        isReferencee: true,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      }
+    },
+    repositoryRelationshipMetadata: {
+      __proto__: null,
+      repositoryRelationshipByMyRelationshipId: {
+        localCodec: repositoryRelationshipMetadataCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_relationship_repository_relationship,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["relationship_id"],
+        remoteAttributes: ["id"],
+        isUnique: true,
+        isReferencee: false,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      }
+    },
+    repositoryRelationshipType: {
+      __proto__: null,
+      organizationByMyOrganizationId: {
+        localCodec: repositoryRelationshipTypeCodec,
+        remoteResourceOptions: registryConfig_pgResources_organization_organization,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["organization_id"],
+        remoteAttributes: ["id"],
+        isUnique: true,
+        isReferencee: false,
+        description: undefined,
+        extensions: {
+          tags: {
+            behavior: []
+          }
+        }
+      },
+      repositoryRelationshipsByTheirRelationshipTypeId: {
+        localCodec: repositoryRelationshipTypeCodec,
+        remoteResourceOptions: registryConfig_pgResources_repository_relationship_repository_relationship,
+        localCodecPolymorphicTypes: undefined,
+        localAttributes: ["id"],
+        remoteAttributes: ["relationship_type_id"],
+        isUnique: false,
+        isReferencee: true,
         description: undefined,
         extensions: {
           tags: {
@@ -1188,11 +1980,58 @@ const registryConfig = {
   }
 };
 const registry = makeRegistry(registryConfig);
+const resource_repository_relationship_metadataPgResource = registry.pgResources["repository_relationship_metadata"];
 const resource_organization_memberPgResource = registry.pgResources["organization_member"];
 const resource_repository_collaboratorPgResource = registry.pgResources["repository_collaborator"];
+const resource_external_dependencyPgResource = registry.pgResources["external_dependency"];
+const resource_repository_relationship_typePgResource = registry.pgResources["repository_relationship_type"];
 const resource_userPgResource = registry.pgResources["user"];
 const resource_repositoryPgResource = registry.pgResources["repository"];
 const resource_organizationPgResource = registry.pgResources["organization"];
+const resource_repository_relationshipPgResource = registry.pgResources["repository_relationship"];
+const nodeIdHandler_RepositoryRelationshipMetadatum = {
+  typeName: "RepositoryRelationshipMetadatum",
+  codec: nodeIdCodecs_base64JSON_base64JSON,
+  deprecationReason: undefined,
+  plan($record) {
+    return list([constant("RepositoryRelationshipMetadatum", false), $record.get("id")]);
+  },
+  getSpec($list) {
+    return {
+      id: inhibitOnNull(access($list, [1]))
+    };
+  },
+  getIdentifiers(value) {
+    return value.slice(1);
+  },
+  get(spec) {
+    return resource_repository_relationship_metadataPgResource.get(spec);
+  },
+  match(obj) {
+    return obj[0] === "RepositoryRelationshipMetadatum";
+  }
+};
+const specForHandlerCache = new Map();
+function specForHandler(handler) {
+  const existing = specForHandlerCache.get(handler);
+  if (existing) return existing;
+  function spec(nodeId) {
+    if (nodeId == null) return null;
+    try {
+      const specifier = handler.codec.decode(nodeId);
+      if (handler.match(specifier)) return specifier;
+    } catch {}
+    return null;
+  }
+  spec.displayName = `specifier_${handler.typeName}_${handler.codec.name}`;
+  spec.isSyncAndSafe = !0;
+  specForHandlerCache.set(handler, spec);
+  return spec;
+}
+const nodeFetcher_RepositoryRelationshipMetadatum = $nodeId => {
+  const $decoded = lambda($nodeId, specForHandler(nodeIdHandler_RepositoryRelationshipMetadatum));
+  return nodeIdHandler_RepositoryRelationshipMetadatum.get(nodeIdHandler_RepositoryRelationshipMetadatum.getSpec($decoded));
+};
 const nodeIdHandler_OrganizationMember = {
   typeName: "OrganizationMember",
   codec: nodeIdCodecs_base64JSON_base64JSON,
@@ -1216,23 +2055,6 @@ const nodeIdHandler_OrganizationMember = {
     return obj[0] === "OrganizationMember";
   }
 };
-const specForHandlerCache = new Map();
-function specForHandler(handler) {
-  const existing = specForHandlerCache.get(handler);
-  if (existing) return existing;
-  function spec(nodeId) {
-    if (nodeId == null) return null;
-    try {
-      const specifier = handler.codec.decode(nodeId);
-      if (handler.match(specifier)) return specifier;
-    } catch {}
-    return null;
-  }
-  spec.displayName = `specifier_${handler.typeName}_${handler.codec.name}`;
-  spec.isSyncAndSafe = !0;
-  specForHandlerCache.set(handler, spec);
-  return spec;
-}
 const nodeFetcher_OrganizationMember = $nodeId => {
   const $decoded = lambda($nodeId, specForHandler(nodeIdHandler_OrganizationMember));
   return nodeIdHandler_OrganizationMember.get(nodeIdHandler_OrganizationMember.getSpec($decoded));
@@ -1263,6 +2085,58 @@ const nodeIdHandler_RepositoryCollaborator = {
 const nodeFetcher_RepositoryCollaborator = $nodeId => {
   const $decoded = lambda($nodeId, specForHandler(nodeIdHandler_RepositoryCollaborator));
   return nodeIdHandler_RepositoryCollaborator.get(nodeIdHandler_RepositoryCollaborator.getSpec($decoded));
+};
+const nodeIdHandler_ExternalDependency = {
+  typeName: "ExternalDependency",
+  codec: nodeIdCodecs_base64JSON_base64JSON,
+  deprecationReason: undefined,
+  plan($record) {
+    return list([constant("ExternalDependency", false), $record.get("id")]);
+  },
+  getSpec($list) {
+    return {
+      id: inhibitOnNull(access($list, [1]))
+    };
+  },
+  getIdentifiers(value) {
+    return value.slice(1);
+  },
+  get(spec) {
+    return resource_external_dependencyPgResource.get(spec);
+  },
+  match(obj) {
+    return obj[0] === "ExternalDependency";
+  }
+};
+const nodeFetcher_ExternalDependency = $nodeId => {
+  const $decoded = lambda($nodeId, specForHandler(nodeIdHandler_ExternalDependency));
+  return nodeIdHandler_ExternalDependency.get(nodeIdHandler_ExternalDependency.getSpec($decoded));
+};
+const nodeIdHandler_RepositoryRelationshipType = {
+  typeName: "RepositoryRelationshipType",
+  codec: nodeIdCodecs_base64JSON_base64JSON,
+  deprecationReason: undefined,
+  plan($record) {
+    return list([constant("RepositoryRelationshipType", false), $record.get("id")]);
+  },
+  getSpec($list) {
+    return {
+      id: inhibitOnNull(access($list, [1]))
+    };
+  },
+  getIdentifiers(value) {
+    return value.slice(1);
+  },
+  get(spec) {
+    return resource_repository_relationship_typePgResource.get(spec);
+  },
+  match(obj) {
+    return obj[0] === "RepositoryRelationshipType";
+  }
+};
+const nodeFetcher_RepositoryRelationshipType = $nodeId => {
+  const $decoded = lambda($nodeId, specForHandler(nodeIdHandler_RepositoryRelationshipType));
+  return nodeIdHandler_RepositoryRelationshipType.get(nodeIdHandler_RepositoryRelationshipType.getSpec($decoded));
 };
 const nodeIdHandler_User = {
   typeName: "User",
@@ -1342,6 +2216,32 @@ const nodeFetcher_Organization = $nodeId => {
   const $decoded = lambda($nodeId, specForHandler(nodeIdHandler_Organization));
   return nodeIdHandler_Organization.get(nodeIdHandler_Organization.getSpec($decoded));
 };
+const nodeIdHandler_RepositoryRelationship = {
+  typeName: "RepositoryRelationship",
+  codec: nodeIdCodecs_base64JSON_base64JSON,
+  deprecationReason: undefined,
+  plan($record) {
+    return list([constant("RepositoryRelationship", false), $record.get("id")]);
+  },
+  getSpec($list) {
+    return {
+      id: inhibitOnNull(access($list, [1]))
+    };
+  },
+  getIdentifiers(value) {
+    return value.slice(1);
+  },
+  get(spec) {
+    return resource_repository_relationshipPgResource.get(spec);
+  },
+  match(obj) {
+    return obj[0] === "RepositoryRelationship";
+  }
+};
+const nodeFetcher_RepositoryRelationship = $nodeId => {
+  const $decoded = lambda($nodeId, specForHandler(nodeIdHandler_RepositoryRelationship));
+  return nodeIdHandler_RepositoryRelationship.get(nodeIdHandler_RepositoryRelationship.getSpec($decoded));
+};
 function qbWhereBuilder(qb) {
   return qb.whereBuilder();
 }
@@ -1403,32 +2303,6 @@ function assertAllowed5(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-const nodeIdHandlerByTypeName = {
-  __proto__: null,
-  Query: nodeIdHandler_Query,
-  OrganizationMember: nodeIdHandler_OrganizationMember,
-  RepositoryCollaborator: nodeIdHandler_RepositoryCollaborator,
-  User: nodeIdHandler_User,
-  Repository: nodeIdHandler_Repository,
-  Organization: nodeIdHandler_Organization
-};
-const decodeNodeId = makeDecodeNodeId(Object.values(nodeIdHandlerByTypeName));
-function findTypeNameMatch(specifier) {
-  if (!specifier) return null;
-  for (const [typeName, typeSpec] of Object.entries(nodeIdHandlerByTypeName)) {
-    const value = specifier[typeSpec.codec.name];
-    if (value != null && typeSpec.match(value)) return typeName;
-  }
-  console.warn(`Could not find a type that matched the specifier '${inspect(specifier)}'`);
-  return null;
-}
-function UUIDSerialize(value) {
-  return "" + value;
-}
-const coerce = string => {
-  if (!/^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i.test(string)) throw new GraphQLError("Invalid UUID, expected 32 hexadecimal characters, optionally with hyphens");
-  return string;
-};
 function assertAllowed6(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
@@ -1451,186 +2325,146 @@ function assertAllowed7(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-const dataTypeToAggregateTypeMap = {};
-const spec = {
-  id: "distinctCount",
-  humanLabel: "distinct count",
-  HumanLabel: "Distinct count",
-  isSuitableType() {
-    return !0;
-  },
-  sqlAggregateWrap(sqlFrag) {
-    return sql`count(distinct ${sqlFrag})`;
-  },
-  pgTypeCodecModifier(codec) {
-    const oid = codec.extensions?.oid;
-    return (oid ? dataTypeToAggregateTypeMap[oid] : null) ?? TYPES.bigint;
+function assertAllowed8(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const aggregateGroupBySpec = {
-  id: "truncated-to-hour",
-  isSuitableType(codec) {
-    return codec === TYPES.timestamp || codec === TYPES.timestamptz;
-  },
-  sqlWrap(sqlFrag) {
-    return sql`date_trunc('hour', ${sqlFrag})`;
-  },
-  sqlWrapCodec(codec) {
-    return codec;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed9(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const nodeIdHandlerByTypeName = {
+  __proto__: null,
+  Query: nodeIdHandler_Query,
+  RepositoryRelationshipMetadatum: nodeIdHandler_RepositoryRelationshipMetadatum,
+  OrganizationMember: nodeIdHandler_OrganizationMember,
+  RepositoryCollaborator: nodeIdHandler_RepositoryCollaborator,
+  ExternalDependency: nodeIdHandler_ExternalDependency,
+  RepositoryRelationshipType: nodeIdHandler_RepositoryRelationshipType,
+  User: nodeIdHandler_User,
+  Repository: nodeIdHandler_Repository,
+  Organization: nodeIdHandler_Organization,
+  RepositoryRelationship: nodeIdHandler_RepositoryRelationship
 };
-const aggregateGroupBySpec2 = {
-  id: "truncated-to-day",
-  isSuitableType(codec) {
-    return codec === TYPES.timestamp || codec === TYPES.timestamptz;
-  },
-  sqlWrap(sqlFrag) {
-    return sql`date_trunc('day', ${sqlFrag})`;
-  },
-  sqlWrapCodec(codec) {
-    return codec;
+const decodeNodeId = makeDecodeNodeId(Object.values(nodeIdHandlerByTypeName));
+function findTypeNameMatch(specifier) {
+  if (!specifier) return null;
+  for (const [typeName, typeSpec] of Object.entries(nodeIdHandlerByTypeName)) {
+    const value = specifier[typeSpec.codec.name];
+    if (value != null && typeSpec.match(value)) return typeName;
   }
+  console.warn(`Could not find a type that matched the specifier '${inspect(specifier)}'`);
+  return null;
+}
+function UUIDSerialize(value) {
+  return "" + value;
+}
+const coerce = string => {
+  if (!/^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i.test(string)) throw new GraphQLError("Invalid UUID, expected 32 hexadecimal characters, optionally with hyphens");
+  return string;
 };
-const isIntervalLike = codec => !!codec.extensions?.isIntervalLike;
-const isNumberLike = codec => !!codec.extensions?.isNumberLike;
-const aggregateSpec_isSuitableType = codec => isIntervalLike(codec) || isNumberLike(codec);
-const dataTypeToAggregateTypeMap2 = {
-  "20": TYPES.numeric,
-  "21": TYPES.bigint,
-  "23": TYPES.bigint,
-  "700": TYPES.float4,
-  "701": TYPES.float,
-  "790": TYPES.money,
-  "1186": TYPES.interval
-};
-const aggregateSpec = {
-  id: "sum",
-  humanLabel: "sum",
-  HumanLabel: "Sum",
-  isSuitableType: aggregateSpec_isSuitableType,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`coalesce(sum(${sqlFrag}), '0')`;
-  },
-  isNonNull: true,
-  pgTypeCodecModifier(codec) {
-    const oid = codec.extensions?.oid;
-    return (oid ? dataTypeToAggregateTypeMap2[oid] : null) ?? TYPES.numeric;
+function assertAllowed10(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const infix = () => sql.fragment`=`;
-const infix2 = () => sql.fragment`<>`;
-const infix3 = () => sql.fragment`>`;
-const infix4 = () => sql.fragment`>=`;
-const infix5 = () => sql.fragment`<`;
-const infix6 = () => sql.fragment`<=`;
-const aggregateSpec2 = {
-  id: "min",
-  humanLabel: "minimum",
-  HumanLabel: "Minimum",
-  isSuitableType: aggregateSpec_isSuitableType,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`min(${sqlFrag})`;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed11(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const aggregateSpec3 = {
-  id: "max",
-  humanLabel: "maximum",
-  HumanLabel: "Maximum",
-  isSuitableType: aggregateSpec_isSuitableType,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`max(${sqlFrag})`;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed12(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const dataTypeToAggregateTypeMap3 = {
-  "20": TYPES.numeric,
-  "21": TYPES.numeric,
-  "23": TYPES.numeric,
-  "700": TYPES.float,
-  "701": TYPES.float,
-  "1186": TYPES.interval,
-  "1700": TYPES.numeric
-};
-const aggregateSpec4 = {
-  id: "average",
-  humanLabel: "mean average",
-  HumanLabel: "Mean average",
-  isSuitableType: aggregateSpec_isSuitableType,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`avg(${sqlFrag})`;
-  },
-  pgTypeCodecModifier(codec) {
-    const oid = codec.extensions?.oid;
-    return (oid ? dataTypeToAggregateTypeMap3[oid] : null) ?? TYPES.numeric;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed13(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const dataTypeToAggregateTypeMap4 = {
-  "700": TYPES.float,
-  "701": TYPES.float
-};
-const aggregateSpec5 = {
-  id: "stddevSample",
-  humanLabel: "sample standard deviation",
-  HumanLabel: "Sample standard deviation",
-  isSuitableType: isNumberLike,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`stddev_samp(${sqlFrag})`;
-  },
-  pgTypeCodecModifier(codec) {
-    const oid = codec.extensions?.oid;
-    return (oid ? dataTypeToAggregateTypeMap4[oid] : null) ?? TYPES.numeric;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed14(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const dataTypeToAggregateTypeMap5 = {
-  "700": TYPES.float,
-  "701": TYPES.float
-};
-const aggregateSpec6 = {
-  id: "stddevPopulation",
-  humanLabel: "population standard deviation",
-  HumanLabel: "Population standard deviation",
-  isSuitableType: isNumberLike,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`stddev_pop(${sqlFrag})`;
-  },
-  pgTypeCodecModifier(codec) {
-    const oid = codec.extensions?.oid;
-    return (oid ? dataTypeToAggregateTypeMap5[oid] : null) ?? TYPES.numeric;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed15(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const dataTypeToAggregateTypeMap6 = {
-  "700": TYPES.float,
-  "701": TYPES.float
-};
-const aggregateSpec7 = {
-  id: "varianceSample",
-  humanLabel: "sample variance",
-  HumanLabel: "Sample variance",
-  isSuitableType: isNumberLike,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`var_samp(${sqlFrag})`;
-  },
-  pgTypeCodecModifier(codec) {
-    const oid = codec.extensions?.oid;
-    return (oid ? dataTypeToAggregateTypeMap6[oid] : null) ?? TYPES.numeric;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed16(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
-const dataTypeToAggregateTypeMap7 = {
-  "700": TYPES.float,
-  "701": TYPES.float
-};
-const aggregateSpec8 = {
-  id: "variancePopulation",
-  humanLabel: "population variance",
-  HumanLabel: "Population variance",
-  isSuitableType: isNumberLike,
-  sqlAggregateWrap(sqlFrag) {
-    return sql`var_pop(${sqlFrag})`;
-  },
-  pgTypeCodecModifier(codec) {
-    const oid = codec.extensions?.oid;
-    return (oid ? dataTypeToAggregateTypeMap7[oid] : null) ?? TYPES.numeric;
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed17(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
   }
-};
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
 const colSpec = {
   fieldName: "organizationId",
   attributeName: "organization_id",
@@ -1656,7 +2490,7 @@ const colSpec5 = {
   attributeName: "updated_at",
   attribute: spec_organizationMember.attributes.updated_at
 };
-function assertAllowed8(value, mode) {
+function assertAllowed18(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -1667,7 +2501,7 @@ function assertAllowed8(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed9(value, mode) {
+function assertAllowed19(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -1878,7 +2712,7 @@ const colSpec15 = {
   attributeName: "updated_at",
   attribute: spec_organization.attributes.updated_at
 };
-function assertAllowed10(value, mode) {
+function assertAllowed20(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -1889,7 +2723,7 @@ function assertAllowed10(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed11(value, mode) {
+function assertAllowed21(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2272,7 +3106,7 @@ const resolve68 = (i, v) => sql`${i} < ${v}`;
 const resolve69 = (i, v) => sql`${i} <= ${v}`;
 const resolve70 = (i, v) => sql`${i} > ${v}`;
 const resolve71 = (i, v) => sql`${i} >= ${v}`;
-function assertAllowed12(value, mode) {
+function assertAllowed22(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2347,6 +3181,22 @@ group by ())`;
     return this.parent.where(subquery);
   }
 };
+const dataTypeToAggregateTypeMap = {};
+const spec = {
+  id: "distinctCount",
+  humanLabel: "distinct count",
+  HumanLabel: "Distinct count",
+  isSuitableType() {
+    return !0;
+  },
+  sqlAggregateWrap(sqlFrag) {
+    return sql`count(distinct ${sqlFrag})`;
+  },
+  pgTypeCodecModifier(codec) {
+    const oid = codec.extensions?.oid;
+    return (oid ? dataTypeToAggregateTypeMap[oid] : null) ?? TYPES.bigint;
+  }
+};
 const resolve72 = (i, _v, input) => sql`${i} ${input ? sql`IS NULL` : sql`IS NOT NULL`}`;
 const resolveInputCodec27 = () => TYPES.boolean;
 const resolveSqlValue16 = () => sql.null;
@@ -2397,7 +3247,7 @@ const resolve79 = (i, v) => sql`${i} < ${v}`;
 const resolve80 = (i, v) => sql`${i} <= ${v}`;
 const resolve81 = (i, v) => sql`${i} > ${v}`;
 const resolve82 = (i, v) => sql`${i} >= ${v}`;
-function assertAllowed13(value, mode) {
+function assertAllowed23(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2458,7 +3308,7 @@ const colSpec25 = {
   attributeName: "updated_at",
   attribute: spec_repository.attributes.updated_at
 };
-function assertAllowed14(value, mode) {
+function assertAllowed24(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2469,7 +3319,7 @@ function assertAllowed14(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed15(value, mode) {
+function assertAllowed25(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2480,7 +3330,7 @@ function assertAllowed15(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed16(value, mode) {
+function assertAllowed26(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2541,7 +3391,7 @@ const resolve90 = (i, v) => sql`${i} < ${v}`;
 const resolve91 = (i, v) => sql`${i} <= ${v}`;
 const resolve92 = (i, v) => sql`${i} > ${v}`;
 const resolve93 = (i, v) => sql`${i} >= ${v}`;
-function assertAllowed17(value, mode) {
+function assertAllowed27(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2577,7 +3427,7 @@ const colSpec30 = {
   attributeName: "updated_at",
   attribute: spec_repositoryCollaborator.attributes.updated_at
 };
-function assertAllowed18(value, mode) {
+function assertAllowed28(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2588,7 +3438,7 @@ function assertAllowed18(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed19(value, mode) {
+function assertAllowed29(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2694,7 +3544,7 @@ const colSpec39 = {
   attributeName: "bio",
   attribute: spec_user.attributes.bio
 };
-function assertAllowed20(value, mode) {
+function assertAllowed30(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2705,7 +3555,7 @@ function assertAllowed20(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed21(value, mode) {
+function assertAllowed31(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2716,7 +3566,7 @@ function assertAllowed21(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed22(value, mode) {
+function assertAllowed32(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2727,7 +3577,7 @@ function assertAllowed22(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed23(value, mode) {
+function assertAllowed33(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2738,7 +3588,7 @@ function assertAllowed23(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed24(value, mode) {
+function assertAllowed34(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2749,7 +3599,7 @@ function assertAllowed24(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed25(value, mode) {
+function assertAllowed35(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2760,7 +3610,42 @@ function assertAllowed25(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed26(value, mode) {
+const colSpec40 = {
+  fieldName: "rowId",
+  attributeName: "id",
+  attribute: spec_externalDependency.attributes.id
+};
+const colSpec41 = {
+  fieldName: "repositoryId",
+  attributeName: "repository_id",
+  attribute: spec_externalDependency.attributes.repository_id
+};
+const colSpec42 = {
+  fieldName: "packageManager",
+  attributeName: "package_manager",
+  attribute: spec_externalDependency.attributes.package_manager
+};
+const colSpec43 = {
+  fieldName: "packageName",
+  attributeName: "package_name",
+  attribute: spec_externalDependency.attributes.package_name
+};
+const colSpec44 = {
+  fieldName: "versionConstraint",
+  attributeName: "version_constraint",
+  attribute: spec_externalDependency.attributes.version_constraint
+};
+const colSpec45 = {
+  fieldName: "detectionSource",
+  attributeName: "detection_source",
+  attribute: spec_externalDependency.attributes.detection_source
+};
+const colSpec46 = {
+  fieldName: "createdAt",
+  attributeName: "created_at",
+  attribute: spec_externalDependency.attributes.created_at
+};
+function assertAllowed36(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2771,7 +3656,7 @@ function assertAllowed26(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed27(value, mode) {
+function assertAllowed37(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2782,7 +3667,57 @@ function assertAllowed27(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-function assertAllowed28(value, mode) {
+const resolve105 = (i, _v, input) => sql`${i} ${input ? sql`IS NULL` : sql`IS NOT NULL`}`;
+const resolveInputCodec36 = () => TYPES.boolean;
+const resolveSqlValue19 = () => sql.null;
+const resolve106 = (i, v) => sql`${i} = ${v}`;
+const forceTextTypesSensitive9 = [TYPES.citext, TYPES.char, TYPES.bpchar];
+function resolveDomains9(c) {
+  let current = c;
+  while (current.domainOfCodec) current = current.domainOfCodec;
+  return current;
+}
+function resolveInputCodec37(c) {
+  if (c.arrayOfCodec) {
+    if (forceTextTypesSensitive9.includes(resolveDomains9(c.arrayOfCodec))) return listOfCodec(TYPES.text, {
+      extensions: {
+        listItemNonNull: c.extensions?.listItemNonNull
+      }
+    });
+    return c;
+  } else {
+    if (forceTextTypesSensitive9.includes(resolveDomains9(c))) return TYPES.text;
+    return c;
+  }
+}
+function resolveSqlIdentifier20(identifier, c) {
+  if (c.arrayOfCodec && forceTextTypesSensitive9.includes(resolveDomains9(c.arrayOfCodec))) return [sql`(${identifier})::text[]`, listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: c.extensions?.listItemNonNull
+    }
+  })];else if (forceTextTypesSensitive9.includes(resolveDomains9(c))) return [sql`(${identifier})::text`, TYPES.text];else return [identifier, c];
+}
+const resolve107 = (i, v) => sql`${i} <> ${v}`;
+const resolve108 = (i, v) => sql`${i} IS DISTINCT FROM ${v}`;
+const resolve109 = (i, v) => sql`${i} IS NOT DISTINCT FROM ${v}`;
+const resolve110 = (i, v) => sql`${i} = ANY(${v})`;
+function resolveInputCodec38(c) {
+  if (forceTextTypesSensitive9.includes(resolveDomains9(c))) return listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });else return listOfCodec(c, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });
+}
+const resolve111 = (i, v) => sql`${i} <> ALL(${v})`;
+const resolve112 = (i, v) => sql`${i} < ${v}`;
+const resolve113 = (i, v) => sql`${i} <= ${v}`;
+const resolve114 = (i, v) => sql`${i} > ${v}`;
+const resolve115 = (i, v) => sql`${i} >= ${v}`;
+function assertAllowed38(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -2793,12 +3728,558 @@ function assertAllowed28(value, mode) {
   }
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
-const relation = registry.pgRelations["repository"]["repositoryCollaboratorsByTheirRepositoryId"];
-const relation2 = registry.pgRelations["user"]["organizationMembersByTheirUserId"];
-const relation3 = registry.pgRelations["user"]["repositoriesByTheirOwnerId"];
-const relation4 = registry.pgRelations["user"]["repositoryCollaboratorsByTheirUserId"];
-const relation5 = registry.pgRelations["organization"]["organizationMembersByTheirOrganizationId"];
-const relation6 = registry.pgRelations["organization"]["repositoriesByTheirOrganizationId"];
+const colSpec47 = {
+  fieldName: "rowId",
+  attributeName: "id",
+  attribute: spec_repositoryRelationship.attributes.id
+};
+const colSpec48 = {
+  fieldName: "sourceRepositoryId",
+  attributeName: "source_repository_id",
+  attribute: spec_repositoryRelationship.attributes.source_repository_id
+};
+const colSpec49 = {
+  fieldName: "targetRepositoryId",
+  attributeName: "target_repository_id",
+  attribute: spec_repositoryRelationship.attributes.target_repository_id
+};
+const colSpec50 = {
+  fieldName: "relationshipTypeId",
+  attributeName: "relationship_type_id",
+  attribute: spec_repositoryRelationship.attributes.relationship_type_id
+};
+const colSpec51 = {
+  fieldName: "detectionSource",
+  attributeName: "detection_source",
+  attribute: spec_repositoryRelationship.attributes.detection_source
+};
+const colSpec52 = {
+  fieldName: "confidence",
+  attributeName: "confidence",
+  attribute: spec_repositoryRelationship.attributes.confidence
+};
+const colSpec53 = {
+  fieldName: "versionConstraint",
+  attributeName: "version_constraint",
+  attribute: spec_repositoryRelationship.attributes.version_constraint
+};
+const colSpec54 = {
+  fieldName: "branch",
+  attributeName: "branch",
+  attribute: spec_repositoryRelationship.attributes.branch
+};
+const colSpec55 = {
+  fieldName: "createdAt",
+  attributeName: "created_at",
+  attribute: spec_repositoryRelationship.attributes.created_at
+};
+const colSpec56 = {
+  fieldName: "updatedAt",
+  attributeName: "updated_at",
+  attribute: spec_repositoryRelationship.attributes.updated_at
+};
+function assertAllowed39(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed40(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed41(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const resolve116 = (i, _v, input) => sql`${i} ${input ? sql`IS NULL` : sql`IS NOT NULL`}`;
+const resolveInputCodec39 = () => TYPES.boolean;
+const resolveSqlValue20 = () => sql.null;
+const resolve117 = (i, v) => sql`${i} = ${v}`;
+const forceTextTypesSensitive10 = [TYPES.citext, TYPES.char, TYPES.bpchar];
+function resolveDomains10(c) {
+  let current = c;
+  while (current.domainOfCodec) current = current.domainOfCodec;
+  return current;
+}
+function resolveInputCodec40(c) {
+  if (c.arrayOfCodec) {
+    if (forceTextTypesSensitive10.includes(resolveDomains10(c.arrayOfCodec))) return listOfCodec(TYPES.text, {
+      extensions: {
+        listItemNonNull: c.extensions?.listItemNonNull
+      }
+    });
+    return c;
+  } else {
+    if (forceTextTypesSensitive10.includes(resolveDomains10(c))) return TYPES.text;
+    return c;
+  }
+}
+function resolveSqlIdentifier21(identifier, c) {
+  if (c.arrayOfCodec && forceTextTypesSensitive10.includes(resolveDomains10(c.arrayOfCodec))) return [sql`(${identifier})::text[]`, listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: c.extensions?.listItemNonNull
+    }
+  })];else if (forceTextTypesSensitive10.includes(resolveDomains10(c))) return [sql`(${identifier})::text`, TYPES.text];else return [identifier, c];
+}
+const resolve118 = (i, v) => sql`${i} <> ${v}`;
+const resolve119 = (i, v) => sql`${i} IS DISTINCT FROM ${v}`;
+const resolve120 = (i, v) => sql`${i} IS NOT DISTINCT FROM ${v}`;
+const resolve121 = (i, v) => sql`${i} = ANY(${v})`;
+function resolveInputCodec41(c) {
+  if (forceTextTypesSensitive10.includes(resolveDomains10(c))) return listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });else return listOfCodec(c, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });
+}
+const resolve122 = (i, v) => sql`${i} <> ALL(${v})`;
+const resolve123 = (i, v) => sql`${i} < ${v}`;
+const resolve124 = (i, v) => sql`${i} <= ${v}`;
+const resolve125 = (i, v) => sql`${i} > ${v}`;
+const resolve126 = (i, v) => sql`${i} >= ${v}`;
+function assertAllowed42(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const colSpec57 = {
+  fieldName: "rowId",
+  attributeName: "id",
+  attribute: spec_repositoryRelationshipMetadata.attributes.id
+};
+const colSpec58 = {
+  fieldName: "relationshipId",
+  attributeName: "relationship_id",
+  attribute: spec_repositoryRelationshipMetadata.attributes.relationship_id
+};
+const colSpec59 = {
+  fieldName: "key",
+  attributeName: "key",
+  attribute: spec_repositoryRelationshipMetadata.attributes.key
+};
+const colSpec60 = {
+  fieldName: "value",
+  attributeName: "value",
+  attribute: spec_repositoryRelationshipMetadata.attributes.value
+};
+const colSpec61 = {
+  fieldName: "createdAt",
+  attributeName: "created_at",
+  attribute: spec_repositoryRelationshipMetadata.attributes.created_at
+};
+function assertAllowed43(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed44(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const colSpec62 = {
+  fieldName: "rowId",
+  attributeName: "id",
+  attribute: spec_repositoryRelationshipType.attributes.id
+};
+const colSpec63 = {
+  fieldName: "name",
+  attributeName: "name",
+  attribute: spec_repositoryRelationshipType.attributes.name
+};
+const colSpec64 = {
+  fieldName: "description",
+  attributeName: "description",
+  attribute: spec_repositoryRelationshipType.attributes.description
+};
+const colSpec65 = {
+  fieldName: "isDirected",
+  attributeName: "is_directed",
+  attribute: spec_repositoryRelationshipType.attributes.is_directed
+};
+const colSpec66 = {
+  fieldName: "organizationId",
+  attributeName: "organization_id",
+  attribute: spec_repositoryRelationshipType.attributes.organization_id
+};
+const colSpec67 = {
+  fieldName: "createdAt",
+  attributeName: "created_at",
+  attribute: spec_repositoryRelationshipType.attributes.created_at
+};
+function assertAllowed45(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed46(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed47(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const resolve127 = (i, _v, input) => sql`${i} ${input ? sql`IS NULL` : sql`IS NOT NULL`}`;
+const resolveInputCodec42 = () => TYPES.boolean;
+const resolveSqlValue21 = () => sql.null;
+const resolve128 = (i, v) => sql`${i} = ${v}`;
+const forceTextTypesSensitive11 = [TYPES.citext, TYPES.char, TYPES.bpchar];
+function resolveDomains11(c) {
+  let current = c;
+  while (current.domainOfCodec) current = current.domainOfCodec;
+  return current;
+}
+function resolveInputCodec43(c) {
+  if (c.arrayOfCodec) {
+    if (forceTextTypesSensitive11.includes(resolveDomains11(c.arrayOfCodec))) return listOfCodec(TYPES.text, {
+      extensions: {
+        listItemNonNull: c.extensions?.listItemNonNull
+      }
+    });
+    return c;
+  } else {
+    if (forceTextTypesSensitive11.includes(resolveDomains11(c))) return TYPES.text;
+    return c;
+  }
+}
+function resolveSqlIdentifier22(identifier, c) {
+  if (c.arrayOfCodec && forceTextTypesSensitive11.includes(resolveDomains11(c.arrayOfCodec))) return [sql`(${identifier})::text[]`, listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: c.extensions?.listItemNonNull
+    }
+  })];else if (forceTextTypesSensitive11.includes(resolveDomains11(c))) return [sql`(${identifier})::text`, TYPES.text];else return [identifier, c];
+}
+const resolve129 = (i, v) => sql`${i} <> ${v}`;
+const resolve130 = (i, v) => sql`${i} IS DISTINCT FROM ${v}`;
+const resolve131 = (i, v) => sql`${i} IS NOT DISTINCT FROM ${v}`;
+const resolve132 = (i, v) => sql`${i} = ANY(${v})`;
+function resolveInputCodec44(c) {
+  if (forceTextTypesSensitive11.includes(resolveDomains11(c))) return listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });else return listOfCodec(c, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });
+}
+const resolve133 = (i, v) => sql`${i} <> ALL(${v})`;
+const resolve134 = (i, v) => sql`${i} < ${v}`;
+const resolve135 = (i, v) => sql`${i} <= ${v}`;
+const resolve136 = (i, v) => sql`${i} > ${v}`;
+const resolve137 = (i, v) => sql`${i} >= ${v}`;
+function assertAllowed48(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const isIntervalLike = codec => !!codec.extensions?.isIntervalLike;
+const isNumberLike = codec => !!codec.extensions?.isNumberLike;
+const spec_isSuitableType = codec => isIntervalLike(codec) || isNumberLike(codec);
+const dataTypeToAggregateTypeMap2 = {
+  "20": TYPES.numeric,
+  "21": TYPES.bigint,
+  "23": TYPES.bigint,
+  "700": TYPES.float4,
+  "701": TYPES.float,
+  "790": TYPES.money,
+  "1186": TYPES.interval
+};
+const spec2 = {
+  id: "sum",
+  humanLabel: "sum",
+  HumanLabel: "Sum",
+  isSuitableType: spec_isSuitableType,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`coalesce(sum(${sqlFrag}), '0')`;
+  },
+  isNonNull: true,
+  pgTypeCodecModifier(codec) {
+    const oid = codec.extensions?.oid;
+    return (oid ? dataTypeToAggregateTypeMap2[oid] : null) ?? TYPES.numeric;
+  }
+};
+const spec3 = {
+  id: "min",
+  humanLabel: "minimum",
+  HumanLabel: "Minimum",
+  isSuitableType: spec_isSuitableType,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`min(${sqlFrag})`;
+  }
+};
+const spec4 = {
+  id: "max",
+  humanLabel: "maximum",
+  HumanLabel: "Maximum",
+  isSuitableType: spec_isSuitableType,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`max(${sqlFrag})`;
+  }
+};
+const dataTypeToAggregateTypeMap3 = {
+  "20": TYPES.numeric,
+  "21": TYPES.numeric,
+  "23": TYPES.numeric,
+  "700": TYPES.float,
+  "701": TYPES.float,
+  "1186": TYPES.interval,
+  "1700": TYPES.numeric
+};
+const spec5 = {
+  id: "average",
+  humanLabel: "mean average",
+  HumanLabel: "Mean average",
+  isSuitableType: spec_isSuitableType,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`avg(${sqlFrag})`;
+  },
+  pgTypeCodecModifier(codec) {
+    const oid = codec.extensions?.oid;
+    return (oid ? dataTypeToAggregateTypeMap3[oid] : null) ?? TYPES.numeric;
+  }
+};
+const dataTypeToAggregateTypeMap4 = {
+  "700": TYPES.float,
+  "701": TYPES.float
+};
+const spec6 = {
+  id: "stddevSample",
+  humanLabel: "sample standard deviation",
+  HumanLabel: "Sample standard deviation",
+  isSuitableType: isNumberLike,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`stddev_samp(${sqlFrag})`;
+  },
+  pgTypeCodecModifier(codec) {
+    const oid = codec.extensions?.oid;
+    return (oid ? dataTypeToAggregateTypeMap4[oid] : null) ?? TYPES.numeric;
+  }
+};
+const dataTypeToAggregateTypeMap5 = {
+  "700": TYPES.float,
+  "701": TYPES.float
+};
+const spec7 = {
+  id: "stddevPopulation",
+  humanLabel: "population standard deviation",
+  HumanLabel: "Population standard deviation",
+  isSuitableType: isNumberLike,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`stddev_pop(${sqlFrag})`;
+  },
+  pgTypeCodecModifier(codec) {
+    const oid = codec.extensions?.oid;
+    return (oid ? dataTypeToAggregateTypeMap5[oid] : null) ?? TYPES.numeric;
+  }
+};
+const dataTypeToAggregateTypeMap6 = {
+  "700": TYPES.float,
+  "701": TYPES.float
+};
+const spec8 = {
+  id: "varianceSample",
+  humanLabel: "sample variance",
+  HumanLabel: "Sample variance",
+  isSuitableType: isNumberLike,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`var_samp(${sqlFrag})`;
+  },
+  pgTypeCodecModifier(codec) {
+    const oid = codec.extensions?.oid;
+    return (oid ? dataTypeToAggregateTypeMap6[oid] : null) ?? TYPES.numeric;
+  }
+};
+const dataTypeToAggregateTypeMap7 = {
+  "700": TYPES.float,
+  "701": TYPES.float
+};
+const spec9 = {
+  id: "variancePopulation",
+  humanLabel: "population variance",
+  HumanLabel: "Population variance",
+  isSuitableType: isNumberLike,
+  sqlAggregateWrap(sqlFrag) {
+    return sql`var_pop(${sqlFrag})`;
+  },
+  pgTypeCodecModifier(codec) {
+    const oid = codec.extensions?.oid;
+    return (oid ? dataTypeToAggregateTypeMap7[oid] : null) ?? TYPES.numeric;
+  }
+};
+function assertAllowed49(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed50(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed51(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed52(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed53(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const aggregateGroupBySpec = {
+  id: "truncated-to-hour",
+  isSuitableType(codec) {
+    return codec === TYPES.timestamp || codec === TYPES.timestamptz;
+  },
+  sqlWrap(sqlFrag) {
+    return sql`date_trunc('hour', ${sqlFrag})`;
+  },
+  sqlWrapCodec(codec) {
+    return codec;
+  }
+};
+const aggregateGroupBySpec2 = {
+  id: "truncated-to-day",
+  isSuitableType(codec) {
+    return codec === TYPES.timestamp || codec === TYPES.timestamptz;
+  },
+  sqlWrap(sqlFrag) {
+    return sql`date_trunc('day', ${sqlFrag})`;
+  },
+  sqlWrapCodec(codec) {
+    return codec;
+  }
+};
+const infix = () => sql.fragment`=`;
+const infix2 = () => sql.fragment`<>`;
+const infix3 = () => sql.fragment`>`;
+const infix4 = () => sql.fragment`>=`;
+const infix5 = () => sql.fragment`<`;
+const infix6 = () => sql.fragment`<=`;
+const infix7 = () => sql.fragment`=`;
+const infix8 = () => sql.fragment`<>`;
+const infix9 = () => sql.fragment`>`;
+const infix10 = () => sql.fragment`>=`;
+const infix11 = () => sql.fragment`<`;
+const infix12 = () => sql.fragment`<=`;
+const relation = registry.pgRelations["repositoryRelationship"]["repositoryRelationshipMetadataByTheirRelationshipId"];
+const relation2 = registry.pgRelations["repository"]["repositoryCollaboratorsByTheirRepositoryId"];
+const relation3 = registry.pgRelations["repository"]["externalDependenciesByTheirRepositoryId"];
+const relation4 = registry.pgRelations["repository"]["repositoryRelationshipsByTheirSourceRepositoryId"];
+const relation5 = registry.pgRelations["repository"]["repositoryRelationshipsByTheirTargetRepositoryId"];
+const relation6 = registry.pgRelations["repositoryRelationshipType"]["repositoryRelationshipsByTheirRelationshipTypeId"];
+const relation7 = registry.pgRelations["user"]["organizationMembersByTheirUserId"];
+const relation8 = registry.pgRelations["user"]["repositoriesByTheirOwnerId"];
+const relation9 = registry.pgRelations["user"]["repositoryCollaboratorsByTheirUserId"];
+const relation10 = registry.pgRelations["organization"]["organizationMembersByTheirOrganizationId"];
+const relation11 = registry.pgRelations["organization"]["repositoriesByTheirOrganizationId"];
+const relation12 = registry.pgRelations["organization"]["repositoryRelationshipTypesByTheirOrganizationId"];
 function oldPlan(_, args) {
   const $insert = pgInsertSingle(resource_organization_memberPgResource, Object.create(null));
   args.apply($insert);
@@ -3065,6 +4546,10 @@ const planWrapper5 = (plan, _, fieldArgs) => {
   });
   return plan();
 };
+const specFromArgs_RepositoryRelationshipMetadatum = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_RepositoryRelationshipMetadatum, $nodeId);
+};
 const specFromArgs_OrganizationMember = args => {
   const $nodeId = args.getRaw(["input", "id"]);
   return specFromNodeId(nodeIdHandler_OrganizationMember, $nodeId);
@@ -3211,6 +4696,14 @@ const planWrapper7 = (plan, _, fieldArgs) => {
     }
   });
   return plan();
+};
+const specFromArgs_ExternalDependency = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_ExternalDependency, $nodeId);
+};
+const specFromArgs_RepositoryRelationshipType = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_RepositoryRelationshipType, $nodeId);
 };
 const specFromArgs_User = args => {
   const $nodeId = args.getRaw(["input", "id"]);
@@ -3362,6 +4855,14 @@ const planWrapper10 = (plan, _, fieldArgs) => {
   });
   return plan();
 };
+const specFromArgs_RepositoryRelationship = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_RepositoryRelationship, $nodeId);
+};
+const specFromArgs_RepositoryRelationshipMetadatum2 = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_RepositoryRelationshipMetadatum, $nodeId);
+};
 const specFromArgs_OrganizationMember2 = args => {
   const $nodeId = args.getRaw(["input", "id"]);
   return specFromNodeId(nodeIdHandler_OrganizationMember, $nodeId);
@@ -3441,6 +4942,14 @@ const planWrapper12 = (plan, _, fieldArgs) => {
     if (userId === repository.ownerId) throw Error("Cannot remove owner");
   });
   return plan();
+};
+const specFromArgs_ExternalDependency2 = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_ExternalDependency, $nodeId);
+};
+const specFromArgs_RepositoryRelationshipType2 = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_RepositoryRelationshipType, $nodeId);
 };
 const specFromArgs_User2 = args => {
   const $nodeId = args.getRaw(["input", "id"]);
@@ -3592,6 +5101,10 @@ const planWrapper15 = (plan, _, fieldArgs) => {
   });
   return plan();
 };
+const specFromArgs_RepositoryRelationship2 = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandler_RepositoryRelationship, $nodeId);
+};
 const getPgSelectSingleFromMutationResult = (resource, pkAttributes, $mutation) => {
   const $result = $mutation.getStepForKey("result", !0);
   if (!$result) return null;
@@ -3629,11 +5142,20 @@ type Query implements Node {
     id: ID!
   ): Node
 
+  """Get a single \`RepositoryRelationshipMetadatum\`."""
+  repositoryRelationshipMetadatum(rowId: UUID!): RepositoryRelationshipMetadatum
+
   """Get a single \`OrganizationMember\`."""
   organizationMember(organizationId: UUID!, userId: UUID!): OrganizationMember
 
   """Get a single \`RepositoryCollaborator\`."""
   repositoryCollaborator(repositoryId: UUID!, userId: UUID!): RepositoryCollaborator
+
+  """Get a single \`ExternalDependency\`."""
+  externalDependency(rowId: UUID!): ExternalDependency
+
+  """Get a single \`RepositoryRelationshipType\`."""
+  repositoryRelationshipType(rowId: UUID!): RepositoryRelationshipType
 
   """Get a single \`User\`."""
   user(rowId: UUID!): User
@@ -3656,6 +5178,19 @@ type Query implements Node {
   """Get a single \`Organization\`."""
   organizationBySlug(slug: String!): Organization
 
+  """Get a single \`RepositoryRelationship\`."""
+  repositoryRelationship(rowId: UUID!): RepositoryRelationship
+
+  """
+  Reads a single \`RepositoryRelationshipMetadatum\` using its globally unique \`ID\`.
+  """
+  repositoryRelationshipMetadatumById(
+    """
+    The globally unique \`ID\` to be used in selecting a single \`RepositoryRelationshipMetadatum\`.
+    """
+    id: ID!
+  ): RepositoryRelationshipMetadatum
+
   """Reads a single \`OrganizationMember\` using its globally unique \`ID\`."""
   organizationMemberById(
     """
@@ -3673,6 +5208,24 @@ type Query implements Node {
     """
     id: ID!
   ): RepositoryCollaborator
+
+  """Reads a single \`ExternalDependency\` using its globally unique \`ID\`."""
+  externalDependencyById(
+    """
+    The globally unique \`ID\` to be used in selecting a single \`ExternalDependency\`.
+    """
+    id: ID!
+  ): ExternalDependency
+
+  """
+  Reads a single \`RepositoryRelationshipType\` using its globally unique \`ID\`.
+  """
+  repositoryRelationshipTypeById(
+    """
+    The globally unique \`ID\` to be used in selecting a single \`RepositoryRelationshipType\`.
+    """
+    id: ID!
+  ): RepositoryRelationshipType
 
   """Reads a single \`User\` using its globally unique \`ID\`."""
   userById(
@@ -3695,6 +5248,52 @@ type Query implements Node {
     """
     id: ID!
   ): Organization
+
+  """
+  Reads a single \`RepositoryRelationship\` using its globally unique \`ID\`.
+  """
+  repositoryRelationshipById(
+    """
+    The globally unique \`ID\` to be used in selecting a single \`RepositoryRelationship\`.
+    """
+    id: ID!
+  ): RepositoryRelationship
+
+  """
+  Reads and enables pagination through a set of \`RepositoryRelationshipMetadatum\`.
+  """
+  repositoryRelationshipMetadata(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipMetadatumCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipMetadatumFilter
+
+    """The method to use when ordering \`RepositoryRelationshipMetadatum\`."""
+    orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipMetadatumConnection
 
   """Reads and enables pagination through a set of \`OrganizationMember\`."""
   organizationMembers(
@@ -3765,6 +5364,76 @@ type Query implements Node {
     """The method to use when ordering \`RepositoryCollaborator\`."""
     orderBy: [RepositoryCollaboratorOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryCollaboratorConnection
+
+  """Reads and enables pagination through a set of \`ExternalDependency\`."""
+  externalDependencies(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: ExternalDependencyCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: ExternalDependencyFilter
+
+    """The method to use when ordering \`ExternalDependency\`."""
+    orderBy: [ExternalDependencyOrderBy!] = [PRIMARY_KEY_ASC]
+  ): ExternalDependencyConnection
+
+  """
+  Reads and enables pagination through a set of \`RepositoryRelationshipType\`.
+  """
+  repositoryRelationshipTypes(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipTypeCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipTypeFilter
+
+    """The method to use when ordering \`RepositoryRelationshipType\`."""
+    orderBy: [RepositoryRelationshipTypeOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipTypeConnection
 
   """Reads and enables pagination through a set of \`User\`."""
   users(
@@ -3867,6 +5536,42 @@ type Query implements Node {
     """The method to use when ordering \`Organization\`."""
     orderBy: [OrganizationOrderBy!] = [PRIMARY_KEY_ASC]
   ): OrganizationConnection
+
+  """
+  Reads and enables pagination through a set of \`RepositoryRelationship\`.
+  """
+  repositoryRelationships(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipFilter
+
+    """The method to use when ordering \`RepositoryRelationship\`."""
+    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipConnection
 }
 
 """An object with a globally unique \`ID\`."""
@@ -3877,36 +5582,27 @@ interface Node {
   id: ID!
 }
 
-type OrganizationMember implements Node {
+type RepositoryRelationshipMetadatum implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   id: ID!
-  organizationId: UUID!
-  userId: UUID!
-  role: Role!
+  rowId: UUID!
+  relationshipId: UUID!
+  key: String!
+  value: String!
   createdAt: Datetime!
-  updatedAt: Datetime!
 
   """
-  Reads a single \`Organization\` that is related to this \`OrganizationMember\`.
+  Reads a single \`RepositoryRelationship\` that is related to this \`RepositoryRelationshipMetadatum\`.
   """
-  organization: Organization
-
-  """Reads a single \`User\` that is related to this \`OrganizationMember\`."""
-  user: User
+  relationship: RepositoryRelationship
 }
 
 """
 A universally unique identifier as defined by [RFC 4122](https://tools.ietf.org/html/rfc4122).
 """
 scalar UUID
-
-enum Role {
-  owner
-  admin
-  member
-}
 
 """
 A point in time as described by the [ISO
@@ -3916,6 +5612,138 @@ that do not conform to both ISO 8601 and RFC 3339 may be coerced, which may lead
 to unexpected results.
 """
 scalar Datetime
+
+type RepositoryRelationship implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  sourceRepositoryId: UUID!
+  targetRepositoryId: UUID!
+  relationshipTypeId: UUID!
+  detectionSource: DetectionSource!
+  confidence: Float!
+  versionConstraint: String
+  branch: String
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """
+  Reads a single \`RepositoryRelationshipType\` that is related to this \`RepositoryRelationship\`.
+  """
+  relationshipType: RepositoryRelationshipType
+
+  """
+  Reads a single \`Repository\` that is related to this \`RepositoryRelationship\`.
+  """
+  sourceRepository: Repository
+
+  """
+  Reads a single \`Repository\` that is related to this \`RepositoryRelationship\`.
+  """
+  targetRepository: Repository
+
+  """
+  Reads and enables pagination through a set of \`RepositoryRelationshipMetadatum\`.
+  """
+  repositoryRelationshipMetadataByRelationshipId(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipMetadatumCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipMetadatumFilter
+
+    """The method to use when ordering \`RepositoryRelationshipMetadatum\`."""
+    orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipMetadatumConnection!
+}
+
+enum DetectionSource {
+  manual
+  package_json
+  go_mod
+  cargo_toml
+  arbor_manifest
+  openapi
+  graphql_schema
+}
+
+type RepositoryRelationshipType implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  name: String!
+  description: String
+  isDirected: Boolean!
+  organizationId: UUID
+  createdAt: Datetime!
+
+  """
+  Reads a single \`Organization\` that is related to this \`RepositoryRelationshipType\`.
+  """
+  organization: Organization
+
+  """
+  Reads and enables pagination through a set of \`RepositoryRelationship\`.
+  """
+  repositoryRelationshipsByRelationshipTypeId(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipFilter
+
+    """The method to use when ordering \`RepositoryRelationship\`."""
+    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipConnection!
+}
 
 type Organization implements Node {
   """
@@ -4000,6 +5828,42 @@ type Organization implements Node {
     """The method to use when ordering \`Repository\`."""
     orderBy: [RepositoryOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryConnection!
+
+  """
+  Reads and enables pagination through a set of \`RepositoryRelationshipType\`.
+  """
+  repositoryRelationshipTypes(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipTypeCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipTypeFilter
+
+    """The method to use when ordering \`RepositoryRelationshipType\`."""
+    orderBy: [RepositoryRelationshipTypeOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipTypeConnection!
 }
 
 enum Tier {
@@ -4045,149 +5909,154 @@ type OrganizationMemberConnection {
   ): [OrganizationMemberAggregates!]
 }
 
-"""A \`OrganizationMember\` edge in the connection."""
-type OrganizationMemberEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
+type OrganizationMember implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  organizationId: UUID!
+  userId: UUID!
+  role: Role!
+  createdAt: Datetime!
+  updatedAt: Datetime!
 
-  """The \`OrganizationMember\` at the end of the edge."""
-  node: OrganizationMember!
+  """
+  Reads a single \`Organization\` that is related to this \`OrganizationMember\`.
+  """
+  organization: Organization
+
+  """Reads a single \`User\` that is related to this \`OrganizationMember\`."""
+  user: User
+}
+
+enum Role {
+  owner
+  admin
+  member
+}
+
+type User implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  identityProviderId: UUID!
+  name: String!
+  avatarUrl: String
+  email: String!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+  username: String!
+  bio: String
+
+  """Reads and enables pagination through a set of \`OrganizationMember\`."""
+  organizationMembers(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: OrganizationMemberCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: OrganizationMemberFilter
+
+    """The method to use when ordering \`OrganizationMember\`."""
+    orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
+  ): OrganizationMemberConnection!
+
+  """Reads and enables pagination through a set of \`Repository\`."""
+  repositoriesByOwnerId(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryFilter
+
+    """The method to use when ordering \`Repository\`."""
+    orderBy: [RepositoryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryConnection!
+
+  """
+  Reads and enables pagination through a set of \`RepositoryCollaborator\`.
+  """
+  repositoryCollaborators(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryCollaboratorCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryCollaboratorFilter
+
+    """The method to use when ordering \`RepositoryCollaborator\`."""
+    orderBy: [RepositoryCollaboratorOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryCollaboratorConnection!
 }
 
 """A location in a connection that can be used for resuming pagination."""
 scalar Cursor
-
-"""Information about pagination in a connection."""
-type PageInfo {
-  """When paginating forwards, are there more items?"""
-  hasNextPage: Boolean!
-
-  """When paginating backwards, are there more items?"""
-  hasPreviousPage: Boolean!
-
-  """When paginating backwards, the cursor to continue."""
-  startCursor: Cursor
-
-  """When paginating forwards, the cursor to continue."""
-  endCursor: Cursor
-}
-
-type OrganizationMemberAggregates {
-  keys: [String]
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: OrganizationMemberDistinctCountAggregates
-}
-
-type OrganizationMemberDistinctCountAggregates {
-  """Distinct count of organizationId across the matching connection"""
-  organizationId: BigInt
-
-  """Distinct count of userId across the matching connection"""
-  userId: BigInt
-
-  """Distinct count of role across the matching connection"""
-  role: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-
-  """Distinct count of updatedAt across the matching connection"""
-  updatedAt: BigInt
-}
-
-"""
-A signed eight-byte integer. The upper big integer values are greater than the
-max value for a JavaScript number. Therefore all big integers will be output as
-strings and not numbers.
-"""
-scalar BigInt
-
-"""
-Grouping methods for \`OrganizationMember\` for usage during aggregation.
-"""
-enum OrganizationMemberGroupBy {
-  ORGANIZATION_ID
-  USER_ID
-  ROLE
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-  UPDATED_AT
-  UPDATED_AT_TRUNCATED_TO_HOUR
-  UPDATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for \`OrganizationMember\` aggregates."""
-input OrganizationMemberHavingInput {
-  AND: [OrganizationMemberHavingInput!]
-  OR: [OrganizationMemberHavingInput!]
-  sum: OrganizationMemberHavingSumInput
-  distinctCount: OrganizationMemberHavingDistinctCountInput
-  min: OrganizationMemberHavingMinInput
-  max: OrganizationMemberHavingMaxInput
-  average: OrganizationMemberHavingAverageInput
-  stddevSample: OrganizationMemberHavingStddevSampleInput
-  stddevPopulation: OrganizationMemberHavingStddevPopulationInput
-  varianceSample: OrganizationMemberHavingVarianceSampleInput
-  variancePopulation: OrganizationMemberHavingVariancePopulationInput
-}
-
-input OrganizationMemberHavingSumInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input HavingDatetimeFilter {
-  equalTo: Datetime
-  notEqualTo: Datetime
-  greaterThan: Datetime
-  greaterThanOrEqualTo: Datetime
-  lessThan: Datetime
-  lessThanOrEqualTo: Datetime
-}
-
-input OrganizationMemberHavingDistinctCountInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input OrganizationMemberHavingMinInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input OrganizationMemberHavingMaxInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input OrganizationMemberHavingAverageInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input OrganizationMemberHavingStddevSampleInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input OrganizationMemberHavingStddevPopulationInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input OrganizationMemberHavingVarianceSampleInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input OrganizationMemberHavingVariancePopulationInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
 
 """
 A condition to be used against \`OrganizationMember\` object types. All fields are
@@ -4416,6 +6285,12 @@ input OrganizationFilter {
 
   """Some related \`repositories\` exist."""
   repositoriesExist: Boolean
+
+  """Filter by the object’s \`repositoryRelationshipTypes\` relation."""
+  repositoryRelationshipTypes: OrganizationToManyRepositoryRelationshipTypeFilter
+
+  """Some related \`repositoryRelationshipTypes\` exist."""
+  repositoryRelationshipTypesExist: Boolean
 
   """Checks for all expressions in this list."""
   and: [OrganizationFilter!]
@@ -4690,6 +6565,13 @@ input BigIntFilter {
 }
 
 """
+A signed eight-byte integer. The upper big integer values are greater than the
+max value for a JavaScript number. Therefore all big integers will be output as
+strings and not numbers.
+"""
+scalar BigInt
+
+"""
 A filter to be used against many \`Repository\` object types. All fields are combined with a logical ‘and.’
 """
 input OrganizationToManyRepositoryFilter {
@@ -4751,6 +6633,28 @@ input RepositoryFilter {
 
   """Some related \`repositoryCollaborators\` exist."""
   repositoryCollaboratorsExist: Boolean
+
+  """Filter by the object’s \`externalDependencies\` relation."""
+  externalDependencies: RepositoryToManyExternalDependencyFilter
+
+  """Some related \`externalDependencies\` exist."""
+  externalDependenciesExist: Boolean
+
+  """
+  Filter by the object’s \`repositoryRelationshipsBySourceRepositoryId\` relation.
+  """
+  repositoryRelationshipsBySourceRepositoryId: RepositoryToManyRepositoryRelationshipFilter
+
+  """Some related \`repositoryRelationshipsBySourceRepositoryId\` exist."""
+  repositoryRelationshipsBySourceRepositoryIdExist: Boolean
+
+  """
+  Filter by the object’s \`repositoryRelationshipsByTargetRepositoryId\` relation.
+  """
+  repositoryRelationshipsByTargetRepositoryId: RepositoryToManyRepositoryRelationshipFilter
+
+  """Some related \`repositoryRelationshipsByTargetRepositoryId\` exist."""
+  repositoryRelationshipsByTargetRepositoryIdExist: Boolean
 
   """Filter by the object’s \`organization\` relation."""
   organization: OrganizationFilter
@@ -5105,6 +7009,596 @@ input RepositoryCollaboratorDistinctCountAggregateFilter {
   updatedAt: BigIntFilter
 }
 
+"""
+A filter to be used against many \`ExternalDependency\` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryToManyExternalDependencyFilter {
+  """
+  Every related \`ExternalDependency\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: ExternalDependencyFilter
+
+  """
+  Some related \`ExternalDependency\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: ExternalDependencyFilter
+
+  """
+  No related \`ExternalDependency\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: ExternalDependencyFilter
+
+  """
+  Aggregates across related \`ExternalDependency\` match the filter criteria.
+  """
+  aggregates: ExternalDependencyAggregatesFilter
+}
+
+"""
+A filter to be used against \`ExternalDependency\` object types. All fields are combined with a logical ‘and.’
+"""
+input ExternalDependencyFilter {
+  """Filter by the object’s \`rowId\` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s \`repositoryId\` field."""
+  repositoryId: UUIDFilter
+
+  """Filter by the object’s \`packageManager\` field."""
+  packageManager: StringFilter
+
+  """Filter by the object’s \`packageName\` field."""
+  packageName: StringFilter
+
+  """Filter by the object’s \`versionConstraint\` field."""
+  versionConstraint: StringFilter
+
+  """Filter by the object’s \`detectionSource\` field."""
+  detectionSource: DetectionSourceFilter
+
+  """Filter by the object’s \`createdAt\` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s \`repository\` relation."""
+  repository: RepositoryFilter
+
+  """Checks for all expressions in this list."""
+  and: [ExternalDependencyFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [ExternalDependencyFilter!]
+
+  """Negates the expression."""
+  not: ExternalDependencyFilter
+}
+
+"""
+A filter to be used against DetectionSource fields. All fields are combined with a logical ‘and.’
+"""
+input DetectionSourceFilter {
+  """
+  Is null (if \`true\` is specified) or is not null (if \`false\` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: DetectionSource
+
+  """Not equal to the specified value."""
+  notEqualTo: DetectionSource
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: DetectionSource
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: DetectionSource
+
+  """Included in the specified list."""
+  in: [DetectionSource!]
+
+  """Not included in the specified list."""
+  notIn: [DetectionSource!]
+
+  """Less than the specified value."""
+  lessThan: DetectionSource
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: DetectionSource
+
+  """Greater than the specified value."""
+  greaterThan: DetectionSource
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: DetectionSource
+}
+
+"""
+A filter to be used against aggregates of \`ExternalDependency\` object types.
+"""
+input ExternalDependencyAggregatesFilter {
+  """
+  A filter that must pass for the relevant \`ExternalDependency\` object to be included within the aggregate.
+  """
+  filter: ExternalDependencyFilter
+
+  """Distinct count aggregate over matching \`ExternalDependency\` objects."""
+  distinctCount: ExternalDependencyDistinctCountAggregateFilter
+}
+
+input ExternalDependencyDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  repositoryId: BigIntFilter
+  packageManager: BigIntFilter
+  packageName: BigIntFilter
+  versionConstraint: BigIntFilter
+  detectionSource: BigIntFilter
+  createdAt: BigIntFilter
+}
+
+"""
+A filter to be used against many \`RepositoryRelationship\` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryToManyRepositoryRelationshipFilter {
+  """
+  Every related \`RepositoryRelationship\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: RepositoryRelationshipFilter
+
+  """
+  Some related \`RepositoryRelationship\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: RepositoryRelationshipFilter
+
+  """
+  No related \`RepositoryRelationship\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: RepositoryRelationshipFilter
+
+  """
+  Aggregates across related \`RepositoryRelationship\` match the filter criteria.
+  """
+  aggregates: RepositoryRelationshipAggregatesFilter
+}
+
+"""
+A filter to be used against \`RepositoryRelationship\` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryRelationshipFilter {
+  """Filter by the object’s \`rowId\` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s \`sourceRepositoryId\` field."""
+  sourceRepositoryId: UUIDFilter
+
+  """Filter by the object’s \`targetRepositoryId\` field."""
+  targetRepositoryId: UUIDFilter
+
+  """Filter by the object’s \`relationshipTypeId\` field."""
+  relationshipTypeId: UUIDFilter
+
+  """Filter by the object’s \`detectionSource\` field."""
+  detectionSource: DetectionSourceFilter
+
+  """Filter by the object’s \`confidence\` field."""
+  confidence: FloatFilter
+
+  """Filter by the object’s \`versionConstraint\` field."""
+  versionConstraint: StringFilter
+
+  """Filter by the object’s \`branch\` field."""
+  branch: StringFilter
+
+  """Filter by the object’s \`createdAt\` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s \`updatedAt\` field."""
+  updatedAt: DatetimeFilter
+
+  """
+  Filter by the object’s \`repositoryRelationshipMetadataByRelationshipId\` relation.
+  """
+  repositoryRelationshipMetadataByRelationshipId: RepositoryRelationshipToManyRepositoryRelationshipMetadatumFilter
+
+  """Some related \`repositoryRelationshipMetadataByRelationshipId\` exist."""
+  repositoryRelationshipMetadataByRelationshipIdExist: Boolean
+
+  """Filter by the object’s \`relationshipType\` relation."""
+  relationshipType: RepositoryRelationshipTypeFilter
+
+  """Filter by the object’s \`sourceRepository\` relation."""
+  sourceRepository: RepositoryFilter
+
+  """Filter by the object’s \`targetRepository\` relation."""
+  targetRepository: RepositoryFilter
+
+  """Checks for all expressions in this list."""
+  and: [RepositoryRelationshipFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [RepositoryRelationshipFilter!]
+
+  """Negates the expression."""
+  not: RepositoryRelationshipFilter
+}
+
+"""
+A filter to be used against Float fields. All fields are combined with a logical ‘and.’
+"""
+input FloatFilter {
+  """
+  Is null (if \`true\` is specified) or is not null (if \`false\` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: Float
+
+  """Not equal to the specified value."""
+  notEqualTo: Float
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: Float
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: Float
+
+  """Included in the specified list."""
+  in: [Float!]
+
+  """Not included in the specified list."""
+  notIn: [Float!]
+
+  """Less than the specified value."""
+  lessThan: Float
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: Float
+
+  """Greater than the specified value."""
+  greaterThan: Float
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: Float
+}
+
+"""
+A filter to be used against many \`RepositoryRelationshipMetadatum\` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryRelationshipToManyRepositoryRelationshipMetadatumFilter {
+  """
+  Every related \`RepositoryRelationshipMetadatum\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: RepositoryRelationshipMetadatumFilter
+
+  """
+  Some related \`RepositoryRelationshipMetadatum\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: RepositoryRelationshipMetadatumFilter
+
+  """
+  No related \`RepositoryRelationshipMetadatum\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: RepositoryRelationshipMetadatumFilter
+
+  """
+  Aggregates across related \`RepositoryRelationshipMetadatum\` match the filter criteria.
+  """
+  aggregates: RepositoryRelationshipMetadatumAggregatesFilter
+}
+
+"""
+A filter to be used against \`RepositoryRelationshipMetadatum\` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryRelationshipMetadatumFilter {
+  """Filter by the object’s \`rowId\` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s \`relationshipId\` field."""
+  relationshipId: UUIDFilter
+
+  """Filter by the object’s \`key\` field."""
+  key: StringFilter
+
+  """Filter by the object’s \`value\` field."""
+  value: StringFilter
+
+  """Filter by the object’s \`createdAt\` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s \`relationship\` relation."""
+  relationship: RepositoryRelationshipFilter
+
+  """Checks for all expressions in this list."""
+  and: [RepositoryRelationshipMetadatumFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [RepositoryRelationshipMetadatumFilter!]
+
+  """Negates the expression."""
+  not: RepositoryRelationshipMetadatumFilter
+}
+
+"""
+A filter to be used against aggregates of \`RepositoryRelationshipMetadatum\` object types.
+"""
+input RepositoryRelationshipMetadatumAggregatesFilter {
+  """
+  A filter that must pass for the relevant \`RepositoryRelationshipMetadatum\` object to be included within the aggregate.
+  """
+  filter: RepositoryRelationshipMetadatumFilter
+
+  """
+  Distinct count aggregate over matching \`RepositoryRelationshipMetadatum\` objects.
+  """
+  distinctCount: RepositoryRelationshipMetadatumDistinctCountAggregateFilter
+}
+
+input RepositoryRelationshipMetadatumDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  relationshipId: BigIntFilter
+  key: BigIntFilter
+  value: BigIntFilter
+  createdAt: BigIntFilter
+}
+
+"""
+A filter to be used against \`RepositoryRelationshipType\` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryRelationshipTypeFilter {
+  """Filter by the object’s \`rowId\` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s \`name\` field."""
+  name: StringFilter
+
+  """Filter by the object’s \`description\` field."""
+  description: StringFilter
+
+  """Filter by the object’s \`isDirected\` field."""
+  isDirected: BooleanFilter
+
+  """Filter by the object’s \`organizationId\` field."""
+  organizationId: UUIDFilter
+
+  """Filter by the object’s \`createdAt\` field."""
+  createdAt: DatetimeFilter
+
+  """
+  Filter by the object’s \`repositoryRelationshipsByRelationshipTypeId\` relation.
+  """
+  repositoryRelationshipsByRelationshipTypeId: RepositoryRelationshipTypeToManyRepositoryRelationshipFilter
+
+  """Some related \`repositoryRelationshipsByRelationshipTypeId\` exist."""
+  repositoryRelationshipsByRelationshipTypeIdExist: Boolean
+
+  """Filter by the object’s \`organization\` relation."""
+  organization: OrganizationFilter
+
+  """A related \`organization\` exists."""
+  organizationExists: Boolean
+
+  """Checks for all expressions in this list."""
+  and: [RepositoryRelationshipTypeFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [RepositoryRelationshipTypeFilter!]
+
+  """Negates the expression."""
+  not: RepositoryRelationshipTypeFilter
+}
+
+"""
+A filter to be used against Boolean fields. All fields are combined with a logical ‘and.’
+"""
+input BooleanFilter {
+  """
+  Is null (if \`true\` is specified) or is not null (if \`false\` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: Boolean
+
+  """Not equal to the specified value."""
+  notEqualTo: Boolean
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: Boolean
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: Boolean
+
+  """Included in the specified list."""
+  in: [Boolean!]
+
+  """Not included in the specified list."""
+  notIn: [Boolean!]
+
+  """Less than the specified value."""
+  lessThan: Boolean
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: Boolean
+
+  """Greater than the specified value."""
+  greaterThan: Boolean
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: Boolean
+}
+
+"""
+A filter to be used against many \`RepositoryRelationship\` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryRelationshipTypeToManyRepositoryRelationshipFilter {
+  """
+  Every related \`RepositoryRelationship\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: RepositoryRelationshipFilter
+
+  """
+  Some related \`RepositoryRelationship\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: RepositoryRelationshipFilter
+
+  """
+  No related \`RepositoryRelationship\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: RepositoryRelationshipFilter
+
+  """
+  Aggregates across related \`RepositoryRelationship\` match the filter criteria.
+  """
+  aggregates: RepositoryRelationshipAggregatesFilter
+}
+
+"""
+A filter to be used against aggregates of \`RepositoryRelationship\` object types.
+"""
+input RepositoryRelationshipAggregatesFilter {
+  """
+  A filter that must pass for the relevant \`RepositoryRelationship\` object to be included within the aggregate.
+  """
+  filter: RepositoryRelationshipFilter
+
+  """Sum aggregate over matching \`RepositoryRelationship\` objects."""
+  sum: RepositoryRelationshipSumAggregateFilter
+
+  """
+  Distinct count aggregate over matching \`RepositoryRelationship\` objects.
+  """
+  distinctCount: RepositoryRelationshipDistinctCountAggregateFilter
+
+  """Minimum aggregate over matching \`RepositoryRelationship\` objects."""
+  min: RepositoryRelationshipMinAggregateFilter
+
+  """Maximum aggregate over matching \`RepositoryRelationship\` objects."""
+  max: RepositoryRelationshipMaxAggregateFilter
+
+  """Mean average aggregate over matching \`RepositoryRelationship\` objects."""
+  average: RepositoryRelationshipAverageAggregateFilter
+
+  """
+  Sample standard deviation aggregate over matching \`RepositoryRelationship\` objects.
+  """
+  stddevSample: RepositoryRelationshipStddevSampleAggregateFilter
+
+  """
+  Population standard deviation aggregate over matching \`RepositoryRelationship\` objects.
+  """
+  stddevPopulation: RepositoryRelationshipStddevPopulationAggregateFilter
+
+  """
+  Sample variance aggregate over matching \`RepositoryRelationship\` objects.
+  """
+  varianceSample: RepositoryRelationshipVarianceSampleAggregateFilter
+
+  """
+  Population variance aggregate over matching \`RepositoryRelationship\` objects.
+  """
+  variancePopulation: RepositoryRelationshipVariancePopulationAggregateFilter
+}
+
+input RepositoryRelationshipSumAggregateFilter {
+  confidence: FloatFilter
+}
+
+input RepositoryRelationshipDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  sourceRepositoryId: BigIntFilter
+  targetRepositoryId: BigIntFilter
+  relationshipTypeId: BigIntFilter
+  detectionSource: BigIntFilter
+  confidence: BigIntFilter
+  versionConstraint: BigIntFilter
+  branch: BigIntFilter
+  createdAt: BigIntFilter
+  updatedAt: BigIntFilter
+}
+
+input RepositoryRelationshipMinAggregateFilter {
+  confidence: FloatFilter
+}
+
+input RepositoryRelationshipMaxAggregateFilter {
+  confidence: FloatFilter
+}
+
+input RepositoryRelationshipAverageAggregateFilter {
+  confidence: FloatFilter
+}
+
+input RepositoryRelationshipStddevSampleAggregateFilter {
+  confidence: FloatFilter
+}
+
+input RepositoryRelationshipStddevPopulationAggregateFilter {
+  confidence: FloatFilter
+}
+
+input RepositoryRelationshipVarianceSampleAggregateFilter {
+  confidence: FloatFilter
+}
+
+input RepositoryRelationshipVariancePopulationAggregateFilter {
+  confidence: FloatFilter
+}
+
+"""
+A filter to be used against many \`RepositoryRelationshipType\` object types. All fields are combined with a logical ‘and.’
+"""
+input OrganizationToManyRepositoryRelationshipTypeFilter {
+  """
+  Every related \`RepositoryRelationshipType\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: RepositoryRelationshipTypeFilter
+
+  """
+  Some related \`RepositoryRelationshipType\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: RepositoryRelationshipTypeFilter
+
+  """
+  No related \`RepositoryRelationshipType\` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: RepositoryRelationshipTypeFilter
+
+  """
+  Aggregates across related \`RepositoryRelationshipType\` match the filter criteria.
+  """
+  aggregates: RepositoryRelationshipTypeAggregatesFilter
+}
+
+"""
+A filter to be used against aggregates of \`RepositoryRelationshipType\` object types.
+"""
+input RepositoryRelationshipTypeAggregatesFilter {
+  """
+  A filter that must pass for the relevant \`RepositoryRelationshipType\` object to be included within the aggregate.
+  """
+  filter: RepositoryRelationshipTypeFilter
+
+  """
+  Distinct count aggregate over matching \`RepositoryRelationshipType\` objects.
+  """
+  distinctCount: RepositoryRelationshipTypeDistinctCountAggregateFilter
+}
+
+input RepositoryRelationshipTypeDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  name: BigIntFilter
+  description: BigIntFilter
+  isDirected: BigIntFilter
+  organizationId: BigIntFilter
+  createdAt: BigIntFilter
+}
+
 """Methods to use when ordering \`OrganizationMember\`."""
 enum OrganizationMemberOrderBy {
   NATURAL
@@ -5212,25 +7706,9 @@ type Repository implements Node {
     """The method to use when ordering \`RepositoryCollaborator\`."""
     orderBy: [RepositoryCollaboratorOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryCollaboratorConnection!
-}
 
-type User implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  identityProviderId: UUID!
-  name: String!
-  avatarUrl: String
-  email: String!
-  createdAt: Datetime!
-  updatedAt: Datetime!
-  username: String!
-  bio: String
-
-  """Reads and enables pagination through a set of \`OrganizationMember\`."""
-  organizationMembers(
+  """Reads and enables pagination through a set of \`ExternalDependency\`."""
+  externalDependencies(
     """Only read the first \`n\` values of the set."""
     first: Int
 
@@ -5252,19 +7730,21 @@ type User implements Node {
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: OrganizationMemberCondition
+    condition: ExternalDependencyCondition
 
     """
     A filter to be used in determining which values should be returned by the collection.
     """
-    filter: OrganizationMemberFilter
+    filter: ExternalDependencyFilter
 
-    """The method to use when ordering \`OrganizationMember\`."""
-    orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
-  ): OrganizationMemberConnection!
+    """The method to use when ordering \`ExternalDependency\`."""
+    orderBy: [ExternalDependencyOrderBy!] = [PRIMARY_KEY_ASC]
+  ): ExternalDependencyConnection!
 
-  """Reads and enables pagination through a set of \`Repository\`."""
-  repositoriesByOwnerId(
+  """
+  Reads and enables pagination through a set of \`RepositoryRelationship\`.
+  """
+  repositoryRelationshipsBySourceRepositoryId(
     """Only read the first \`n\` values of the set."""
     first: Int
 
@@ -5286,21 +7766,21 @@ type User implements Node {
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: RepositoryCondition
+    condition: RepositoryRelationshipCondition
 
     """
     A filter to be used in determining which values should be returned by the collection.
     """
-    filter: RepositoryFilter
+    filter: RepositoryRelationshipFilter
 
-    """The method to use when ordering \`Repository\`."""
-    orderBy: [RepositoryOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryConnection!
+    """The method to use when ordering \`RepositoryRelationship\`."""
+    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipConnection!
 
   """
-  Reads and enables pagination through a set of \`RepositoryCollaborator\`.
+  Reads and enables pagination through a set of \`RepositoryRelationship\`.
   """
-  repositoryCollaborators(
+  repositoryRelationshipsByTargetRepositoryId(
     """Only read the first \`n\` values of the set."""
     first: Int
 
@@ -5322,91 +7802,16 @@ type User implements Node {
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: RepositoryCollaboratorCondition
+    condition: RepositoryRelationshipCondition
 
     """
     A filter to be used in determining which values should be returned by the collection.
     """
-    filter: RepositoryCollaboratorFilter
+    filter: RepositoryRelationshipFilter
 
-    """The method to use when ordering \`RepositoryCollaborator\`."""
-    orderBy: [RepositoryCollaboratorOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryCollaboratorConnection!
-}
-
-"""
-A condition to be used against \`Repository\` object types. All fields are tested
-for equality and combined with a logical ‘and.’
-"""
-input RepositoryCondition {
-  """Checks for equality with the object’s \`rowId\` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s \`ownerId\` field."""
-  ownerId: UUID
-
-  """Checks for equality with the object’s \`organizationId\` field."""
-  organizationId: UUID
-
-  """Checks for equality with the object’s \`name\` field."""
-  name: String
-
-  """Checks for equality with the object’s \`slug\` field."""
-  slug: String
-
-  """Checks for equality with the object’s \`description\` field."""
-  description: String
-
-  """Checks for equality with the object’s \`visibility\` field."""
-  visibility: Visibility
-
-  """Checks for equality with the object’s \`defaultBranch\` field."""
-  defaultBranch: String
-
-  """Checks for equality with the object’s \`createdAt\` field."""
-  createdAt: Datetime
-
-  """Checks for equality with the object’s \`updatedAt\` field."""
-  updatedAt: Datetime
-}
-
-"""Methods to use when ordering \`Repository\`."""
-enum RepositoryOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  OWNER_ID_ASC
-  OWNER_ID_DESC
-  ORGANIZATION_ID_ASC
-  ORGANIZATION_ID_DESC
-  NAME_ASC
-  NAME_DESC
-  SLUG_ASC
-  SLUG_DESC
-  DESCRIPTION_ASC
-  DESCRIPTION_DESC
-  VISIBILITY_ASC
-  VISIBILITY_DESC
-  DEFAULT_BRANCH_ASC
-  DEFAULT_BRANCH_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-  UPDATED_AT_ASC
-  UPDATED_AT_DESC
-  REPOSITORY_COLLABORATORS_COUNT_ASC
-  REPOSITORY_COLLABORATORS_COUNT_DESC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_REPOSITORY_ID_ASC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_REPOSITORY_ID_DESC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_USER_ID_ASC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_USER_ID_DESC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_PERMISSION_ASC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_PERMISSION_DESC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_CREATED_AT_ASC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_CREATED_AT_DESC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_UPDATED_AT_ASC
-  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_UPDATED_AT_DESC
+    """The method to use when ordering \`RepositoryRelationship\`."""
+    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipConnection!
 }
 
 """A connection to a list of \`RepositoryCollaborator\` values."""
@@ -5477,6 +7882,21 @@ type RepositoryCollaboratorEdge {
   node: RepositoryCollaborator!
 }
 
+"""Information about pagination in a connection."""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
+}
+
 type RepositoryCollaboratorAggregates {
   keys: [String]
 
@@ -5536,6 +7956,15 @@ input RepositoryCollaboratorHavingInput {
 input RepositoryCollaboratorHavingSumInput {
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
+}
+
+input HavingDatetimeFilter {
+  equalTo: Datetime
+  notEqualTo: Datetime
+  greaterThan: Datetime
+  greaterThanOrEqualTo: Datetime
+  lessThan: Datetime
+  lessThanOrEqualTo: Datetime
 }
 
 input RepositoryCollaboratorHavingDistinctCountInput {
@@ -5614,6 +8043,553 @@ enum RepositoryCollaboratorOrderBy {
   CREATED_AT_DESC
   UPDATED_AT_ASC
   UPDATED_AT_DESC
+}
+
+"""A connection to a list of \`ExternalDependency\` values."""
+type ExternalDependencyConnection {
+  """A list of \`ExternalDependency\` objects."""
+  nodes: [ExternalDependency!]!
+
+  """
+  A list of edges which contains the \`ExternalDependency\` and cursor to aid in pagination.
+  """
+  edges: [ExternalDependencyEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* \`ExternalDependency\` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: ExternalDependencyAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping \`ExternalDependency\` for these aggregates.
+    """
+    groupBy: [ExternalDependencyGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: ExternalDependencyHavingInput
+  ): [ExternalDependencyAggregates!]
+}
+
+type ExternalDependency implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  repositoryId: UUID!
+  packageManager: String!
+  packageName: String!
+  versionConstraint: String
+  detectionSource: DetectionSource!
+  createdAt: Datetime!
+
+  """
+  Reads a single \`Repository\` that is related to this \`ExternalDependency\`.
+  """
+  repository: Repository
+}
+
+"""A \`ExternalDependency\` edge in the connection."""
+type ExternalDependencyEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The \`ExternalDependency\` at the end of the edge."""
+  node: ExternalDependency!
+}
+
+type ExternalDependencyAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: ExternalDependencyDistinctCountAggregates
+}
+
+type ExternalDependencyDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of packageManager across the matching connection"""
+  packageManager: BigInt
+
+  """Distinct count of packageName across the matching connection"""
+  packageName: BigInt
+
+  """Distinct count of versionConstraint across the matching connection"""
+  versionConstraint: BigInt
+
+  """Distinct count of detectionSource across the matching connection"""
+  detectionSource: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+Grouping methods for \`ExternalDependency\` for usage during aggregation.
+"""
+enum ExternalDependencyGroupBy {
+  REPOSITORY_ID
+  PACKAGE_MANAGER
+  PACKAGE_NAME
+  VERSION_CONSTRAINT
+  DETECTION_SOURCE
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for \`ExternalDependency\` aggregates."""
+input ExternalDependencyHavingInput {
+  AND: [ExternalDependencyHavingInput!]
+  OR: [ExternalDependencyHavingInput!]
+  sum: ExternalDependencyHavingSumInput
+  distinctCount: ExternalDependencyHavingDistinctCountInput
+  min: ExternalDependencyHavingMinInput
+  max: ExternalDependencyHavingMaxInput
+  average: ExternalDependencyHavingAverageInput
+  stddevSample: ExternalDependencyHavingStddevSampleInput
+  stddevPopulation: ExternalDependencyHavingStddevPopulationInput
+  varianceSample: ExternalDependencyHavingVarianceSampleInput
+  variancePopulation: ExternalDependencyHavingVariancePopulationInput
+}
+
+input ExternalDependencyHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ExternalDependencyHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against \`ExternalDependency\` object types. All fields are
+tested for equality and combined with a logical ‘and.’
+"""
+input ExternalDependencyCondition {
+  """Checks for equality with the object’s \`rowId\` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s \`repositoryId\` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s \`packageManager\` field."""
+  packageManager: String
+
+  """Checks for equality with the object’s \`packageName\` field."""
+  packageName: String
+
+  """Checks for equality with the object’s \`versionConstraint\` field."""
+  versionConstraint: String
+
+  """Checks for equality with the object’s \`detectionSource\` field."""
+  detectionSource: DetectionSource
+
+  """Checks for equality with the object’s \`createdAt\` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering \`ExternalDependency\`."""
+enum ExternalDependencyOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  PACKAGE_MANAGER_ASC
+  PACKAGE_MANAGER_DESC
+  PACKAGE_NAME_ASC
+  PACKAGE_NAME_DESC
+  VERSION_CONSTRAINT_ASC
+  VERSION_CONSTRAINT_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+}
+
+"""A connection to a list of \`RepositoryRelationship\` values."""
+type RepositoryRelationshipConnection {
+  """A list of \`RepositoryRelationship\` objects."""
+  nodes: [RepositoryRelationship!]!
+
+  """
+  A list of edges which contains the \`RepositoryRelationship\` and cursor to aid in pagination.
+  """
+  edges: [RepositoryRelationshipEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* \`RepositoryRelationship\` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: RepositoryRelationshipAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping \`RepositoryRelationship\` for these aggregates.
+    """
+    groupBy: [RepositoryRelationshipGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: RepositoryRelationshipHavingInput
+  ): [RepositoryRelationshipAggregates!]
+}
+
+"""A \`RepositoryRelationship\` edge in the connection."""
+type RepositoryRelationshipEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The \`RepositoryRelationship\` at the end of the edge."""
+  node: RepositoryRelationship!
+}
+
+type RepositoryRelationshipAggregates {
+  keys: [String]
+
+  """
+  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  sum: RepositoryRelationshipSumAggregates
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: RepositoryRelationshipDistinctCountAggregates
+
+  """
+  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  min: RepositoryRelationshipMinAggregates
+
+  """
+  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  max: RepositoryRelationshipMaxAggregates
+
+  """
+  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  average: RepositoryRelationshipAverageAggregates
+
+  """
+  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevSample: RepositoryRelationshipStddevSampleAggregates
+
+  """
+  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevPopulation: RepositoryRelationshipStddevPopulationAggregates
+
+  """
+  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  varianceSample: RepositoryRelationshipVarianceSampleAggregates
+
+  """
+  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  variancePopulation: RepositoryRelationshipVariancePopulationAggregates
+}
+
+type RepositoryRelationshipSumAggregates {
+  """Sum of confidence across the matching connection"""
+  confidence: Float!
+}
+
+type RepositoryRelationshipDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of sourceRepositoryId across the matching connection"""
+  sourceRepositoryId: BigInt
+
+  """Distinct count of targetRepositoryId across the matching connection"""
+  targetRepositoryId: BigInt
+
+  """Distinct count of relationshipTypeId across the matching connection"""
+  relationshipTypeId: BigInt
+
+  """Distinct count of detectionSource across the matching connection"""
+  detectionSource: BigInt
+
+  """Distinct count of confidence across the matching connection"""
+  confidence: BigInt
+
+  """Distinct count of versionConstraint across the matching connection"""
+  versionConstraint: BigInt
+
+  """Distinct count of branch across the matching connection"""
+  branch: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+type RepositoryRelationshipMinAggregates {
+  """Minimum of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipMaxAggregates {
+  """Maximum of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipAverageAggregates {
+  """Mean average of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipStddevSampleAggregates {
+  """Sample standard deviation of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipStddevPopulationAggregates {
+  """
+  Population standard deviation of confidence across the matching connection
+  """
+  confidence: Float
+}
+
+type RepositoryRelationshipVarianceSampleAggregates {
+  """Sample variance of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipVariancePopulationAggregates {
+  """Population variance of confidence across the matching connection"""
+  confidence: Float
+}
+
+"""
+Grouping methods for \`RepositoryRelationship\` for usage during aggregation.
+"""
+enum RepositoryRelationshipGroupBy {
+  SOURCE_REPOSITORY_ID
+  TARGET_REPOSITORY_ID
+  RELATIONSHIP_TYPE_ID
+  DETECTION_SOURCE
+  CONFIDENCE
+  VERSION_CONSTRAINT
+  BRANCH
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for \`RepositoryRelationship\` aggregates."""
+input RepositoryRelationshipHavingInput {
+  AND: [RepositoryRelationshipHavingInput!]
+  OR: [RepositoryRelationshipHavingInput!]
+  sum: RepositoryRelationshipHavingSumInput
+  distinctCount: RepositoryRelationshipHavingDistinctCountInput
+  min: RepositoryRelationshipHavingMinInput
+  max: RepositoryRelationshipHavingMaxInput
+  average: RepositoryRelationshipHavingAverageInput
+  stddevSample: RepositoryRelationshipHavingStddevSampleInput
+  stddevPopulation: RepositoryRelationshipHavingStddevPopulationInput
+  varianceSample: RepositoryRelationshipHavingVarianceSampleInput
+  variancePopulation: RepositoryRelationshipHavingVariancePopulationInput
+}
+
+input RepositoryRelationshipHavingSumInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input HavingFloatFilter {
+  equalTo: Float
+  notEqualTo: Float
+  greaterThan: Float
+  greaterThanOrEqualTo: Float
+  lessThan: Float
+  lessThanOrEqualTo: Float
+}
+
+input RepositoryRelationshipHavingDistinctCountInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingMinInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingMaxInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingAverageInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingStddevSampleInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingStddevPopulationInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingVarianceSampleInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingVariancePopulationInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against \`RepositoryRelationship\` object types. All fields
+are tested for equality and combined with a logical ‘and.’
+"""
+input RepositoryRelationshipCondition {
+  """Checks for equality with the object’s \`rowId\` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s \`sourceRepositoryId\` field."""
+  sourceRepositoryId: UUID
+
+  """Checks for equality with the object’s \`targetRepositoryId\` field."""
+  targetRepositoryId: UUID
+
+  """Checks for equality with the object’s \`relationshipTypeId\` field."""
+  relationshipTypeId: UUID
+
+  """Checks for equality with the object’s \`detectionSource\` field."""
+  detectionSource: DetectionSource
+
+  """Checks for equality with the object’s \`confidence\` field."""
+  confidence: Float
+
+  """Checks for equality with the object’s \`versionConstraint\` field."""
+  versionConstraint: String
+
+  """Checks for equality with the object’s \`branch\` field."""
+  branch: String
+
+  """Checks for equality with the object’s \`createdAt\` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s \`updatedAt\` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering \`RepositoryRelationship\`."""
+enum RepositoryRelationshipOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  SOURCE_REPOSITORY_ID_ASC
+  SOURCE_REPOSITORY_ID_DESC
+  TARGET_REPOSITORY_ID_ASC
+  TARGET_REPOSITORY_ID_DESC
+  RELATIONSHIP_TYPE_ID_ASC
+  RELATIONSHIP_TYPE_ID_DESC
+  CONFIDENCE_ASC
+  CONFIDENCE_DESC
+  VERSION_CONSTRAINT_ASC
+  VERSION_CONSTRAINT_DESC
+  BRANCH_ASC
+  BRANCH_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """A \`Repository\` edge in the connection."""
@@ -5741,6 +8717,676 @@ input RepositoryHavingVarianceSampleInput {
 input RepositoryHavingVariancePopulationInput {
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against \`Repository\` object types. All fields are tested
+for equality and combined with a logical ‘and.’
+"""
+input RepositoryCondition {
+  """Checks for equality with the object’s \`rowId\` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s \`ownerId\` field."""
+  ownerId: UUID
+
+  """Checks for equality with the object’s \`organizationId\` field."""
+  organizationId: UUID
+
+  """Checks for equality with the object’s \`name\` field."""
+  name: String
+
+  """Checks for equality with the object’s \`slug\` field."""
+  slug: String
+
+  """Checks for equality with the object’s \`description\` field."""
+  description: String
+
+  """Checks for equality with the object’s \`visibility\` field."""
+  visibility: Visibility
+
+  """Checks for equality with the object’s \`defaultBranch\` field."""
+  defaultBranch: String
+
+  """Checks for equality with the object’s \`createdAt\` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s \`updatedAt\` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering \`Repository\`."""
+enum RepositoryOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  ORGANIZATION_ID_ASC
+  ORGANIZATION_ID_DESC
+  NAME_ASC
+  NAME_DESC
+  SLUG_ASC
+  SLUG_DESC
+  DESCRIPTION_ASC
+  DESCRIPTION_DESC
+  VISIBILITY_ASC
+  VISIBILITY_DESC
+  DEFAULT_BRANCH_ASC
+  DEFAULT_BRANCH_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  REPOSITORY_COLLABORATORS_COUNT_ASC
+  REPOSITORY_COLLABORATORS_COUNT_DESC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_USER_ID_ASC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_USER_ID_DESC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_PERMISSION_ASC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_PERMISSION_DESC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_CREATED_AT_DESC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_UPDATED_AT_ASC
+  REPOSITORY_COLLABORATORS_DISTINCT_COUNT_UPDATED_AT_DESC
+  EXTERNAL_DEPENDENCIES_COUNT_ASC
+  EXTERNAL_DEPENDENCIES_COUNT_DESC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_ROW_ID_ASC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_ROW_ID_DESC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_MANAGER_ASC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_MANAGER_DESC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_NAME_ASC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_NAME_DESC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_DETECTION_SOURCE_DESC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_CREATED_AT_ASC
+  EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_CREATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_COUNT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_COUNT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_SUM_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_SUM_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MIN_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MIN_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MAX_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MAX_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_AVERAGE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_AVERAGE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_COUNT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_COUNT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_SUM_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_SUM_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MIN_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MIN_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MAX_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MAX_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_AVERAGE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_AVERAGE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_DESC
+}
+
+"""A \`OrganizationMember\` edge in the connection."""
+type OrganizationMemberEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The \`OrganizationMember\` at the end of the edge."""
+  node: OrganizationMember!
+}
+
+type OrganizationMemberAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: OrganizationMemberDistinctCountAggregates
+}
+
+type OrganizationMemberDistinctCountAggregates {
+  """Distinct count of organizationId across the matching connection"""
+  organizationId: BigInt
+
+  """Distinct count of userId across the matching connection"""
+  userId: BigInt
+
+  """Distinct count of role across the matching connection"""
+  role: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+"""
+Grouping methods for \`OrganizationMember\` for usage during aggregation.
+"""
+enum OrganizationMemberGroupBy {
+  ORGANIZATION_ID
+  USER_ID
+  ROLE
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for \`OrganizationMember\` aggregates."""
+input OrganizationMemberHavingInput {
+  AND: [OrganizationMemberHavingInput!]
+  OR: [OrganizationMemberHavingInput!]
+  sum: OrganizationMemberHavingSumInput
+  distinctCount: OrganizationMemberHavingDistinctCountInput
+  min: OrganizationMemberHavingMinInput
+  max: OrganizationMemberHavingMaxInput
+  average: OrganizationMemberHavingAverageInput
+  stddevSample: OrganizationMemberHavingStddevSampleInput
+  stddevPopulation: OrganizationMemberHavingStddevPopulationInput
+  varianceSample: OrganizationMemberHavingVarianceSampleInput
+  variancePopulation: OrganizationMemberHavingVariancePopulationInput
+}
+
+input OrganizationMemberHavingSumInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingMinInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+"""A connection to a list of \`RepositoryRelationshipType\` values."""
+type RepositoryRelationshipTypeConnection {
+  """A list of \`RepositoryRelationshipType\` objects."""
+  nodes: [RepositoryRelationshipType!]!
+
+  """
+  A list of edges which contains the \`RepositoryRelationshipType\` and cursor to aid in pagination.
+  """
+  edges: [RepositoryRelationshipTypeEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* \`RepositoryRelationshipType\` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: RepositoryRelationshipTypeAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping \`RepositoryRelationshipType\` for these aggregates.
+    """
+    groupBy: [RepositoryRelationshipTypeGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: RepositoryRelationshipTypeHavingInput
+  ): [RepositoryRelationshipTypeAggregates!]
+}
+
+"""A \`RepositoryRelationshipType\` edge in the connection."""
+type RepositoryRelationshipTypeEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The \`RepositoryRelationshipType\` at the end of the edge."""
+  node: RepositoryRelationshipType!
+}
+
+type RepositoryRelationshipTypeAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: RepositoryRelationshipTypeDistinctCountAggregates
+}
+
+type RepositoryRelationshipTypeDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of name across the matching connection"""
+  name: BigInt
+
+  """Distinct count of description across the matching connection"""
+  description: BigInt
+
+  """Distinct count of isDirected across the matching connection"""
+  isDirected: BigInt
+
+  """Distinct count of organizationId across the matching connection"""
+  organizationId: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+Grouping methods for \`RepositoryRelationshipType\` for usage during aggregation.
+"""
+enum RepositoryRelationshipTypeGroupBy {
+  NAME
+  DESCRIPTION
+  IS_DIRECTED
+  ORGANIZATION_ID
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for \`RepositoryRelationshipType\` aggregates."""
+input RepositoryRelationshipTypeHavingInput {
+  AND: [RepositoryRelationshipTypeHavingInput!]
+  OR: [RepositoryRelationshipTypeHavingInput!]
+  sum: RepositoryRelationshipTypeHavingSumInput
+  distinctCount: RepositoryRelationshipTypeHavingDistinctCountInput
+  min: RepositoryRelationshipTypeHavingMinInput
+  max: RepositoryRelationshipTypeHavingMaxInput
+  average: RepositoryRelationshipTypeHavingAverageInput
+  stddevSample: RepositoryRelationshipTypeHavingStddevSampleInput
+  stddevPopulation: RepositoryRelationshipTypeHavingStddevPopulationInput
+  varianceSample: RepositoryRelationshipTypeHavingVarianceSampleInput
+  variancePopulation: RepositoryRelationshipTypeHavingVariancePopulationInput
+}
+
+input RepositoryRelationshipTypeHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against \`RepositoryRelationshipType\` object types. All
+fields are tested for equality and combined with a logical ‘and.’
+"""
+input RepositoryRelationshipTypeCondition {
+  """Checks for equality with the object’s \`rowId\` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s \`name\` field."""
+  name: String
+
+  """Checks for equality with the object’s \`description\` field."""
+  description: String
+
+  """Checks for equality with the object’s \`isDirected\` field."""
+  isDirected: Boolean
+
+  """Checks for equality with the object’s \`organizationId\` field."""
+  organizationId: UUID
+
+  """Checks for equality with the object’s \`createdAt\` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering \`RepositoryRelationshipType\`."""
+enum RepositoryRelationshipTypeOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  NAME_ASC
+  NAME_DESC
+  DESCRIPTION_ASC
+  DESCRIPTION_DESC
+  IS_DIRECTED_ASC
+  IS_DIRECTED_DESC
+  ORGANIZATION_ID_ASC
+  ORGANIZATION_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_DESC
+}
+
+"""A connection to a list of \`RepositoryRelationshipMetadatum\` values."""
+type RepositoryRelationshipMetadatumConnection {
+  """A list of \`RepositoryRelationshipMetadatum\` objects."""
+  nodes: [RepositoryRelationshipMetadatum!]!
+
+  """
+  A list of edges which contains the \`RepositoryRelationshipMetadatum\` and cursor to aid in pagination.
+  """
+  edges: [RepositoryRelationshipMetadatumEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* \`RepositoryRelationshipMetadatum\` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: RepositoryRelationshipMetadatumAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping \`RepositoryRelationshipMetadatum\` for these aggregates.
+    """
+    groupBy: [RepositoryRelationshipMetadatumGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: RepositoryRelationshipMetadatumHavingInput
+  ): [RepositoryRelationshipMetadatumAggregates!]
+}
+
+"""A \`RepositoryRelationshipMetadatum\` edge in the connection."""
+type RepositoryRelationshipMetadatumEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The \`RepositoryRelationshipMetadatum\` at the end of the edge."""
+  node: RepositoryRelationshipMetadatum!
+}
+
+type RepositoryRelationshipMetadatumAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: RepositoryRelationshipMetadatumDistinctCountAggregates
+}
+
+type RepositoryRelationshipMetadatumDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of relationshipId across the matching connection"""
+  relationshipId: BigInt
+
+  """Distinct count of key across the matching connection"""
+  key: BigInt
+
+  """Distinct count of value across the matching connection"""
+  value: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+Grouping methods for \`RepositoryRelationshipMetadatum\` for usage during aggregation.
+"""
+enum RepositoryRelationshipMetadatumGroupBy {
+  RELATIONSHIP_ID
+  KEY
+  VALUE
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for \`RepositoryRelationshipMetadatum\` aggregates."""
+input RepositoryRelationshipMetadatumHavingInput {
+  AND: [RepositoryRelationshipMetadatumHavingInput!]
+  OR: [RepositoryRelationshipMetadatumHavingInput!]
+  sum: RepositoryRelationshipMetadatumHavingSumInput
+  distinctCount: RepositoryRelationshipMetadatumHavingDistinctCountInput
+  min: RepositoryRelationshipMetadatumHavingMinInput
+  max: RepositoryRelationshipMetadatumHavingMaxInput
+  average: RepositoryRelationshipMetadatumHavingAverageInput
+  stddevSample: RepositoryRelationshipMetadatumHavingStddevSampleInput
+  stddevPopulation: RepositoryRelationshipMetadatumHavingStddevPopulationInput
+  varianceSample: RepositoryRelationshipMetadatumHavingVarianceSampleInput
+  variancePopulation: RepositoryRelationshipMetadatumHavingVariancePopulationInput
+}
+
+input RepositoryRelationshipMetadatumHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against \`RepositoryRelationshipMetadatum\` object types.
+All fields are tested for equality and combined with a logical ‘and.’
+"""
+input RepositoryRelationshipMetadatumCondition {
+  """Checks for equality with the object’s \`rowId\` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s \`relationshipId\` field."""
+  relationshipId: UUID
+
+  """Checks for equality with the object’s \`key\` field."""
+  key: String
+
+  """Checks for equality with the object’s \`value\` field."""
+  value: String
+
+  """Checks for equality with the object’s \`createdAt\` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering \`RepositoryRelationshipMetadatum\`."""
+enum RepositoryRelationshipMetadatumOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  RELATIONSHIP_ID_ASC
+  RELATIONSHIP_ID_DESC
+  KEY_ASC
+  KEY_DESC
+  VALUE_ASC
+  VALUE_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
 }
 
 """A connection to a list of \`User\` values."""
@@ -6253,12 +9899,34 @@ enum OrganizationOrderBy {
   REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
   REPOSITORIES_DISTINCT_COUNT_UPDATED_AT_ASC
   REPOSITORIES_DISTINCT_COUNT_UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIP_TYPES_COUNT_ASC
+  REPOSITORY_RELATIONSHIP_TYPES_COUNT_DESC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_NAME_ASC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_NAME_DESC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_DESCRIPTION_ASC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_DESCRIPTION_DESC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_IS_DIRECTED_ASC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_IS_DIRECTED_DESC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ORGANIZATION_ID_ASC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ORGANIZATION_ID_DESC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """
 The root mutation type which contains root level fields which mutate data.
 """
 type Mutation {
+  """Creates a single \`RepositoryRelationshipMetadatum\`."""
+  createRepositoryRelationshipMetadatum(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateRepositoryRelationshipMetadatumInput!
+  ): CreateRepositoryRelationshipMetadatumPayload
+
   """Creates a single \`OrganizationMember\`."""
   createOrganizationMember(
     """
@@ -6274,6 +9942,22 @@ type Mutation {
     """
     input: CreateRepositoryCollaboratorInput!
   ): CreateRepositoryCollaboratorPayload
+
+  """Creates a single \`ExternalDependency\`."""
+  createExternalDependency(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateExternalDependencyInput!
+  ): CreateExternalDependencyPayload
+
+  """Creates a single \`RepositoryRelationshipType\`."""
+  createRepositoryRelationshipType(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateRepositoryRelationshipTypeInput!
+  ): CreateRepositoryRelationshipTypePayload
 
   """Creates a single \`User\`."""
   createUser(
@@ -6298,6 +9982,34 @@ type Mutation {
     """
     input: CreateOrganizationInput!
   ): CreateOrganizationPayload
+
+  """Creates a single \`RepositoryRelationship\`."""
+  createRepositoryRelationship(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateRepositoryRelationshipInput!
+  ): CreateRepositoryRelationshipPayload
+
+  """
+  Updates a single \`RepositoryRelationshipMetadatum\` using its globally unique id and a patch.
+  """
+  updateRepositoryRelationshipMetadatumById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateRepositoryRelationshipMetadatumByIdInput!
+  ): UpdateRepositoryRelationshipMetadatumPayload
+
+  """
+  Updates a single \`RepositoryRelationshipMetadatum\` using a unique key and a patch.
+  """
+  updateRepositoryRelationshipMetadatum(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateRepositoryRelationshipMetadatumInput!
+  ): UpdateRepositoryRelationshipMetadatumPayload
 
   """
   Updates a single \`OrganizationMember\` using its globally unique id and a patch.
@@ -6336,6 +10048,44 @@ type Mutation {
     """
     input: UpdateRepositoryCollaboratorInput!
   ): UpdateRepositoryCollaboratorPayload
+
+  """
+  Updates a single \`ExternalDependency\` using its globally unique id and a patch.
+  """
+  updateExternalDependencyById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateExternalDependencyByIdInput!
+  ): UpdateExternalDependencyPayload
+
+  """Updates a single \`ExternalDependency\` using a unique key and a patch."""
+  updateExternalDependency(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateExternalDependencyInput!
+  ): UpdateExternalDependencyPayload
+
+  """
+  Updates a single \`RepositoryRelationshipType\` using its globally unique id and a patch.
+  """
+  updateRepositoryRelationshipTypeById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateRepositoryRelationshipTypeByIdInput!
+  ): UpdateRepositoryRelationshipTypePayload
+
+  """
+  Updates a single \`RepositoryRelationshipType\` using a unique key and a patch.
+  """
+  updateRepositoryRelationshipType(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateRepositoryRelationshipTypeInput!
+  ): UpdateRepositoryRelationshipTypePayload
 
   """Updates a single \`User\` using its globally unique id and a patch."""
   updateUserById(
@@ -6389,6 +10139,44 @@ type Mutation {
     input: UpdateOrganizationInput!
   ): UpdateOrganizationPayload
 
+  """
+  Updates a single \`RepositoryRelationship\` using its globally unique id and a patch.
+  """
+  updateRepositoryRelationshipById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateRepositoryRelationshipByIdInput!
+  ): UpdateRepositoryRelationshipPayload
+
+  """
+  Updates a single \`RepositoryRelationship\` using a unique key and a patch.
+  """
+  updateRepositoryRelationship(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateRepositoryRelationshipInput!
+  ): UpdateRepositoryRelationshipPayload
+
+  """
+  Deletes a single \`RepositoryRelationshipMetadatum\` using its globally unique id.
+  """
+  deleteRepositoryRelationshipMetadatumById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteRepositoryRelationshipMetadatumByIdInput!
+  ): DeleteRepositoryRelationshipMetadatumPayload
+
+  """Deletes a single \`RepositoryRelationshipMetadatum\` using a unique key."""
+  deleteRepositoryRelationshipMetadatum(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteRepositoryRelationshipMetadatumInput!
+  ): DeleteRepositoryRelationshipMetadatumPayload
+
   """Deletes a single \`OrganizationMember\` using its globally unique id."""
   deleteOrganizationMemberById(
     """
@@ -6422,6 +10210,40 @@ type Mutation {
     """
     input: DeleteRepositoryCollaboratorInput!
   ): DeleteRepositoryCollaboratorPayload
+
+  """Deletes a single \`ExternalDependency\` using its globally unique id."""
+  deleteExternalDependencyById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteExternalDependencyByIdInput!
+  ): DeleteExternalDependencyPayload
+
+  """Deletes a single \`ExternalDependency\` using a unique key."""
+  deleteExternalDependency(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteExternalDependencyInput!
+  ): DeleteExternalDependencyPayload
+
+  """
+  Deletes a single \`RepositoryRelationshipType\` using its globally unique id.
+  """
+  deleteRepositoryRelationshipTypeById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteRepositoryRelationshipTypeByIdInput!
+  ): DeleteRepositoryRelationshipTypePayload
+
+  """Deletes a single \`RepositoryRelationshipType\` using a unique key."""
+  deleteRepositoryRelationshipType(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteRepositoryRelationshipTypeInput!
+  ): DeleteRepositoryRelationshipTypePayload
 
   """Deletes a single \`User\` using its globally unique id."""
   deleteUserById(
@@ -6470,6 +10292,72 @@ type Mutation {
     """
     input: DeleteOrganizationInput!
   ): DeleteOrganizationPayload
+
+  """
+  Deletes a single \`RepositoryRelationship\` using its globally unique id.
+  """
+  deleteRepositoryRelationshipById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteRepositoryRelationshipByIdInput!
+  ): DeleteRepositoryRelationshipPayload
+
+  """Deletes a single \`RepositoryRelationship\` using a unique key."""
+  deleteRepositoryRelationship(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteRepositoryRelationshipInput!
+  ): DeleteRepositoryRelationshipPayload
+}
+
+"""The output of our create \`RepositoryRelationshipMetadatum\` mutation."""
+type CreateRepositoryRelationshipMetadatumPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  The \`RepositoryRelationshipMetadatum\` that was created by this mutation.
+  """
+  repositoryRelationshipMetadatum: RepositoryRelationshipMetadatum
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """
+  An edge for our \`RepositoryRelationshipMetadatum\`. May be used by Relay 1.
+  """
+  repositoryRelationshipMetadatumEdge(
+    """The method to use when ordering \`RepositoryRelationshipMetadatum\`."""
+    orderBy: [RepositoryRelationshipMetadatumOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipMetadatumEdge
+}
+
+"""All input for the create \`RepositoryRelationshipMetadatum\` mutation."""
+input CreateRepositoryRelationshipMetadatumInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationshipMetadatum\` to be created by this mutation."""
+  repositoryRelationshipMetadatum: RepositoryRelationshipMetadatumInput!
+}
+
+"""An input for mutations affecting \`RepositoryRelationshipMetadatum\`"""
+input RepositoryRelationshipMetadatumInput {
+  rowId: UUID
+  relationshipId: UUID!
+  key: String!
+  value: String!
+  createdAt: Datetime
 }
 
 """The output of our create \`OrganizationMember\` mutation."""
@@ -6558,6 +10446,97 @@ input RepositoryCollaboratorInput {
   permission: Permission
   createdAt: Datetime
   updatedAt: Datetime
+}
+
+"""The output of our create \`ExternalDependency\` mutation."""
+type CreateExternalDependencyPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`ExternalDependency\` that was created by this mutation."""
+  externalDependency: ExternalDependency
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`ExternalDependency\`. May be used by Relay 1."""
+  externalDependencyEdge(
+    """The method to use when ordering \`ExternalDependency\`."""
+    orderBy: [ExternalDependencyOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): ExternalDependencyEdge
+}
+
+"""All input for the create \`ExternalDependency\` mutation."""
+input CreateExternalDependencyInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The \`ExternalDependency\` to be created by this mutation."""
+  externalDependency: ExternalDependencyInput!
+}
+
+"""An input for mutations affecting \`ExternalDependency\`"""
+input ExternalDependencyInput {
+  rowId: UUID
+  repositoryId: UUID!
+  packageManager: String!
+  packageName: String!
+  versionConstraint: String
+  detectionSource: DetectionSource
+  createdAt: Datetime
+}
+
+"""The output of our create \`RepositoryRelationshipType\` mutation."""
+type CreateRepositoryRelationshipTypePayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationshipType\` that was created by this mutation."""
+  repositoryRelationshipType: RepositoryRelationshipType
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`RepositoryRelationshipType\`. May be used by Relay 1."""
+  repositoryRelationshipTypeEdge(
+    """The method to use when ordering \`RepositoryRelationshipType\`."""
+    orderBy: [RepositoryRelationshipTypeOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipTypeEdge
+}
+
+"""All input for the create \`RepositoryRelationshipType\` mutation."""
+input CreateRepositoryRelationshipTypeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationshipType\` to be created by this mutation."""
+  repositoryRelationshipType: RepositoryRelationshipTypeInput!
+}
+
+"""An input for mutations affecting \`RepositoryRelationshipType\`"""
+input RepositoryRelationshipTypeInput {
+  rowId: UUID
+  name: String!
+  description: String
+  isDirected: Boolean
+  organizationId: UUID
+  createdAt: Datetime
 }
 
 """The output of our create \`User\` mutation."""
@@ -6704,6 +10683,129 @@ input OrganizationInput {
   updatedAt: Datetime
 }
 
+"""The output of our create \`RepositoryRelationship\` mutation."""
+type CreateRepositoryRelationshipPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationship\` that was created by this mutation."""
+  repositoryRelationship: RepositoryRelationship
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`RepositoryRelationship\`. May be used by Relay 1."""
+  repositoryRelationshipEdge(
+    """The method to use when ordering \`RepositoryRelationship\`."""
+    orderBy: [RepositoryRelationshipOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipEdge
+}
+
+"""All input for the create \`RepositoryRelationship\` mutation."""
+input CreateRepositoryRelationshipInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationship\` to be created by this mutation."""
+  repositoryRelationship: RepositoryRelationshipInput!
+}
+
+"""An input for mutations affecting \`RepositoryRelationship\`"""
+input RepositoryRelationshipInput {
+  rowId: UUID
+  sourceRepositoryId: UUID!
+  targetRepositoryId: UUID!
+  relationshipTypeId: UUID!
+  detectionSource: DetectionSource
+  confidence: Float
+  versionConstraint: String
+  branch: String
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
+"""The output of our update \`RepositoryRelationshipMetadatum\` mutation."""
+type UpdateRepositoryRelationshipMetadatumPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  The \`RepositoryRelationshipMetadatum\` that was updated by this mutation.
+  """
+  repositoryRelationshipMetadatum: RepositoryRelationshipMetadatum
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """
+  An edge for our \`RepositoryRelationshipMetadatum\`. May be used by Relay 1.
+  """
+  repositoryRelationshipMetadatumEdge(
+    """The method to use when ordering \`RepositoryRelationshipMetadatum\`."""
+    orderBy: [RepositoryRelationshipMetadatumOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipMetadatumEdge
+}
+
+"""
+All input for the \`updateRepositoryRelationshipMetadatumById\` mutation.
+"""
+input UpdateRepositoryRelationshipMetadatumByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`RepositoryRelationshipMetadatum\` to be updated.
+  """
+  id: ID!
+
+  """
+  An object where the defined keys will be set on the \`RepositoryRelationshipMetadatum\` being updated.
+  """
+  patch: RepositoryRelationshipMetadatumPatch!
+}
+
+"""
+Represents an update to a \`RepositoryRelationshipMetadatum\`. Fields that are set will be updated.
+"""
+input RepositoryRelationshipMetadatumPatch {
+  rowId: UUID
+  relationshipId: UUID
+  key: String
+  value: String
+  createdAt: Datetime
+}
+
+"""All input for the \`updateRepositoryRelationshipMetadatum\` mutation."""
+input UpdateRepositoryRelationshipMetadatumInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the \`RepositoryRelationshipMetadatum\` being updated.
+  """
+  patch: RepositoryRelationshipMetadatumPatch!
+}
+
 """The output of our update \`OrganizationMember\` mutation."""
 type UpdateOrganizationMemberPayload {
   """
@@ -6840,6 +10942,145 @@ input UpdateRepositoryCollaboratorInput {
   An object where the defined keys will be set on the \`RepositoryCollaborator\` being updated.
   """
   patch: RepositoryCollaboratorPatch!
+}
+
+"""The output of our update \`ExternalDependency\` mutation."""
+type UpdateExternalDependencyPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`ExternalDependency\` that was updated by this mutation."""
+  externalDependency: ExternalDependency
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`ExternalDependency\`. May be used by Relay 1."""
+  externalDependencyEdge(
+    """The method to use when ordering \`ExternalDependency\`."""
+    orderBy: [ExternalDependencyOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): ExternalDependencyEdge
+}
+
+"""All input for the \`updateExternalDependencyById\` mutation."""
+input UpdateExternalDependencyByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`ExternalDependency\` to be updated.
+  """
+  id: ID!
+
+  """
+  An object where the defined keys will be set on the \`ExternalDependency\` being updated.
+  """
+  patch: ExternalDependencyPatch!
+}
+
+"""
+Represents an update to a \`ExternalDependency\`. Fields that are set will be updated.
+"""
+input ExternalDependencyPatch {
+  rowId: UUID
+  repositoryId: UUID
+  packageManager: String
+  packageName: String
+  versionConstraint: String
+  detectionSource: DetectionSource
+  createdAt: Datetime
+}
+
+"""All input for the \`updateExternalDependency\` mutation."""
+input UpdateExternalDependencyInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the \`ExternalDependency\` being updated.
+  """
+  patch: ExternalDependencyPatch!
+}
+
+"""The output of our update \`RepositoryRelationshipType\` mutation."""
+type UpdateRepositoryRelationshipTypePayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationshipType\` that was updated by this mutation."""
+  repositoryRelationshipType: RepositoryRelationshipType
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`RepositoryRelationshipType\`. May be used by Relay 1."""
+  repositoryRelationshipTypeEdge(
+    """The method to use when ordering \`RepositoryRelationshipType\`."""
+    orderBy: [RepositoryRelationshipTypeOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipTypeEdge
+}
+
+"""All input for the \`updateRepositoryRelationshipTypeById\` mutation."""
+input UpdateRepositoryRelationshipTypeByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`RepositoryRelationshipType\` to be updated.
+  """
+  id: ID!
+
+  """
+  An object where the defined keys will be set on the \`RepositoryRelationshipType\` being updated.
+  """
+  patch: RepositoryRelationshipTypePatch!
+}
+
+"""
+Represents an update to a \`RepositoryRelationshipType\`. Fields that are set will be updated.
+"""
+input RepositoryRelationshipTypePatch {
+  rowId: UUID
+  name: String
+  description: String
+  isDirected: Boolean
+  organizationId: UUID
+  createdAt: Datetime
+}
+
+"""All input for the \`updateRepositoryRelationshipType\` mutation."""
+input UpdateRepositoryRelationshipTypeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the \`RepositoryRelationshipType\` being updated.
+  """
+  patch: RepositoryRelationshipTypePatch!
 }
 
 """The output of our update \`User\` mutation."""
@@ -7056,6 +11297,133 @@ input UpdateOrganizationInput {
   patch: OrganizationPatch!
 }
 
+"""The output of our update \`RepositoryRelationship\` mutation."""
+type UpdateRepositoryRelationshipPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationship\` that was updated by this mutation."""
+  repositoryRelationship: RepositoryRelationship
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`RepositoryRelationship\`. May be used by Relay 1."""
+  repositoryRelationshipEdge(
+    """The method to use when ordering \`RepositoryRelationship\`."""
+    orderBy: [RepositoryRelationshipOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipEdge
+}
+
+"""All input for the \`updateRepositoryRelationshipById\` mutation."""
+input UpdateRepositoryRelationshipByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`RepositoryRelationship\` to be updated.
+  """
+  id: ID!
+
+  """
+  An object where the defined keys will be set on the \`RepositoryRelationship\` being updated.
+  """
+  patch: RepositoryRelationshipPatch!
+}
+
+"""
+Represents an update to a \`RepositoryRelationship\`. Fields that are set will be updated.
+"""
+input RepositoryRelationshipPatch {
+  rowId: UUID
+  sourceRepositoryId: UUID
+  targetRepositoryId: UUID
+  relationshipTypeId: UUID
+  detectionSource: DetectionSource
+  confidence: Float
+  versionConstraint: String
+  branch: String
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
+"""All input for the \`updateRepositoryRelationship\` mutation."""
+input UpdateRepositoryRelationshipInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the \`RepositoryRelationship\` being updated.
+  """
+  patch: RepositoryRelationshipPatch!
+}
+
+"""The output of our delete \`RepositoryRelationshipMetadatum\` mutation."""
+type DeleteRepositoryRelationshipMetadatumPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """
+  The \`RepositoryRelationshipMetadatum\` that was deleted by this mutation.
+  """
+  repositoryRelationshipMetadatum: RepositoryRelationshipMetadatum
+  deletedRepositoryRelationshipMetadatumId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """
+  An edge for our \`RepositoryRelationshipMetadatum\`. May be used by Relay 1.
+  """
+  repositoryRelationshipMetadatumEdge(
+    """The method to use when ordering \`RepositoryRelationshipMetadatum\`."""
+    orderBy: [RepositoryRelationshipMetadatumOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipMetadatumEdge
+}
+
+"""
+All input for the \`deleteRepositoryRelationshipMetadatumById\` mutation.
+"""
+input DeleteRepositoryRelationshipMetadatumByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`RepositoryRelationshipMetadatum\` to be deleted.
+  """
+  id: ID!
+}
+
+"""All input for the \`deleteRepositoryRelationshipMetadatum\` mutation."""
+input DeleteRepositoryRelationshipMetadatumInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
 """The output of our delete \`OrganizationMember\` mutation."""
 type DeleteOrganizationMemberPayload {
   """
@@ -7152,6 +11520,102 @@ input DeleteRepositoryCollaboratorInput {
   clientMutationId: String
   repositoryId: UUID!
   userId: UUID!
+}
+
+"""The output of our delete \`ExternalDependency\` mutation."""
+type DeleteExternalDependencyPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`ExternalDependency\` that was deleted by this mutation."""
+  externalDependency: ExternalDependency
+  deletedExternalDependencyId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`ExternalDependency\`. May be used by Relay 1."""
+  externalDependencyEdge(
+    """The method to use when ordering \`ExternalDependency\`."""
+    orderBy: [ExternalDependencyOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): ExternalDependencyEdge
+}
+
+"""All input for the \`deleteExternalDependencyById\` mutation."""
+input DeleteExternalDependencyByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`ExternalDependency\` to be deleted.
+  """
+  id: ID!
+}
+
+"""All input for the \`deleteExternalDependency\` mutation."""
+input DeleteExternalDependencyInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
+"""The output of our delete \`RepositoryRelationshipType\` mutation."""
+type DeleteRepositoryRelationshipTypePayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationshipType\` that was deleted by this mutation."""
+  repositoryRelationshipType: RepositoryRelationshipType
+  deletedRepositoryRelationshipTypeId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`RepositoryRelationshipType\`. May be used by Relay 1."""
+  repositoryRelationshipTypeEdge(
+    """The method to use when ordering \`RepositoryRelationshipType\`."""
+    orderBy: [RepositoryRelationshipTypeOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipTypeEdge
+}
+
+"""All input for the \`deleteRepositoryRelationshipTypeById\` mutation."""
+input DeleteRepositoryRelationshipTypeByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`RepositoryRelationshipType\` to be deleted.
+  """
+  id: ID!
+}
+
+"""All input for the \`deleteRepositoryRelationshipType\` mutation."""
+input DeleteRepositoryRelationshipTypeInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
 }
 
 """The output of our delete \`User\` mutation."""
@@ -7296,6 +11760,54 @@ input DeleteOrganizationInput {
   """
   clientMutationId: String
   rowId: UUID!
+}
+
+"""The output of our delete \`RepositoryRelationship\` mutation."""
+type DeleteRepositoryRelationshipPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`RepositoryRelationship\` that was deleted by this mutation."""
+  repositoryRelationship: RepositoryRelationship
+  deletedRepositoryRelationshipId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`RepositoryRelationship\`. May be used by Relay 1."""
+  repositoryRelationshipEdge(
+    """The method to use when ordering \`RepositoryRelationship\`."""
+    orderBy: [RepositoryRelationshipOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipEdge
+}
+
+"""All input for the \`deleteRepositoryRelationshipById\` mutation."""
+input DeleteRepositoryRelationshipByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`RepositoryRelationship\` to be deleted.
+  """
+  id: ID!
+}
+
+"""All input for the \`deleteRepositoryRelationship\` mutation."""
+input DeleteRepositoryRelationshipInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
 }`;
 export const objects = {
   Query: {
@@ -7303,6 +11815,56 @@ export const objects = {
       return !0;
     },
     plans: {
+      externalDependencies: {
+        plan() {
+          return connection(resource_external_dependencyPgResource.find());
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed4(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      externalDependency(_$root, {
+        $rowId
+      }) {
+        return resource_external_dependencyPgResource.get({
+          id: $rowId
+        });
+      },
+      externalDependencyById(_$parent, args) {
+        const $nodeId = args.getRaw("id");
+        return nodeFetcher_ExternalDependency($nodeId);
+      },
       id($parent) {
         const specifier = nodeIdHandler_Query.plan($parent);
         return lambda(specifier, nodeIdCodecs[nodeIdHandler_Query.codec.name].encode);
@@ -7368,7 +11930,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed(value, "object");
+              assertAllowed2(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -7407,7 +11969,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed5(value, "object");
+              assertAllowed8(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -7449,7 +12011,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed4(value, "object");
+              assertAllowed7(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -7512,7 +12074,157 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed2(value, "object");
+              assertAllowed3(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      repositoryRelationship(_$root, {
+        $rowId
+      }) {
+        return resource_repository_relationshipPgResource.get({
+          id: $rowId
+        });
+      },
+      repositoryRelationshipById(_$parent, args) {
+        const $nodeId = args.getRaw("id");
+        return nodeFetcher_RepositoryRelationship($nodeId);
+      },
+      repositoryRelationshipMetadata: {
+        plan() {
+          return connection(resource_repository_relationship_metadataPgResource.find());
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      repositoryRelationshipMetadatum(_$root, {
+        $rowId
+      }) {
+        return resource_repository_relationship_metadataPgResource.get({
+          id: $rowId
+        });
+      },
+      repositoryRelationshipMetadatumById(_$parent, args) {
+        const $nodeId = args.getRaw("id");
+        return nodeFetcher_RepositoryRelationshipMetadatum($nodeId);
+      },
+      repositoryRelationships: {
+        plan() {
+          return connection(resource_repository_relationshipPgResource.find());
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed9(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      repositoryRelationshipType(_$root, {
+        $rowId
+      }) {
+        return resource_repository_relationship_typePgResource.get({
+          id: $rowId
+        });
+      },
+      repositoryRelationshipTypeById(_$parent, args) {
+        const $nodeId = args.getRaw("id");
+        return nodeFetcher_RepositoryRelationshipType($nodeId);
+      },
+      repositoryRelationshipTypes: {
+        plan() {
+          return connection(resource_repository_relationship_typePgResource.find());
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed5(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -7583,7 +12295,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed3(value, "object");
+              assertAllowed6(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -7600,6 +12312,20 @@ export const objects = {
   Mutation: {
     assertStep: __ValueStep,
     plans: {
+      createExternalDependency: {
+        plan(_, args) {
+          const $insert = pgInsertSingle(resource_external_dependencyPgResource, Object.create(null));
+          args.apply($insert);
+          return object({
+            result: $insert
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
       createOrganization: {
         plan(...planParams) {
           const smartPlan = (...overrideParams) => {
@@ -7700,6 +12426,48 @@ ${String(oldPlan2)}`);
           }
         }
       },
+      createRepositoryRelationship: {
+        plan(_, args) {
+          const $insert = pgInsertSingle(resource_repository_relationshipPgResource, Object.create(null));
+          args.apply($insert);
+          return object({
+            result: $insert
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      createRepositoryRelationshipMetadatum: {
+        plan(_, args) {
+          const $insert = pgInsertSingle(resource_repository_relationship_metadataPgResource, Object.create(null));
+          args.apply($insert);
+          return object({
+            result: $insert
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      createRepositoryRelationshipType: {
+        plan(_, args) {
+          const $insert = pgInsertSingle(resource_repository_relationship_typePgResource, Object.create(null));
+          args.apply($insert);
+          return object({
+            result: $insert
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
       createUser: {
         plan(...planParams) {
           const smartPlan = (...overrideParams) => {
@@ -7718,6 +12486,36 @@ ${String(oldPlan3)}`);
           if ($newPlan === void 0) throw Error("Your plan wrapper didn't return anything; it must return a step or null!");
           if ($newPlan !== null && !isExecutableStep($newPlan)) throw Error(`Your plan wrapper returned something other than a step... It must return a step (or null). (Returned: ${inspect($newPlan)})`);
           return $newPlan;
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteExternalDependency: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_external_dependencyPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteExternalDependencyById: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_external_dependencyPgResource, specFromArgs_ExternalDependency2(args));
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
         },
         args: {
           input(_, $object) {
@@ -7881,6 +12679,96 @@ ${String(oldPlan12)}`);
           }
         }
       },
+      deleteRepositoryRelationship: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_repository_relationshipPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteRepositoryRelationshipById: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_repository_relationshipPgResource, specFromArgs_RepositoryRelationship2(args));
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteRepositoryRelationshipMetadatum: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_repository_relationship_metadataPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteRepositoryRelationshipMetadatumById: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_repository_relationship_metadataPgResource, specFromArgs_RepositoryRelationshipMetadatum2(args));
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteRepositoryRelationshipType: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_repository_relationship_typePgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteRepositoryRelationshipTypeById: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(resource_repository_relationship_typePgResource, specFromArgs_RepositoryRelationshipType2(args));
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
       deleteUser: {
         plan(...planParams) {
           const smartPlan = (...overrideParams) => {
@@ -7912,6 +12800,36 @@ ${String(oldPlan13)}`);
           args.apply($delete);
           return object({
             result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateExternalDependency: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_external_dependencyPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateExternalDependencyById: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_external_dependencyPgResource, specFromArgs_ExternalDependency(args));
+          args.apply($update);
+          return object({
+            result: $update
           });
         },
         args: {
@@ -8076,6 +12994,96 @@ ${String(oldPlan7)}`);
           }
         }
       },
+      updateRepositoryRelationship: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_repository_relationshipPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateRepositoryRelationshipById: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_repository_relationshipPgResource, specFromArgs_RepositoryRelationship(args));
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateRepositoryRelationshipMetadatum: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_repository_relationship_metadataPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateRepositoryRelationshipMetadatumById: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_repository_relationship_metadataPgResource, specFromArgs_RepositoryRelationshipMetadatum(args));
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateRepositoryRelationshipType: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_repository_relationship_typePgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateRepositoryRelationshipTypeById: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(resource_repository_relationship_typePgResource, specFromArgs_RepositoryRelationshipType(args));
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
       updateUser: {
         plan(...planParams) {
           const smartPlan = (...overrideParams) => {
@@ -8114,6 +13122,23 @@ ${String(oldPlan8)}`);
             return $object;
           }
         }
+      }
+    }
+  },
+  CreateExternalDependencyPayload: {
+    assertStep: assertExecutableStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      externalDependency($object) {
+        return $object.get("result");
+      },
+      externalDependencyEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_external_dependencyPgResource, external_dependencyUniques[0].attributes, $mutation, fieldArgs);
+      },
+      query() {
+        return rootValue();
       }
     }
   },
@@ -8185,6 +13210,57 @@ ${String(oldPlan8)}`);
       }
     }
   },
+  CreateRepositoryRelationshipMetadatumPayload: {
+    assertStep: assertExecutableStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationshipMetadatum($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipMetadatumEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationship_metadataPgResource, repository_relationship_metadataUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  CreateRepositoryRelationshipPayload: {
+    assertStep: assertExecutableStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationship($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationshipPgResource, repository_relationshipUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  CreateRepositoryRelationshipTypePayload: {
+    assertStep: assertExecutableStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationshipType($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipTypeEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationship_typePgResource, repository_relationship_typeUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
   CreateUserPayload: {
     assertStep: assertExecutableStep,
     plans: {
@@ -8199,6 +13275,28 @@ ${String(oldPlan8)}`);
       },
       userEdge($mutation, fieldArgs) {
         return pgMutationPayloadEdge(resource_userPgResource, userUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  DeleteExternalDependencyPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      deletedExternalDependencyId($object) {
+        const $record = $object.getStepForKey("result"),
+          specifier = nodeIdHandler_ExternalDependency.plan($record);
+        return lambda(specifier, nodeIdCodecs_base64JSON_base64JSON.encode);
+      },
+      externalDependency($object) {
+        return $object.get("result");
+      },
+      externalDependencyEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_external_dependencyPgResource, external_dependencyUniques[0].attributes, $mutation, fieldArgs);
+      },
+      query() {
+        return rootValue();
       }
     }
   },
@@ -8290,6 +13388,72 @@ ${String(oldPlan8)}`);
       }
     }
   },
+  DeleteRepositoryRelationshipMetadatumPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      deletedRepositoryRelationshipMetadatumId($object) {
+        const $record = $object.getStepForKey("result"),
+          specifier = nodeIdHandler_RepositoryRelationshipMetadatum.plan($record);
+        return lambda(specifier, nodeIdCodecs_base64JSON_base64JSON.encode);
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationshipMetadatum($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipMetadatumEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationship_metadataPgResource, repository_relationship_metadataUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  DeleteRepositoryRelationshipPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      deletedRepositoryRelationshipId($object) {
+        const $record = $object.getStepForKey("result"),
+          specifier = nodeIdHandler_RepositoryRelationship.plan($record);
+        return lambda(specifier, nodeIdCodecs_base64JSON_base64JSON.encode);
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationship($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationshipPgResource, repository_relationshipUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  DeleteRepositoryRelationshipTypePayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      deletedRepositoryRelationshipTypeId($object) {
+        const $record = $object.getStepForKey("result"),
+          specifier = nodeIdHandler_RepositoryRelationshipType.plan($record);
+        return lambda(specifier, nodeIdCodecs_base64JSON_base64JSON.encode);
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationshipType($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipTypeEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationship_typePgResource, repository_relationship_typeUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
   DeleteUserPayload: {
     assertStep: ObjectStep,
     plans: {
@@ -8309,6 +13473,125 @@ ${String(oldPlan8)}`);
       },
       userEdge($mutation, fieldArgs) {
         return pgMutationPayloadEdge(resource_userPgResource, userUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  ExternalDependency: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      createdAt($record) {
+        return $record.get("created_at");
+      },
+      detectionSource($record) {
+        return $record.get("detection_source");
+      },
+      id($parent) {
+        const specifier = nodeIdHandler_ExternalDependency.plan($parent);
+        return lambda(specifier, nodeIdCodecs[nodeIdHandler_ExternalDependency.codec.name].encode);
+      },
+      packageManager($record) {
+        return $record.get("package_manager");
+      },
+      packageName($record) {
+        return $record.get("package_name");
+      },
+      repository($record) {
+        return resource_repositoryPgResource.get({
+          id: $record.get("repository_id")
+        });
+      },
+      repositoryId($record) {
+        return $record.get("repository_id");
+      },
+      rowId($record) {
+        return $record.get("id");
+      },
+      versionConstraint($record) {
+        return $record.get("version_constraint");
+      }
+    },
+    planType($specifier) {
+      const spec = Object.create(null);
+      for (const pkCol of external_dependencyUniques[0].attributes) spec[pkCol] = get2($specifier, pkCol);
+      return resource_external_dependencyPgResource.get(spec);
+    }
+  },
+  ExternalDependencyAggregates: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      distinctCount($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      keys($pgSelectSingle) {
+        const $groupDetails = $pgSelectSingle.getClassStep().getGroupDetails();
+        return lambda([$groupDetails, $pgSelectSingle], ([groupDetails, item]) => {
+          if (groupDetails.indicies.length === 0 || item == null) return null;else return groupDetails.indicies.map(({
+            index
+          }) => item[index]);
+        });
+      }
+    }
+  },
+  ExternalDependencyConnection: {
+    assertStep: ConnectionStep,
+    plans: {
+      aggregates($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").single();
+      },
+      groupedAggregates: {
+        plan($connection) {
+          return $connection.cloneSubplanWithoutPagination("aggregate");
+        },
+        args: {
+          groupBy(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect);
+          },
+          having(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect, queryBuilder => queryBuilder.havingBuilder());
+          }
+        }
+      },
+      totalCount($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").singleAsRecord().select(sql`count(*)`, TYPES.bigint, !1);
+      }
+    }
+  },
+  ExternalDependencyDistinctCountAggregates: {
+    plans: {
+      createdAt($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("created_at")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.timestamptz);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      detectionSource($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("detection_source")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, detectionSourceCodec);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      packageManager($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("package_manager")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      packageName($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("package_name")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      repositoryId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("repository_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      rowId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      versionConstraint($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("version_constraint")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
       }
     }
   },
@@ -8355,7 +13638,7 @@ ${String(oldPlan8)}`);
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed6(value, "object");
+              assertAllowed12(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -8397,7 +13680,49 @@ ${String(oldPlan8)}`);
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed7(value, "object");
+              assertAllowed13(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      repositoryRelationshipTypes: {
+        plan($record) {
+          const $records = resource_repository_relationship_typePgResource.find({
+            organization_id: $record.get("id")
+          });
+          return connection($records);
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed14(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -8636,6 +13961,48 @@ ${String(oldPlan8)}`);
       defaultBranch($record) {
         return $record.get("default_branch");
       },
+      externalDependencies: {
+        plan($record) {
+          const $records = resource_external_dependencyPgResource.find({
+            repository_id: $record.get("id")
+          });
+          return connection($records);
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed51(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
       id($parent) {
         const specifier = nodeIdHandler_Repository.plan($parent);
         return lambda(specifier, nodeIdCodecs[nodeIdHandler_Repository.codec.name].encode);
@@ -8686,7 +14053,91 @@ ${String(oldPlan8)}`);
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed25(value, "object");
+              assertAllowed50(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      repositoryRelationshipsBySourceRepositoryId: {
+        plan($record) {
+          const $records = resource_repository_relationshipPgResource.find({
+            source_repository_id: $record.get("id")
+          });
+          return connection($records);
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed52(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      repositoryRelationshipsByTargetRepositoryId: {
+        plan($record) {
+          const $records = resource_repository_relationshipPgResource.find({
+            target_repository_id: $record.get("id")
+          });
+          return connection($records);
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed53(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -8910,6 +14361,552 @@ ${String(oldPlan8)}`);
       }
     }
   },
+  RepositoryRelationship: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      createdAt($record) {
+        return $record.get("created_at");
+      },
+      detectionSource($record) {
+        return $record.get("detection_source");
+      },
+      id($parent) {
+        const specifier = nodeIdHandler_RepositoryRelationship.plan($parent);
+        return lambda(specifier, nodeIdCodecs[nodeIdHandler_RepositoryRelationship.codec.name].encode);
+      },
+      relationshipType($record) {
+        return resource_repository_relationship_typePgResource.get({
+          id: $record.get("relationship_type_id")
+        });
+      },
+      relationshipTypeId($record) {
+        return $record.get("relationship_type_id");
+      },
+      repositoryRelationshipMetadataByRelationshipId: {
+        plan($record) {
+          const $records = resource_repository_relationship_metadataPgResource.find({
+            relationship_id: $record.get("id")
+          });
+          return connection($records);
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed10(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      rowId($record) {
+        return $record.get("id");
+      },
+      sourceRepository($record) {
+        return resource_repositoryPgResource.get({
+          id: $record.get("source_repository_id")
+        });
+      },
+      sourceRepositoryId($record) {
+        return $record.get("source_repository_id");
+      },
+      targetRepository($record) {
+        return resource_repositoryPgResource.get({
+          id: $record.get("target_repository_id")
+        });
+      },
+      targetRepositoryId($record) {
+        return $record.get("target_repository_id");
+      },
+      updatedAt($record) {
+        return $record.get("updated_at");
+      },
+      versionConstraint($record) {
+        return $record.get("version_constraint");
+      }
+    },
+    planType($specifier) {
+      const spec = Object.create(null);
+      for (const pkCol of repository_relationshipUniques[0].attributes) spec[pkCol] = get2($specifier, pkCol);
+      return resource_repository_relationshipPgResource.get(spec);
+    }
+  },
+  RepositoryRelationshipAggregates: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      average($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      distinctCount($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      keys($pgSelectSingle) {
+        const $groupDetails = $pgSelectSingle.getClassStep().getGroupDetails();
+        return lambda([$groupDetails, $pgSelectSingle], ([groupDetails, item]) => {
+          if (groupDetails.indicies.length === 0 || item == null) return null;else return groupDetails.indicies.map(({
+            index
+          }) => item[index]);
+        });
+      },
+      max($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      min($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      stddevPopulation($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      stddevSample($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      sum($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      variancePopulation($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      varianceSample($pgSelectSingle) {
+        return $pgSelectSingle;
+      }
+    }
+  },
+  RepositoryRelationshipAverageAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec5.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float);
+      }
+    }
+  },
+  RepositoryRelationshipConnection: {
+    assertStep: ConnectionStep,
+    plans: {
+      aggregates($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").single();
+      },
+      groupedAggregates: {
+        plan($connection) {
+          return $connection.cloneSubplanWithoutPagination("aggregate");
+        },
+        args: {
+          groupBy(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect);
+          },
+          having(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect, queryBuilder => queryBuilder.havingBuilder());
+          }
+        }
+      },
+      totalCount($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").singleAsRecord().select(sql`count(*)`, TYPES.bigint, !1);
+      }
+    }
+  },
+  RepositoryRelationshipDistinctCountAggregates: {
+    plans: {
+      branch($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("branch")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      createdAt($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("created_at")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.timestamptz);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      detectionSource($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("detection_source")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, detectionSourceCodec);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      relationshipTypeId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("relationship_type_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      rowId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      sourceRepositoryId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("source_repository_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      targetRepositoryId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("target_repository_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      updatedAt($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("updated_at")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.timestamptz);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      versionConstraint($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("version_constraint")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      }
+    }
+  },
+  RepositoryRelationshipMaxAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec4.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float4);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatum: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      createdAt($record) {
+        return $record.get("created_at");
+      },
+      id($parent) {
+        const specifier = nodeIdHandler_RepositoryRelationshipMetadatum.plan($parent);
+        return lambda(specifier, nodeIdCodecs[nodeIdHandler_RepositoryRelationshipMetadatum.codec.name].encode);
+      },
+      relationship($record) {
+        return resource_repository_relationshipPgResource.get({
+          id: $record.get("relationship_id")
+        });
+      },
+      relationshipId($record) {
+        return $record.get("relationship_id");
+      },
+      rowId($record) {
+        return $record.get("id");
+      }
+    },
+    planType($specifier) {
+      const spec = Object.create(null);
+      for (const pkCol of repository_relationship_metadataUniques[0].attributes) spec[pkCol] = get2($specifier, pkCol);
+      return resource_repository_relationship_metadataPgResource.get(spec);
+    }
+  },
+  RepositoryRelationshipMetadatumAggregates: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      distinctCount($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      keys($pgSelectSingle) {
+        const $groupDetails = $pgSelectSingle.getClassStep().getGroupDetails();
+        return lambda([$groupDetails, $pgSelectSingle], ([groupDetails, item]) => {
+          if (groupDetails.indicies.length === 0 || item == null) return null;else return groupDetails.indicies.map(({
+            index
+          }) => item[index]);
+        });
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumConnection: {
+    assertStep: ConnectionStep,
+    plans: {
+      aggregates($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").single();
+      },
+      groupedAggregates: {
+        plan($connection) {
+          return $connection.cloneSubplanWithoutPagination("aggregate");
+        },
+        args: {
+          groupBy(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect);
+          },
+          having(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect, queryBuilder => queryBuilder.havingBuilder());
+          }
+        }
+      },
+      totalCount($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").singleAsRecord().select(sql`count(*)`, TYPES.bigint, !1);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumDistinctCountAggregates: {
+    plans: {
+      createdAt($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("created_at")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.timestamptz);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      key($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("key")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      relationshipId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("relationship_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      rowId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      value($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("value")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      }
+    }
+  },
+  RepositoryRelationshipMinAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec3.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float4);
+      }
+    }
+  },
+  RepositoryRelationshipStddevPopulationAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec7.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float);
+      }
+    }
+  },
+  RepositoryRelationshipStddevSampleAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec6.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float);
+      }
+    }
+  },
+  RepositoryRelationshipSumAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec2.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float4);
+      }
+    }
+  },
+  RepositoryRelationshipType: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      createdAt($record) {
+        return $record.get("created_at");
+      },
+      id($parent) {
+        const specifier = nodeIdHandler_RepositoryRelationshipType.plan($parent);
+        return lambda(specifier, nodeIdCodecs[nodeIdHandler_RepositoryRelationshipType.codec.name].encode);
+      },
+      isDirected($record) {
+        return $record.get("is_directed");
+      },
+      organization($record) {
+        return resource_organizationPgResource.get({
+          id: $record.get("organization_id")
+        });
+      },
+      organizationId($record) {
+        return $record.get("organization_id");
+      },
+      repositoryRelationshipsByRelationshipTypeId: {
+        plan($record) {
+          const $records = resource_repository_relationshipPgResource.find({
+            relationship_type_id: $record.get("id")
+          });
+          return connection($records);
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed11(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
+      rowId($record) {
+        return $record.get("id");
+      }
+    },
+    planType($specifier) {
+      const spec = Object.create(null);
+      for (const pkCol of repository_relationship_typeUniques[0].attributes) spec[pkCol] = get2($specifier, pkCol);
+      return resource_repository_relationship_typePgResource.get(spec);
+    }
+  },
+  RepositoryRelationshipTypeAggregates: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      distinctCount($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      keys($pgSelectSingle) {
+        const $groupDetails = $pgSelectSingle.getClassStep().getGroupDetails();
+        return lambda([$groupDetails, $pgSelectSingle], ([groupDetails, item]) => {
+          if (groupDetails.indicies.length === 0 || item == null) return null;else return groupDetails.indicies.map(({
+            index
+          }) => item[index]);
+        });
+      }
+    }
+  },
+  RepositoryRelationshipTypeConnection: {
+    assertStep: ConnectionStep,
+    plans: {
+      aggregates($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").single();
+      },
+      groupedAggregates: {
+        plan($connection) {
+          return $connection.cloneSubplanWithoutPagination("aggregate");
+        },
+        args: {
+          groupBy(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect);
+          },
+          having(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect, queryBuilder => queryBuilder.havingBuilder());
+          }
+        }
+      },
+      totalCount($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").singleAsRecord().select(sql`count(*)`, TYPES.bigint, !1);
+      }
+    }
+  },
+  RepositoryRelationshipTypeDistinctCountAggregates: {
+    plans: {
+      createdAt($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("created_at")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.timestamptz);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      description($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("description")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      isDirected($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("is_directed")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.boolean);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      name($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("name")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      organizationId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("organization_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      rowId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      }
+    }
+  },
+  RepositoryRelationshipVariancePopulationAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec9.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float);
+      }
+    }
+  },
+  RepositoryRelationshipVarianceSampleAggregates: {
+    plans: {
+      confidence($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("confidence")}`,
+          sqlAggregate = spec8.sqlAggregateWrap(sqlAttribute, TYPES.float4);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.float);
+      }
+    }
+  },
+  UpdateExternalDependencyPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      externalDependency($object) {
+        return $object.get("result");
+      },
+      externalDependencyEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_external_dependencyPgResource, external_dependencyUniques[0].attributes, $mutation, fieldArgs);
+      },
+      query() {
+        return rootValue();
+      }
+    }
+  },
   UpdateOrganizationMemberPayload: {
     assertStep: ObjectStep,
     plans: {
@@ -8978,6 +14975,57 @@ ${String(oldPlan8)}`);
       }
     }
   },
+  UpdateRepositoryRelationshipMetadatumPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationshipMetadatum($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipMetadatumEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationship_metadataPgResource, repository_relationship_metadataUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  UpdateRepositoryRelationshipPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationship($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationshipPgResource, repository_relationshipUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  UpdateRepositoryRelationshipTypePayload: {
+    assertStep: ObjectStep,
+    plans: {
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
+      },
+      repositoryRelationshipType($object) {
+        return $object.get("result");
+      },
+      repositoryRelationshipTypeEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(resource_repository_relationship_typePgResource, repository_relationship_typeUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
   UpdateUserPayload: {
     assertStep: ObjectStep,
     plans: {
@@ -9041,7 +15089,7 @@ ${String(oldPlan8)}`);
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed26(value, "object");
+              assertAllowed15(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -9083,7 +15131,7 @@ ${String(oldPlan8)}`);
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed27(value, "object");
+              assertAllowed16(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -9125,7 +15173,7 @@ ${String(oldPlan8)}`);
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed28(value, "object");
+              assertAllowed17(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -9523,6 +15571,284 @@ export const inputObjects = {
       }
     }
   },
+  BooleanFilter: {
+    plans: {
+      distinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve130(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "distinctFrom"
+          });
+        $where.where(fragment);
+      },
+      equalTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve128(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "equalTo"
+          });
+        $where.where(fragment);
+      },
+      greaterThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve136(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThan"
+          });
+        $where.where(fragment);
+      },
+      greaterThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve137(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      in($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec44 ? resolveInputCodec44(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve132(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "in"
+          });
+        $where.where(fragment);
+      },
+      isNull($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec42 ? resolveInputCodec42(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = resolveSqlValue21 ? resolveSqlValue21($where, value, inputCodec) : sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve127(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "isNull"
+          });
+        $where.where(fragment);
+      },
+      lessThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve134(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThan"
+          });
+        $where.where(fragment);
+      },
+      lessThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve135(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notDistinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve131(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notDistinctFrom"
+          });
+        $where.where(fragment);
+      },
+      notEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec43 ? resolveInputCodec43(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve129(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notIn($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier22 ? resolveSqlIdentifier22(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec44 ? resolveInputCodec44(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve133(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notIn"
+          });
+        $where.where(fragment);
+      }
+    }
+  },
+  CreateExternalDependencyInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      externalDependency(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
   CreateOrganizationInput: {
     plans: {
       clientMutationId(qb, val) {
@@ -9559,6 +15885,36 @@ export const inputObjects = {
         qb.setMeta("clientMutationId", val);
       },
       repository(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  CreateRepositoryRelationshipInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      repositoryRelationship(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  CreateRepositoryRelationshipMetadatumInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      repositoryRelationshipMetadatum(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  CreateRepositoryRelationshipTypeInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      repositoryRelationshipType(qb, arg) {
         if (arg != null) return qb.setBuilder();
       }
     }
@@ -9841,6 +16197,20 @@ export const inputObjects = {
       }
     }
   },
+  DeleteExternalDependencyByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DeleteExternalDependencyInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
   DeleteOrganizationByIdInput: {
     plans: {
       clientMutationId(qb, val) {
@@ -9897,6 +16267,48 @@ export const inputObjects = {
       }
     }
   },
+  DeleteRepositoryRelationshipByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DeleteRepositoryRelationshipInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DeleteRepositoryRelationshipMetadatumByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DeleteRepositoryRelationshipMetadatumInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DeleteRepositoryRelationshipTypeByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DeleteRepositoryRelationshipTypeInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
   DeleteUserByIdInput: {
     plans: {
       clientMutationId(qb, val) {
@@ -9908,6 +16320,989 @@ export const inputObjects = {
     plans: {
       clientMutationId(qb, val) {
         qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DetectionSourceFilter: {
+    plans: {
+      distinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve108(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "distinctFrom"
+          });
+        $where.where(fragment);
+      },
+      equalTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve106(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "equalTo"
+          });
+        $where.where(fragment);
+      },
+      greaterThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve114(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThan"
+          });
+        $where.where(fragment);
+      },
+      greaterThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve115(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      in($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec38 ? resolveInputCodec38(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve110(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "in"
+          });
+        $where.where(fragment);
+      },
+      isNull($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec36 ? resolveInputCodec36(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = resolveSqlValue19 ? resolveSqlValue19($where, value, inputCodec) : sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve105(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "isNull"
+          });
+        $where.where(fragment);
+      },
+      lessThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve112(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThan"
+          });
+        $where.where(fragment);
+      },
+      lessThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve113(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notDistinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve109(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notDistinctFrom"
+          });
+        $where.where(fragment);
+      },
+      notEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec37 ? resolveInputCodec37(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve107(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notIn($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier20 ? resolveSqlIdentifier20(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec38 ? resolveInputCodec38(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve111(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notIn"
+          });
+        $where.where(fragment);
+      }
+    }
+  },
+  ExternalDependencyAggregatesFilter: {
+    plans: {
+      distinctCount($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec);
+      },
+      filter($subquery, input) {
+        if (input == null) return;
+        return new PgCondition($subquery, !1, "AND");
+      }
+    }
+  },
+  ExternalDependencyCondition: {
+    plans: {
+      createdAt($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "created_at",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.timestamptz)}`;
+          }
+        });
+      },
+      detectionSource($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "detection_source",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, detectionSourceCodec)}`;
+          }
+        });
+      },
+      packageManager($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "package_manager",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      packageName($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "package_name",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      repositoryId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "repository_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      rowId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      versionConstraint($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "version_constraint",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      }
+    }
+  },
+  ExternalDependencyDistinctCountAggregateFilter: {
+    plans: {
+      createdAt($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("created_at")}`, spec_externalDependency.attributes.created_at.codec)
+        };
+        return $col;
+      },
+      detectionSource($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("detection_source")}`, spec_externalDependency.attributes.detection_source.codec)
+        };
+        return $col;
+      },
+      packageManager($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("package_manager")}`, spec_externalDependency.attributes.package_manager.codec)
+        };
+        return $col;
+      },
+      packageName($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("package_name")}`, spec_externalDependency.attributes.package_name.codec)
+        };
+        return $col;
+      },
+      repositoryId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("repository_id")}`, spec_externalDependency.attributes.repository_id.codec)
+        };
+        return $col;
+      },
+      rowId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("id")}`, spec_externalDependency.attributes.id.codec)
+        };
+        return $col;
+      },
+      versionConstraint($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("version_constraint")}`, spec_externalDependency.attributes.version_constraint.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  ExternalDependencyFilter: {
+    plans: {
+      and($where, value) {
+        assertAllowed37(value, "list");
+        if (value == null) return;
+        return $where.andPlan();
+      },
+      createdAt(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec46;
+        return condition;
+      },
+      detectionSource(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec45;
+        return condition;
+      },
+      not($where, value) {
+        assertAllowed37(value, "object");
+        if (value == null) return;
+        return $where.notPlan().andPlan();
+      },
+      or($where, value) {
+        assertAllowed37(value, "list");
+        if (value == null) return;
+        const $or = $where.orPlan();
+        return () => $or.andPlan();
+      },
+      packageManager(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec42;
+        return condition;
+      },
+      packageName(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec43;
+        return condition;
+      },
+      repository($where, value) {
+        assertAllowed36(value, "object");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryIdentifier,
+          alias: resource_repositoryPgResource.name
+        });
+        registryConfig.pgRelations.externalDependency.repositoryByMyRepositoryId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.externalDependency.repositoryByMyRepositoryId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      repositoryId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec41;
+        return condition;
+      },
+      rowId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec40;
+        return condition;
+      },
+      versionConstraint(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec44;
+        return condition;
+      }
+    }
+  },
+  ExternalDependencyHavingAverageInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingDistinctCountInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingInput: {
+    plans: {
+      AND($where) {
+        return $where;
+      },
+      average($having) {
+        return $having;
+      },
+      distinctCount($having) {
+        return $having;
+      },
+      max($having) {
+        return $having;
+      },
+      min($having) {
+        return $having;
+      },
+      OR($where) {
+        return new PgOrFilter($where);
+      },
+      stddevPopulation($having) {
+        return $having;
+      },
+      stddevSample($having) {
+        return $having;
+      },
+      sum($having) {
+        return $having;
+      },
+      variancePopulation($having) {
+        return $having;
+      },
+      varianceSample($having) {
+        return $having;
+      }
+    }
+  },
+  ExternalDependencyHavingMaxInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingMinInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingStddevPopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingStddevSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingSumInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingVariancePopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyHavingVarianceSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_externalDependency.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  ExternalDependencyInput: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      detectionSource(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("detection_source", bakedInputRuntime(schema, field.type, val));
+      },
+      packageManager(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("package_manager", bakedInputRuntime(schema, field.type, val));
+      },
+      packageName(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("package_name", bakedInputRuntime(schema, field.type, val));
+      },
+      repositoryId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("repository_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      versionConstraint(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("version_constraint", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  ExternalDependencyPatch: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      detectionSource(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("detection_source", bakedInputRuntime(schema, field.type, val));
+      },
+      packageManager(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("package_manager", bakedInputRuntime(schema, field.type, val));
+      },
+      packageName(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("package_name", bakedInputRuntime(schema, field.type, val));
+      },
+      repositoryId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("repository_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      versionConstraint(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("version_constraint", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  FloatFilter: {
+    plans: {
+      distinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve119(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "distinctFrom"
+          });
+        $where.where(fragment);
+      },
+      equalTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve117(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "equalTo"
+          });
+        $where.where(fragment);
+      },
+      greaterThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve125(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThan"
+          });
+        $where.where(fragment);
+      },
+      greaterThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve126(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      in($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec41 ? resolveInputCodec41(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve121(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "in"
+          });
+        $where.where(fragment);
+      },
+      isNull($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec39 ? resolveInputCodec39(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = resolveSqlValue20 ? resolveSqlValue20($where, value, inputCodec) : sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve116(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "isNull"
+          });
+        $where.where(fragment);
+      },
+      lessThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve123(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThan"
+          });
+        $where.where(fragment);
+      },
+      lessThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve124(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notDistinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve120(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notDistinctFrom"
+          });
+        $where.where(fragment);
+      },
+      notEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec40 ? resolveInputCodec40(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve118(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notIn($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier21 ? resolveSqlIdentifier21(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec41 ? resolveInputCodec41(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve122(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notIn"
+          });
+        $where.where(fragment);
       }
     }
   },
@@ -9936,6 +17331,34 @@ export const inputObjects = {
       notEqualTo($booleanFilter, input) {
         if (input == null) return;
         $booleanFilter.having(sql`(${sql.parens($booleanFilter.expression)} ${infix2()} ${sqlValueWithCodec(input, TYPES.timestamptz)})`);
+      }
+    }
+  },
+  HavingFloatFilter: {
+    plans: {
+      equalTo($booleanFilter, input) {
+        if (input == null) return;
+        $booleanFilter.having(sql`(${sql.parens($booleanFilter.expression)} ${infix7()} ${sqlValueWithCodec(input, TYPES.float)})`);
+      },
+      greaterThan($booleanFilter, input) {
+        if (input == null) return;
+        $booleanFilter.having(sql`(${sql.parens($booleanFilter.expression)} ${infix9()} ${sqlValueWithCodec(input, TYPES.float)})`);
+      },
+      greaterThanOrEqualTo($booleanFilter, input) {
+        if (input == null) return;
+        $booleanFilter.having(sql`(${sql.parens($booleanFilter.expression)} ${infix10()} ${sqlValueWithCodec(input, TYPES.float)})`);
+      },
+      lessThan($booleanFilter, input) {
+        if (input == null) return;
+        $booleanFilter.having(sql`(${sql.parens($booleanFilter.expression)} ${infix11()} ${sqlValueWithCodec(input, TYPES.float)})`);
+      },
+      lessThanOrEqualTo($booleanFilter, input) {
+        if (input == null) return;
+        $booleanFilter.having(sql`(${sql.parens($booleanFilter.expression)} ${infix12()} ${sqlValueWithCodec(input, TYPES.float)})`);
+      },
+      notEqualTo($booleanFilter, input) {
+        if (input == null) return;
+        $booleanFilter.having(sql`(${sql.parens($booleanFilter.expression)} ${infix8()} ${sqlValueWithCodec(input, TYPES.float)})`);
       }
     }
   },
@@ -10036,7 +17459,7 @@ export const inputObjects = {
   OrganizationFilter: {
     plans: {
       and($where, value) {
-        assertAllowed11(value, "list");
+        assertAllowed21(value, "list");
         if (value == null) return;
         return $where.andPlan();
       },
@@ -10073,18 +17496,18 @@ export const inputObjects = {
         return condition;
       },
       not($where, value) {
-        assertAllowed11(value, "object");
+        assertAllowed21(value, "object");
         if (value == null) return;
         return $where.notPlan().andPlan();
       },
       or($where, value) {
-        assertAllowed11(value, "list");
+        assertAllowed21(value, "list");
         if (value == null) return;
         const $or = $where.orPlan();
         return () => $or.andPlan();
       },
       organizationMembers($where, value) {
-        assertAllowed10(value, "object");
+        assertAllowed20(value, "object");
         const $rel = $where.andPlan();
         $rel.extensions.pgFilterRelation = {
           tableExpression: organizationMemberIdentifier,
@@ -10095,7 +17518,7 @@ export const inputObjects = {
         return $rel;
       },
       organizationMembersExist($where, value) {
-        assertAllowed10(value, "scalar");
+        assertAllowed20(value, "scalar");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: organizationMemberIdentifier,
@@ -10108,7 +17531,7 @@ export const inputObjects = {
         });
       },
       repositories($where, value) {
-        assertAllowed10(value, "object");
+        assertAllowed20(value, "object");
         const $rel = $where.andPlan();
         $rel.extensions.pgFilterRelation = {
           tableExpression: repositoryIdentifier,
@@ -10119,7 +17542,7 @@ export const inputObjects = {
         return $rel;
       },
       repositoriesExist($where, value) {
-        assertAllowed10(value, "scalar");
+        assertAllowed20(value, "scalar");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: repositoryIdentifier,
@@ -10128,6 +17551,30 @@ export const inputObjects = {
         });
         registryConfig.pgRelations.organization.repositoriesByTheirOrganizationId.localAttributes.forEach((localAttribute, i) => {
           const remoteAttribute = registryConfig.pgRelations.organization.repositoriesByTheirOrganizationId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+      },
+      repositoryRelationshipTypes($where, value) {
+        assertAllowed20(value, "object");
+        const $rel = $where.andPlan();
+        $rel.extensions.pgFilterRelation = {
+          tableExpression: repositoryRelationshipTypeIdentifier,
+          alias: resource_repository_relationship_typePgResource.name,
+          localAttributes: registryConfig.pgRelations.organization.repositoryRelationshipTypesByTheirOrganizationId.localAttributes,
+          remoteAttributes: registryConfig.pgRelations.organization.repositoryRelationshipTypesByTheirOrganizationId.remoteAttributes
+        };
+        return $rel;
+      },
+      repositoryRelationshipTypesExist($where, value) {
+        assertAllowed20(value, "scalar");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryRelationshipTypeIdentifier,
+          alias: resource_repository_relationship_typePgResource.name,
+          equals: value
+        });
+        registryConfig.pgRelations.organization.repositoryRelationshipTypesByTheirOrganizationId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.organization.repositoryRelationshipTypesByTheirOrganizationId.remoteAttributes[i];
           $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
         });
       },
@@ -10185,12 +17632,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10250,12 +17697,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10264,12 +17711,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10278,12 +17725,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10292,12 +17739,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10306,12 +17753,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10320,12 +17767,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10334,12 +17781,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_organization.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_organization.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10510,7 +17957,7 @@ export const inputObjects = {
   OrganizationMemberFilter: {
     plans: {
       and($where, value) {
-        assertAllowed9(value, "list");
+        assertAllowed19(value, "list");
         if (value == null) return;
         return $where.andPlan();
       },
@@ -10523,18 +17970,18 @@ export const inputObjects = {
         return condition;
       },
       not($where, value) {
-        assertAllowed9(value, "object");
+        assertAllowed19(value, "object");
         if (value == null) return;
         return $where.notPlan().andPlan();
       },
       or($where, value) {
-        assertAllowed9(value, "list");
+        assertAllowed19(value, "list");
         if (value == null) return;
         const $or = $where.orPlan();
         return () => $or.andPlan();
       },
       organization($where, value) {
-        assertAllowed8(value, "object");
+        assertAllowed18(value, "object");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: organizationIdentifier,
@@ -10571,7 +18018,7 @@ export const inputObjects = {
         return condition;
       },
       user($where, value) {
-        assertAllowed8(value, "object");
+        assertAllowed18(value, "object");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: userIdentifier,
@@ -10597,12 +18044,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10662,12 +18109,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10676,12 +18123,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10690,12 +18137,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10704,12 +18151,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10718,12 +18165,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10732,12 +18179,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10746,12 +18193,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_organizationMember.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -10902,7 +18349,7 @@ export const inputObjects = {
         return $subQuery;
       },
       every($where, value) {
-        assertAllowed12(value, "object");
+        assertAllowed22(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -10922,7 +18369,7 @@ export const inputObjects = {
         return $subQuery.notPlan().andPlan();
       },
       none($where, value) {
-        assertAllowed12(value, "object");
+        assertAllowed22(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -10942,7 +18389,7 @@ export const inputObjects = {
         return $subQuery;
       },
       some($where, value) {
-        assertAllowed12(value, "object");
+        assertAllowed22(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -10986,7 +18433,7 @@ export const inputObjects = {
         return $subQuery;
       },
       every($where, value) {
-        assertAllowed13(value, "object");
+        assertAllowed23(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -11006,7 +18453,7 @@ export const inputObjects = {
         return $subQuery.notPlan().andPlan();
       },
       none($where, value) {
-        assertAllowed13(value, "object");
+        assertAllowed23(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -11026,7 +18473,91 @@ export const inputObjects = {
         return $subQuery;
       },
       some($where, value) {
-        assertAllowed13(value, "object");
+        assertAllowed23(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      }
+    }
+  },
+  OrganizationToManyRepositoryRelationshipTypeFilter: {
+    plans: {
+      aggregates($where, input) {
+        if (input == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = new PgAggregateCondition($where, {
+            sql,
+            tableExpression,
+            alias
+          }, pgWhereConditionSpecListToSQL);
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      every($where, value) {
+        assertAllowed49(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery.notPlan().andPlan();
+      },
+      none($where, value) {
+        assertAllowed49(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      some($where, value) {
+        assertAllowed49(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -11440,7 +18971,7 @@ export const inputObjects = {
   RepositoryCollaboratorFilter: {
     plans: {
       and($where, value) {
-        assertAllowed19(value, "list");
+        assertAllowed29(value, "list");
         if (value == null) return;
         return $where.andPlan();
       },
@@ -11453,12 +18984,12 @@ export const inputObjects = {
         return condition;
       },
       not($where, value) {
-        assertAllowed19(value, "object");
+        assertAllowed29(value, "object");
         if (value == null) return;
         return $where.notPlan().andPlan();
       },
       or($where, value) {
-        assertAllowed19(value, "list");
+        assertAllowed29(value, "list");
         if (value == null) return;
         const $or = $where.orPlan();
         return () => $or.andPlan();
@@ -11472,7 +19003,7 @@ export const inputObjects = {
         return condition;
       },
       repository($where, value) {
-        assertAllowed18(value, "object");
+        assertAllowed28(value, "object");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: repositoryIdentifier,
@@ -11501,7 +19032,7 @@ export const inputObjects = {
         return condition;
       },
       user($where, value) {
-        assertAllowed18(value, "object");
+        assertAllowed28(value, "object");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: userIdentifier,
@@ -11527,12 +19058,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11592,12 +19123,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11606,12 +19137,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11620,12 +19151,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11634,12 +19165,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11648,12 +19179,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11662,12 +19193,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11676,12 +19207,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repositoryCollaborator.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -11947,7 +19478,7 @@ export const inputObjects = {
   RepositoryFilter: {
     plans: {
       and($where, value) {
-        assertAllowed16(value, "list");
+        assertAllowed26(value, "list");
         if (value == null) return;
         return $where.andPlan();
       },
@@ -11975,6 +19506,30 @@ export const inputObjects = {
         condition.extensions.pgFilterAttribute = colSpec21;
         return condition;
       },
+      externalDependencies($where, value) {
+        assertAllowed24(value, "object");
+        const $rel = $where.andPlan();
+        $rel.extensions.pgFilterRelation = {
+          tableExpression: externalDependencyIdentifier,
+          alias: resource_external_dependencyPgResource.name,
+          localAttributes: registryConfig.pgRelations.repository.externalDependenciesByTheirRepositoryId.localAttributes,
+          remoteAttributes: registryConfig.pgRelations.repository.externalDependenciesByTheirRepositoryId.remoteAttributes
+        };
+        return $rel;
+      },
+      externalDependenciesExist($where, value) {
+        assertAllowed24(value, "scalar");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: externalDependencyIdentifier,
+          alias: resource_external_dependencyPgResource.name,
+          equals: value
+        });
+        registryConfig.pgRelations.repository.externalDependenciesByTheirRepositoryId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repository.externalDependenciesByTheirRepositoryId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+      },
       name(queryBuilder, value) {
         if (value === void 0) return;
         if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
@@ -11984,18 +19539,18 @@ export const inputObjects = {
         return condition;
       },
       not($where, value) {
-        assertAllowed16(value, "object");
+        assertAllowed26(value, "object");
         if (value == null) return;
         return $where.notPlan().andPlan();
       },
       or($where, value) {
-        assertAllowed16(value, "list");
+        assertAllowed26(value, "list");
         if (value == null) return;
         const $or = $where.orPlan();
         return () => $or.andPlan();
       },
       organization($where, value) {
-        assertAllowed15(value, "object");
+        assertAllowed25(value, "object");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: organizationIdentifier,
@@ -12008,7 +19563,7 @@ export const inputObjects = {
         return $subQuery;
       },
       organizationExists($where, value) {
-        assertAllowed15(value, "scalar");
+        assertAllowed25(value, "scalar");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: organizationIdentifier,
@@ -12029,7 +19584,7 @@ export const inputObjects = {
         return condition;
       },
       owner($where, value) {
-        assertAllowed15(value, "object");
+        assertAllowed25(value, "object");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: userIdentifier,
@@ -12050,7 +19605,7 @@ export const inputObjects = {
         return condition;
       },
       repositoryCollaborators($where, value) {
-        assertAllowed14(value, "object");
+        assertAllowed24(value, "object");
         const $rel = $where.andPlan();
         $rel.extensions.pgFilterRelation = {
           tableExpression: repositoryCollaboratorIdentifier,
@@ -12061,7 +19616,7 @@ export const inputObjects = {
         return $rel;
       },
       repositoryCollaboratorsExist($where, value) {
-        assertAllowed14(value, "scalar");
+        assertAllowed24(value, "scalar");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: repositoryCollaboratorIdentifier,
@@ -12070,6 +19625,54 @@ export const inputObjects = {
         });
         registryConfig.pgRelations.repository.repositoryCollaboratorsByTheirRepositoryId.localAttributes.forEach((localAttribute, i) => {
           const remoteAttribute = registryConfig.pgRelations.repository.repositoryCollaboratorsByTheirRepositoryId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+      },
+      repositoryRelationshipsBySourceRepositoryId($where, value) {
+        assertAllowed24(value, "object");
+        const $rel = $where.andPlan();
+        $rel.extensions.pgFilterRelation = {
+          tableExpression: repositoryRelationshipIdentifier,
+          alias: resource_repository_relationshipPgResource.name,
+          localAttributes: registryConfig.pgRelations.repository.repositoryRelationshipsByTheirSourceRepositoryId.localAttributes,
+          remoteAttributes: registryConfig.pgRelations.repository.repositoryRelationshipsByTheirSourceRepositoryId.remoteAttributes
+        };
+        return $rel;
+      },
+      repositoryRelationshipsBySourceRepositoryIdExist($where, value) {
+        assertAllowed24(value, "scalar");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryRelationshipIdentifier,
+          alias: resource_repository_relationshipPgResource.name,
+          equals: value
+        });
+        registryConfig.pgRelations.repository.repositoryRelationshipsByTheirSourceRepositoryId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repository.repositoryRelationshipsByTheirSourceRepositoryId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+      },
+      repositoryRelationshipsByTargetRepositoryId($where, value) {
+        assertAllowed24(value, "object");
+        const $rel = $where.andPlan();
+        $rel.extensions.pgFilterRelation = {
+          tableExpression: repositoryRelationshipIdentifier,
+          alias: resource_repository_relationshipPgResource.name,
+          localAttributes: registryConfig.pgRelations.repository.repositoryRelationshipsByTheirTargetRepositoryId.localAttributes,
+          remoteAttributes: registryConfig.pgRelations.repository.repositoryRelationshipsByTheirTargetRepositoryId.remoteAttributes
+        };
+        return $rel;
+      },
+      repositoryRelationshipsByTargetRepositoryIdExist($where, value) {
+        assertAllowed24(value, "scalar");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryRelationshipIdentifier,
+          alias: resource_repository_relationshipPgResource.name,
+          equals: value
+        });
+        registryConfig.pgRelations.repository.repositoryRelationshipsByTheirTargetRepositoryId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repository.repositoryRelationshipsByTheirTargetRepositoryId.remoteAttributes[i];
           $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
         });
       },
@@ -12111,12 +19714,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12176,12 +19779,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12190,12 +19793,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12204,12 +19807,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12218,12 +19821,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12232,12 +19835,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12246,12 +19849,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12260,12 +19863,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repository.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repository.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -12400,6 +20003,1912 @@ export const inputObjects = {
       }
     }
   },
+  RepositoryRelationshipAggregatesFilter: {
+    plans: {
+      average($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec5);
+      },
+      distinctCount($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec);
+      },
+      filter($subquery, input) {
+        if (input == null) return;
+        return new PgCondition($subquery, !1, "AND");
+      },
+      max($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec4);
+      },
+      min($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec3);
+      },
+      stddevPopulation($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec7);
+      },
+      stddevSample($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec6);
+      },
+      sum($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec2);
+      },
+      variancePopulation($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec9);
+      },
+      varianceSample($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec8);
+      }
+    }
+  },
+  RepositoryRelationshipAverageAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float,
+          expression: spec5.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipCondition: {
+    plans: {
+      branch($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "branch",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      confidence($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "confidence",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.float4)}`;
+          }
+        });
+      },
+      createdAt($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "created_at",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.timestamptz)}`;
+          }
+        });
+      },
+      detectionSource($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "detection_source",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, detectionSourceCodec)}`;
+          }
+        });
+      },
+      relationshipTypeId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "relationship_type_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      rowId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      sourceRepositoryId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "source_repository_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      targetRepositoryId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "target_repository_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      updatedAt($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "updated_at",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.timestamptz)}`;
+          }
+        });
+      },
+      versionConstraint($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "version_constraint",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      }
+    }
+  },
+  RepositoryRelationshipDistinctCountAggregateFilter: {
+    plans: {
+      branch($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("branch")}`, spec_repositoryRelationship.attributes.branch.codec)
+        };
+        return $col;
+      },
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      },
+      createdAt($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("created_at")}`, spec_repositoryRelationship.attributes.created_at.codec)
+        };
+        return $col;
+      },
+      detectionSource($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("detection_source")}`, spec_repositoryRelationship.attributes.detection_source.codec)
+        };
+        return $col;
+      },
+      relationshipTypeId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("relationship_type_id")}`, spec_repositoryRelationship.attributes.relationship_type_id.codec)
+        };
+        return $col;
+      },
+      rowId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("id")}`, spec_repositoryRelationship.attributes.id.codec)
+        };
+        return $col;
+      },
+      sourceRepositoryId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("source_repository_id")}`, spec_repositoryRelationship.attributes.source_repository_id.codec)
+        };
+        return $col;
+      },
+      targetRepositoryId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("target_repository_id")}`, spec_repositoryRelationship.attributes.target_repository_id.codec)
+        };
+        return $col;
+      },
+      updatedAt($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("updated_at")}`, spec_repositoryRelationship.attributes.updated_at.codec)
+        };
+        return $col;
+      },
+      versionConstraint($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("version_constraint")}`, spec_repositoryRelationship.attributes.version_constraint.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipFilter: {
+    plans: {
+      and($where, value) {
+        assertAllowed41(value, "list");
+        if (value == null) return;
+        return $where.andPlan();
+      },
+      branch(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec54;
+        return condition;
+      },
+      confidence(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec52;
+        return condition;
+      },
+      createdAt(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec55;
+        return condition;
+      },
+      detectionSource(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec51;
+        return condition;
+      },
+      not($where, value) {
+        assertAllowed41(value, "object");
+        if (value == null) return;
+        return $where.notPlan().andPlan();
+      },
+      or($where, value) {
+        assertAllowed41(value, "list");
+        if (value == null) return;
+        const $or = $where.orPlan();
+        return () => $or.andPlan();
+      },
+      relationshipType($where, value) {
+        assertAllowed40(value, "object");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryRelationshipTypeIdentifier,
+          alias: resource_repository_relationship_typePgResource.name
+        });
+        registryConfig.pgRelations.repositoryRelationship.repositoryRelationshipTypeByMyRelationshipTypeId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationship.repositoryRelationshipTypeByMyRelationshipTypeId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      relationshipTypeId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec50;
+        return condition;
+      },
+      repositoryRelationshipMetadataByRelationshipId($where, value) {
+        assertAllowed39(value, "object");
+        const $rel = $where.andPlan();
+        $rel.extensions.pgFilterRelation = {
+          tableExpression: repositoryRelationshipMetadataIdentifier,
+          alias: resource_repository_relationship_metadataPgResource.name,
+          localAttributes: registryConfig.pgRelations.repositoryRelationship.repositoryRelationshipMetadataByTheirRelationshipId.localAttributes,
+          remoteAttributes: registryConfig.pgRelations.repositoryRelationship.repositoryRelationshipMetadataByTheirRelationshipId.remoteAttributes
+        };
+        return $rel;
+      },
+      repositoryRelationshipMetadataByRelationshipIdExist($where, value) {
+        assertAllowed39(value, "scalar");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryRelationshipMetadataIdentifier,
+          alias: resource_repository_relationship_metadataPgResource.name,
+          equals: value
+        });
+        registryConfig.pgRelations.repositoryRelationship.repositoryRelationshipMetadataByTheirRelationshipId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationship.repositoryRelationshipMetadataByTheirRelationshipId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+      },
+      rowId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec47;
+        return condition;
+      },
+      sourceRepository($where, value) {
+        assertAllowed40(value, "object");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryIdentifier,
+          alias: resource_repositoryPgResource.name
+        });
+        registryConfig.pgRelations.repositoryRelationship.repositoryByMySourceRepositoryId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationship.repositoryByMySourceRepositoryId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      sourceRepositoryId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec48;
+        return condition;
+      },
+      targetRepository($where, value) {
+        assertAllowed40(value, "object");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryIdentifier,
+          alias: resource_repositoryPgResource.name
+        });
+        registryConfig.pgRelations.repositoryRelationship.repositoryByMyTargetRepositoryId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationship.repositoryByMyTargetRepositoryId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      targetRepositoryId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec49;
+        return condition;
+      },
+      updatedAt(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec56;
+        return condition;
+      },
+      versionConstraint(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec53;
+        return condition;
+      }
+    }
+  },
+  RepositoryRelationshipHavingAverageInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingDistinctCountInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingInput: {
+    plans: {
+      AND($where) {
+        return $where;
+      },
+      average($having) {
+        return $having;
+      },
+      distinctCount($having) {
+        return $having;
+      },
+      max($having) {
+        return $having;
+      },
+      min($having) {
+        return $having;
+      },
+      OR($where) {
+        return new PgOrFilter($where);
+      },
+      stddevPopulation($having) {
+        return $having;
+      },
+      stddevSample($having) {
+        return $having;
+      },
+      sum($having) {
+        return $having;
+      },
+      variancePopulation($having) {
+        return $having;
+      },
+      varianceSample($having) {
+        return $having;
+      }
+    }
+  },
+  RepositoryRelationshipHavingMaxInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingMinInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingStddevPopulationInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingStddevSampleInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingSumInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingVariancePopulationInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipHavingVarianceSampleInput: {
+    plans: {
+      confidence($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("confidence")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.confidence.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      updatedAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repositoryRelationship.attributes.updated_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipInput: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      branch(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("branch", bakedInputRuntime(schema, field.type, val));
+      },
+      confidence(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("confidence", bakedInputRuntime(schema, field.type, val));
+      },
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      detectionSource(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("detection_source", bakedInputRuntime(schema, field.type, val));
+      },
+      relationshipTypeId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("relationship_type_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      sourceRepositoryId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("source_repository_id", bakedInputRuntime(schema, field.type, val));
+      },
+      targetRepositoryId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("target_repository_id", bakedInputRuntime(schema, field.type, val));
+      },
+      updatedAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("updated_at", bakedInputRuntime(schema, field.type, val));
+      },
+      versionConstraint(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("version_constraint", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  RepositoryRelationshipMaxAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float4,
+          expression: spec4.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumAggregatesFilter: {
+    plans: {
+      distinctCount($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec);
+      },
+      filter($subquery, input) {
+        if (input == null) return;
+        return new PgCondition($subquery, !1, "AND");
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumCondition: {
+    plans: {
+      createdAt($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "created_at",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.timestamptz)}`;
+          }
+        });
+      },
+      key($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "key",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      relationshipId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "relationship_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      rowId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      value($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "value",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumDistinctCountAggregateFilter: {
+    plans: {
+      createdAt($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("created_at")}`, spec_repositoryRelationshipMetadata.attributes.created_at.codec)
+        };
+        return $col;
+      },
+      key($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("key")}`, spec_repositoryRelationshipMetadata.attributes.key.codec)
+        };
+        return $col;
+      },
+      relationshipId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("relationship_id")}`, spec_repositoryRelationshipMetadata.attributes.relationship_id.codec)
+        };
+        return $col;
+      },
+      rowId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("id")}`, spec_repositoryRelationshipMetadata.attributes.id.codec)
+        };
+        return $col;
+      },
+      value($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("value")}`, spec_repositoryRelationshipMetadata.attributes.value.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumFilter: {
+    plans: {
+      and($where, value) {
+        assertAllowed44(value, "list");
+        if (value == null) return;
+        return $where.andPlan();
+      },
+      createdAt(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec61;
+        return condition;
+      },
+      key(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec59;
+        return condition;
+      },
+      not($where, value) {
+        assertAllowed44(value, "object");
+        if (value == null) return;
+        return $where.notPlan().andPlan();
+      },
+      or($where, value) {
+        assertAllowed44(value, "list");
+        if (value == null) return;
+        const $or = $where.orPlan();
+        return () => $or.andPlan();
+      },
+      relationship($where, value) {
+        assertAllowed43(value, "object");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryRelationshipIdentifier,
+          alias: resource_repository_relationshipPgResource.name
+        });
+        registryConfig.pgRelations.repositoryRelationshipMetadata.repositoryRelationshipByMyRelationshipId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationshipMetadata.repositoryRelationshipByMyRelationshipId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      relationshipId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec58;
+        return condition;
+      },
+      rowId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec57;
+        return condition;
+      },
+      value(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec60;
+        return condition;
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingAverageInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingDistinctCountInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingInput: {
+    plans: {
+      AND($where) {
+        return $where;
+      },
+      average($having) {
+        return $having;
+      },
+      distinctCount($having) {
+        return $having;
+      },
+      max($having) {
+        return $having;
+      },
+      min($having) {
+        return $having;
+      },
+      OR($where) {
+        return new PgOrFilter($where);
+      },
+      stddevPopulation($having) {
+        return $having;
+      },
+      stddevSample($having) {
+        return $having;
+      },
+      sum($having) {
+        return $having;
+      },
+      variancePopulation($having) {
+        return $having;
+      },
+      varianceSample($having) {
+        return $having;
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingMaxInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingMinInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingStddevPopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingStddevSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingSumInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingVariancePopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumHavingVarianceSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipMetadata.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumInput: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      key(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("key", bakedInputRuntime(schema, field.type, val));
+      },
+      relationshipId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("relationship_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      value(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("value", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumPatch: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      key(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("key", bakedInputRuntime(schema, field.type, val));
+      },
+      relationshipId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("relationship_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      value(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("value", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  RepositoryRelationshipMinAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float4,
+          expression: spec3.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipPatch: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      branch(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("branch", bakedInputRuntime(schema, field.type, val));
+      },
+      confidence(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("confidence", bakedInputRuntime(schema, field.type, val));
+      },
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      detectionSource(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("detection_source", bakedInputRuntime(schema, field.type, val));
+      },
+      relationshipTypeId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("relationship_type_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      sourceRepositoryId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("source_repository_id", bakedInputRuntime(schema, field.type, val));
+      },
+      targetRepositoryId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("target_repository_id", bakedInputRuntime(schema, field.type, val));
+      },
+      updatedAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("updated_at", bakedInputRuntime(schema, field.type, val));
+      },
+      versionConstraint(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("version_constraint", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  RepositoryRelationshipStddevPopulationAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float,
+          expression: spec7.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipStddevSampleAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float,
+          expression: spec6.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipSumAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float4,
+          expression: spec2.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipToManyRepositoryRelationshipMetadatumFilter: {
+    plans: {
+      aggregates($where, input) {
+        if (input == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = new PgAggregateCondition($where, {
+            sql,
+            tableExpression,
+            alias
+          }, pgWhereConditionSpecListToSQL);
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      every($where, value) {
+        assertAllowed42(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery.notPlan().andPlan();
+      },
+      none($where, value) {
+        assertAllowed42(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      some($where, value) {
+        assertAllowed42(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      }
+    }
+  },
+  RepositoryRelationshipTypeAggregatesFilter: {
+    plans: {
+      distinctCount($subquery, input) {
+        if (input == null) return;
+        return $subquery.forAggregate(spec);
+      },
+      filter($subquery, input) {
+        if (input == null) return;
+        return new PgCondition($subquery, !1, "AND");
+      }
+    }
+  },
+  RepositoryRelationshipTypeCondition: {
+    plans: {
+      createdAt($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "created_at",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.timestamptz)}`;
+          }
+        });
+      },
+      description($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "description",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      isDirected($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "is_directed",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.boolean)}`;
+          }
+        });
+      },
+      name($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "name",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      organizationId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "organization_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      rowId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      }
+    }
+  },
+  RepositoryRelationshipTypeDistinctCountAggregateFilter: {
+    plans: {
+      createdAt($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("created_at")}`, spec_repositoryRelationshipType.attributes.created_at.codec)
+        };
+        return $col;
+      },
+      description($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("description")}`, spec_repositoryRelationshipType.attributes.description.codec)
+        };
+        return $col;
+      },
+      isDirected($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("is_directed")}`, spec_repositoryRelationshipType.attributes.is_directed.codec)
+        };
+        return $col;
+      },
+      name($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("name")}`, spec_repositoryRelationshipType.attributes.name.codec)
+        };
+        return $col;
+      },
+      organizationId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("organization_id")}`, spec_repositoryRelationshipType.attributes.organization_id.codec)
+        };
+        return $col;
+      },
+      rowId($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.bigint,
+          expression: spec.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("id")}`, spec_repositoryRelationshipType.attributes.id.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipTypeFilter: {
+    plans: {
+      and($where, value) {
+        assertAllowed47(value, "list");
+        if (value == null) return;
+        return $where.andPlan();
+      },
+      createdAt(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec67;
+        return condition;
+      },
+      description(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec64;
+        return condition;
+      },
+      isDirected(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec65;
+        return condition;
+      },
+      name(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec63;
+        return condition;
+      },
+      not($where, value) {
+        assertAllowed47(value, "object");
+        if (value == null) return;
+        return $where.notPlan().andPlan();
+      },
+      or($where, value) {
+        assertAllowed47(value, "list");
+        if (value == null) return;
+        const $or = $where.orPlan();
+        return () => $or.andPlan();
+      },
+      organization($where, value) {
+        assertAllowed46(value, "object");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: organizationIdentifier,
+          alias: resource_organizationPgResource.name
+        });
+        registryConfig.pgRelations.repositoryRelationshipType.organizationByMyOrganizationId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationshipType.organizationByMyOrganizationId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      organizationExists($where, value) {
+        assertAllowed46(value, "scalar");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: organizationIdentifier,
+          alias: resource_organizationPgResource.name,
+          equals: value
+        });
+        registryConfig.pgRelations.repositoryRelationshipType.organizationByMyOrganizationId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationshipType.organizationByMyOrganizationId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+      },
+      organizationId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec66;
+        return condition;
+      },
+      repositoryRelationshipsByRelationshipTypeId($where, value) {
+        assertAllowed45(value, "object");
+        const $rel = $where.andPlan();
+        $rel.extensions.pgFilterRelation = {
+          tableExpression: repositoryRelationshipIdentifier,
+          alias: resource_repository_relationshipPgResource.name,
+          localAttributes: registryConfig.pgRelations.repositoryRelationshipType.repositoryRelationshipsByTheirRelationshipTypeId.localAttributes,
+          remoteAttributes: registryConfig.pgRelations.repositoryRelationshipType.repositoryRelationshipsByTheirRelationshipTypeId.remoteAttributes
+        };
+        return $rel;
+      },
+      repositoryRelationshipsByRelationshipTypeIdExist($where, value) {
+        assertAllowed45(value, "scalar");
+        if (value == null) return;
+        const $subQuery = $where.existsPlan({
+          tableExpression: repositoryRelationshipIdentifier,
+          alias: resource_repository_relationshipPgResource.name,
+          equals: value
+        });
+        registryConfig.pgRelations.repositoryRelationshipType.repositoryRelationshipsByTheirRelationshipTypeId.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = registryConfig.pgRelations.repositoryRelationshipType.repositoryRelationshipsByTheirRelationshipTypeId.remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+      },
+      rowId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec62;
+        return condition;
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingAverageInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingDistinctCountInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingInput: {
+    plans: {
+      AND($where) {
+        return $where;
+      },
+      average($having) {
+        return $having;
+      },
+      distinctCount($having) {
+        return $having;
+      },
+      max($having) {
+        return $having;
+      },
+      min($having) {
+        return $having;
+      },
+      OR($where) {
+        return new PgOrFilter($where);
+      },
+      stddevPopulation($having) {
+        return $having;
+      },
+      stddevSample($having) {
+        return $having;
+      },
+      sum($having) {
+        return $having;
+      },
+      variancePopulation($having) {
+        return $having;
+      },
+      varianceSample($having) {
+        return $having;
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingMaxInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingMinInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingStddevPopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingStddevSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingSumInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingVariancePopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeHavingVarianceSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_repositoryRelationshipType.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  RepositoryRelationshipTypeInput: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      description(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("description", bakedInputRuntime(schema, field.type, val));
+      },
+      isDirected(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("is_directed", bakedInputRuntime(schema, field.type, val));
+      },
+      name(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("name", bakedInputRuntime(schema, field.type, val));
+      },
+      organizationId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("organization_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  RepositoryRelationshipTypePatch: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      description(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("description", bakedInputRuntime(schema, field.type, val));
+      },
+      isDirected(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("is_directed", bakedInputRuntime(schema, field.type, val));
+      },
+      name(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("name", bakedInputRuntime(schema, field.type, val));
+      },
+      organizationId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("organization_id", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  RepositoryRelationshipTypeToManyRepositoryRelationshipFilter: {
+    plans: {
+      aggregates($where, input) {
+        if (input == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = new PgAggregateCondition($where, {
+            sql,
+            tableExpression,
+            alias
+          }, pgWhereConditionSpecListToSQL);
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      every($where, value) {
+        assertAllowed48(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery.notPlan().andPlan();
+      },
+      none($where, value) {
+        assertAllowed48(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      some($where, value) {
+        assertAllowed48(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      }
+    }
+  },
+  RepositoryRelationshipVariancePopulationAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float,
+          expression: spec9.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryRelationshipVarianceSampleAggregateFilter: {
+    plans: {
+      confidence($parent, input) {
+        if (input == null) return;
+        const $col = new PgCondition($parent);
+        $col.extensions.pgFilterAttribute = {
+          codec: TYPES.float,
+          expression: spec8.sqlAggregateWrap(sql`${$col.alias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)
+        };
+        return $col;
+      }
+    }
+  },
+  RepositoryToManyExternalDependencyFilter: {
+    plans: {
+      aggregates($where, input) {
+        if (input == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = new PgAggregateCondition($where, {
+            sql,
+            tableExpression,
+            alias
+          }, pgWhereConditionSpecListToSQL);
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      every($where, value) {
+        assertAllowed35(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery.notPlan().andPlan();
+      },
+      none($where, value) {
+        assertAllowed35(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      some($where, value) {
+        assertAllowed35(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      }
+    }
+  },
   RepositoryToManyRepositoryCollaboratorFilter: {
     plans: {
       aggregates($where, input) {
@@ -12423,7 +21932,7 @@ export const inputObjects = {
         return $subQuery;
       },
       every($where, value) {
-        assertAllowed17(value, "object");
+        assertAllowed27(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -12443,7 +21952,7 @@ export const inputObjects = {
         return $subQuery.notPlan().andPlan();
       },
       none($where, value) {
-        assertAllowed17(value, "object");
+        assertAllowed27(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -12463,7 +21972,91 @@ export const inputObjects = {
         return $subQuery;
       },
       some($where, value) {
-        assertAllowed17(value, "object");
+        assertAllowed27(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      }
+    }
+  },
+  RepositoryToManyRepositoryRelationshipFilter: {
+    plans: {
+      aggregates($where, input) {
+        if (input == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = new PgAggregateCondition($where, {
+            sql,
+            tableExpression,
+            alias
+          }, pgWhereConditionSpecListToSQL);
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      every($where, value) {
+        assertAllowed38(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery.notPlan().andPlan();
+      },
+      none($where, value) {
+        assertAllowed38(value, "object");
+        if (value == null) return;
+        if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
+        const {
+            localAttributes,
+            remoteAttributes,
+            tableExpression,
+            alias
+          } = $where.extensions.pgFilterRelation,
+          $subQuery = $where.notPlan().existsPlan({
+            tableExpression,
+            alias
+          });
+        localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = remoteAttributes[i];
+          $subQuery.where(sql`${$where.alias}.${sql.identifier(localAttribute)} = ${$subQuery.alias}.${sql.identifier(remoteAttribute)}`);
+        });
+        return $subQuery;
+      },
+      some($where, value) {
+        assertAllowed38(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -13912,6 +23505,26 @@ export const inputObjects = {
       }
     }
   },
+  UpdateExternalDependencyByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateExternalDependencyInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
   UpdateOrganizationByIdInput: {
     plans: {
       clientMutationId(qb, val) {
@@ -13983,6 +23596,66 @@ export const inputObjects = {
     }
   },
   UpdateRepositoryInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateRepositoryRelationshipByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateRepositoryRelationshipInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateRepositoryRelationshipMetadatumByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateRepositoryRelationshipMetadatumInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateRepositoryRelationshipTypeByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateRepositoryRelationshipTypeInput: {
     plans: {
       clientMutationId(qb, val) {
         qb.setMeta("clientMutationId", val);
@@ -14100,7 +23773,7 @@ export const inputObjects = {
   UserFilter: {
     plans: {
       and($where, value) {
-        assertAllowed21(value, "list");
+        assertAllowed31(value, "list");
         if (value == null) return;
         return $where.andPlan();
       },
@@ -14153,18 +23826,18 @@ export const inputObjects = {
         return condition;
       },
       not($where, value) {
-        assertAllowed21(value, "object");
+        assertAllowed31(value, "object");
         if (value == null) return;
         return $where.notPlan().andPlan();
       },
       or($where, value) {
-        assertAllowed21(value, "list");
+        assertAllowed31(value, "list");
         if (value == null) return;
         const $or = $where.orPlan();
         return () => $or.andPlan();
       },
       organizationMembers($where, value) {
-        assertAllowed20(value, "object");
+        assertAllowed30(value, "object");
         const $rel = $where.andPlan();
         $rel.extensions.pgFilterRelation = {
           tableExpression: organizationMemberIdentifier,
@@ -14175,7 +23848,7 @@ export const inputObjects = {
         return $rel;
       },
       organizationMembersExist($where, value) {
-        assertAllowed20(value, "scalar");
+        assertAllowed30(value, "scalar");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: organizationMemberIdentifier,
@@ -14188,7 +23861,7 @@ export const inputObjects = {
         });
       },
       repositoriesByOwnerId($where, value) {
-        assertAllowed20(value, "object");
+        assertAllowed30(value, "object");
         const $rel = $where.andPlan();
         $rel.extensions.pgFilterRelation = {
           tableExpression: repositoryIdentifier,
@@ -14199,7 +23872,7 @@ export const inputObjects = {
         return $rel;
       },
       repositoriesByOwnerIdExist($where, value) {
-        assertAllowed20(value, "scalar");
+        assertAllowed30(value, "scalar");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: repositoryIdentifier,
@@ -14212,7 +23885,7 @@ export const inputObjects = {
         });
       },
       repositoryCollaborators($where, value) {
-        assertAllowed20(value, "object");
+        assertAllowed30(value, "object");
         const $rel = $where.andPlan();
         $rel.extensions.pgFilterRelation = {
           tableExpression: repositoryCollaboratorIdentifier,
@@ -14223,7 +23896,7 @@ export const inputObjects = {
         return $rel;
       },
       repositoryCollaboratorsExist($where, value) {
-        assertAllowed20(value, "scalar");
+        assertAllowed30(value, "scalar");
         if (value == null) return;
         const $subQuery = $where.existsPlan({
           tableExpression: repositoryCollaboratorIdentifier,
@@ -14265,12 +23938,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec4.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14330,12 +24003,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec3.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14344,12 +24017,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec2.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14358,12 +24031,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec6.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14372,12 +24045,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec5.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14386,12 +24059,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14400,12 +24073,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec8.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14414,12 +24087,12 @@ export const inputObjects = {
     plans: {
       createdAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_user.attributes.created_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       },
       updatedAt($having) {
         const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("updated_at")}`,
-          aggregateExpression = aggregateSpec7.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_user.attributes.updated_at.codec);
         return new PgBooleanFilter($having, aggregateExpression);
       }
     }
@@ -14565,7 +24238,7 @@ export const inputObjects = {
         return $subQuery;
       },
       every($where, value) {
-        assertAllowed22(value, "object");
+        assertAllowed32(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14585,7 +24258,7 @@ export const inputObjects = {
         return $subQuery.notPlan().andPlan();
       },
       none($where, value) {
-        assertAllowed22(value, "object");
+        assertAllowed32(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14605,7 +24278,7 @@ export const inputObjects = {
         return $subQuery;
       },
       some($where, value) {
-        assertAllowed22(value, "object");
+        assertAllowed32(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14649,7 +24322,7 @@ export const inputObjects = {
         return $subQuery;
       },
       every($where, value) {
-        assertAllowed24(value, "object");
+        assertAllowed34(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14669,7 +24342,7 @@ export const inputObjects = {
         return $subQuery.notPlan().andPlan();
       },
       none($where, value) {
-        assertAllowed24(value, "object");
+        assertAllowed34(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14689,7 +24362,7 @@ export const inputObjects = {
         return $subQuery;
       },
       some($where, value) {
-        assertAllowed24(value, "object");
+        assertAllowed34(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14733,7 +24406,7 @@ export const inputObjects = {
         return $subQuery;
       },
       every($where, value) {
-        assertAllowed23(value, "object");
+        assertAllowed33(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14753,7 +24426,7 @@ export const inputObjects = {
         return $subQuery.notPlan().andPlan();
       },
       none($where, value) {
-        assertAllowed23(value, "object");
+        assertAllowed33(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -14773,7 +24446,7 @@ export const inputObjects = {
         return $subQuery;
       },
       some($where, value) {
-        assertAllowed23(value, "object");
+        assertAllowed33(value, "object");
         if (value == null) return;
         if (!$where.extensions.pgFilterRelation) throw Error("Invalid use of filter, 'pgFilterRelation' expected");
         const {
@@ -15368,6 +25041,154 @@ export const scalars = {
   }
 };
 export const enums = {
+  ExternalDependencyGroupBy: {
+    values: {
+      CREATED_AT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("created_at")}`,
+          codec: TYPES.timestamptz
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_DAY($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec2.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec2.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_HOUR($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      DETECTION_SOURCE($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("detection_source")}`,
+          codec: detectionSourceCodec
+        });
+      },
+      PACKAGE_MANAGER($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("package_manager")}`,
+          codec: TYPES.text
+        });
+      },
+      PACKAGE_NAME($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("package_name")}`,
+          codec: TYPES.text
+        });
+      },
+      REPOSITORY_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("repository_id")}`,
+          codec: TYPES.uuid
+        });
+      },
+      VERSION_CONSTRAINT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("version_constraint")}`,
+          codec: TYPES.text
+        });
+      }
+    }
+  },
+  ExternalDependencyOrderBy: {
+    values: {
+      CREATED_AT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "ASC"
+        });
+      },
+      CREATED_AT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "DESC"
+        });
+      },
+      PACKAGE_MANAGER_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "package_manager",
+          direction: "ASC"
+        });
+      },
+      PACKAGE_MANAGER_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "package_manager",
+          direction: "DESC"
+        });
+      },
+      PACKAGE_NAME_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "package_name",
+          direction: "ASC"
+        });
+      },
+      PACKAGE_NAME_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "package_name",
+          direction: "DESC"
+        });
+      },
+      PRIMARY_KEY_ASC(queryBuilder) {
+        external_dependencyUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "ASC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      PRIMARY_KEY_DESC(queryBuilder) {
+        external_dependencyUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "DESC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      REPOSITORY_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "repository_id",
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "repository_id",
+          direction: "DESC"
+        });
+      },
+      ROW_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "ASC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      ROW_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "DESC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      VERSION_CONSTRAINT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "version_constraint",
+          direction: "ASC"
+        });
+      },
+      VERSION_CONSTRAINT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "version_constraint",
+          direction: "DESC"
+        });
+      }
+    }
+  },
   OrganizationGroupBy: {
     values: {
       AVATAR_URL($pgSelect) {
@@ -15640,8 +25461,8 @@ export const enums = {
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15658,8 +25479,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15676,8 +25497,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15695,8 +25516,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15714,8 +25535,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15733,8 +25554,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15752,8 +25573,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15771,8 +25592,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15790,8 +25611,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15809,8 +25630,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15828,8 +25649,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15847,8 +25668,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation5.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation5.remoteAttributes[i];
+        relation10.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation10.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -15884,8 +25705,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -15902,8 +25723,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -15920,8 +25741,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -15939,8 +25760,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -15958,8 +25779,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -15977,8 +25798,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -15996,8 +25817,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16015,8 +25836,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16034,8 +25855,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16053,8 +25874,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16072,8 +25893,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16091,8 +25912,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16110,8 +25931,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16129,8 +25950,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16148,8 +25969,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16167,8 +25988,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16186,8 +26007,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16205,8 +26026,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16224,8 +26045,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16243,8 +26064,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16262,8 +26083,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16281,8 +26102,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation6.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation6.remoteAttributes[i];
+        relation11.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation11.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -16293,6 +26114,270 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         $select.orderBy({
           fragment,
           codec: spec.pgTypeCodecModifier?.(spec_repository.attributes.visibility.codec) ?? spec_repository.attributes.visibility.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_COUNT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_COUNT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_CREATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationshipType.attributes.created_at.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.created_at.codec) ?? spec_repositoryRelationshipType.attributes.created_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_CREATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationshipType.attributes.created_at.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.created_at.codec) ?? spec_repositoryRelationshipType.attributes.created_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_DESCRIPTION_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("description")}`, spec_repositoryRelationshipType.attributes.description.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.description.codec) ?? spec_repositoryRelationshipType.attributes.description.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_DESCRIPTION_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("description")}`, spec_repositoryRelationshipType.attributes.description.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.description.codec) ?? spec_repositoryRelationshipType.attributes.description.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_IS_DIRECTED_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("is_directed")}`, spec_repositoryRelationshipType.attributes.is_directed.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.is_directed.codec) ?? spec_repositoryRelationshipType.attributes.is_directed.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_IS_DIRECTED_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("is_directed")}`, spec_repositoryRelationshipType.attributes.is_directed.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.is_directed.codec) ?? spec_repositoryRelationshipType.attributes.is_directed.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_NAME_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("name")}`, spec_repositoryRelationshipType.attributes.name.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.name.codec) ?? spec_repositoryRelationshipType.attributes.name.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_NAME_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("name")}`, spec_repositoryRelationshipType.attributes.name.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.name.codec) ?? spec_repositoryRelationshipType.attributes.name.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ORGANIZATION_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("organization_id")}`, spec_repositoryRelationshipType.attributes.organization_id.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.organization_id.codec) ?? spec_repositoryRelationshipType.attributes.organization_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ORGANIZATION_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("organization_id")}`, spec_repositoryRelationshipType.attributes.organization_id.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.organization_id.codec) ?? spec_repositoryRelationshipType.attributes.organization_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ROW_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationshipType.attributes.id.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.id.codec) ?? spec_repositoryRelationshipType.attributes.id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_ROW_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_typePgResource.name));
+        relation12.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation12.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_typePgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationshipType.attributes.id.codec)}
+from ${resource_repository_relationship_typePgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipType.attributes.id.codec) ?? spec_repositoryRelationshipType.attributes.id.codec,
           direction: "DESC"
         });
       },
@@ -16636,6 +26721,308 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
           direction: "DESC"
         });
       },
+      EXTERNAL_DEPENDENCIES_COUNT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_COUNT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "DESC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_CREATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_externalDependency.attributes.created_at.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.created_at.codec) ?? spec_externalDependency.attributes.created_at.codec,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_CREATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_externalDependency.attributes.created_at.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.created_at.codec) ?? spec_externalDependency.attributes.created_at.codec,
+          direction: "DESC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_DETECTION_SOURCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_externalDependency.attributes.detection_source.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.detection_source.codec) ?? spec_externalDependency.attributes.detection_source.codec,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_DETECTION_SOURCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_externalDependency.attributes.detection_source.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.detection_source.codec) ?? spec_externalDependency.attributes.detection_source.codec,
+          direction: "DESC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_MANAGER_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("package_manager")}`, spec_externalDependency.attributes.package_manager.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.package_manager.codec) ?? spec_externalDependency.attributes.package_manager.codec,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_MANAGER_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("package_manager")}`, spec_externalDependency.attributes.package_manager.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.package_manager.codec) ?? spec_externalDependency.attributes.package_manager.codec,
+          direction: "DESC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_NAME_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("package_name")}`, spec_externalDependency.attributes.package_name.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.package_name.codec) ?? spec_externalDependency.attributes.package_name.codec,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_PACKAGE_NAME_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("package_name")}`, spec_externalDependency.attributes.package_name.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.package_name.codec) ?? spec_externalDependency.attributes.package_name.codec,
+          direction: "DESC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_REPOSITORY_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("repository_id")}`, spec_externalDependency.attributes.repository_id.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.repository_id.codec) ?? spec_externalDependency.attributes.repository_id.codec,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_REPOSITORY_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("repository_id")}`, spec_externalDependency.attributes.repository_id.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.repository_id.codec) ?? spec_externalDependency.attributes.repository_id.codec,
+          direction: "DESC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_ROW_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_externalDependency.attributes.id.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.id.codec) ?? spec_externalDependency.attributes.id.codec,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_ROW_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_externalDependency.attributes.id.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.id.codec) ?? spec_externalDependency.attributes.id.codec,
+          direction: "DESC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_externalDependency.attributes.version_constraint.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.version_constraint.codec) ?? spec_externalDependency.attributes.version_constraint.codec,
+          direction: "ASC"
+        });
+      },
+      EXTERNAL_DEPENDENCIES_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_external_dependencyPgResource.name));
+        relation3.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation3.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_external_dependencyPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_externalDependency.attributes.version_constraint.codec)}
+from ${resource_external_dependencyPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_externalDependency.attributes.version_constraint.codec) ?? spec_externalDependency.attributes.version_constraint.codec,
+          direction: "DESC"
+        });
+      },
       NAME_ASC(queryBuilder) {
         queryBuilder.orderBy({
           attribute: "name",
@@ -16694,8 +27081,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16712,8 +27099,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16730,8 +27117,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16749,8 +27136,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16768,8 +27155,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16787,8 +27174,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16806,8 +27193,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16825,8 +27212,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16844,8 +27231,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16863,8 +27250,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16882,8 +27269,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16901,8 +27288,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation.remoteAttributes[i];
+        relation2.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation2.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -16913,6 +27300,1446 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         $select.orderBy({
           fragment,
           codec: spec.pgTypeCodecModifier?.(spec_repositoryCollaborator.attributes.user_id.codec) ?? spec_repositoryCollaborator.attributes.user_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_AVERAGE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec5.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec5.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_AVERAGE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec5.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec5.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_COUNT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_COUNT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("branch")}`, spec_repositoryRelationship.attributes.branch.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.branch.codec) ?? spec_repositoryRelationship.attributes.branch.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("branch")}`, spec_repositoryRelationship.attributes.branch.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.branch.codec) ?? spec_repositoryRelationship.attributes.branch.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationship.attributes.created_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.created_at.codec) ?? spec_repositoryRelationship.attributes.created_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationship.attributes.created_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.created_at.codec) ?? spec_repositoryRelationship.attributes.created_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_repositoryRelationship.attributes.detection_source.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.detection_source.codec) ?? spec_repositoryRelationship.attributes.detection_source.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_repositoryRelationship.attributes.detection_source.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.detection_source.codec) ?? spec_repositoryRelationship.attributes.detection_source.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_type_id")}`, spec_repositoryRelationship.attributes.relationship_type_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.relationship_type_id.codec) ?? spec_repositoryRelationship.attributes.relationship_type_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_type_id")}`, spec_repositoryRelationship.attributes.relationship_type_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.relationship_type_id.codec) ?? spec_repositoryRelationship.attributes.relationship_type_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationship.attributes.id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.id.codec) ?? spec_repositoryRelationship.attributes.id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationship.attributes.id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.id.codec) ?? spec_repositoryRelationship.attributes.id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("source_repository_id")}`, spec_repositoryRelationship.attributes.source_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.source_repository_id.codec) ?? spec_repositoryRelationship.attributes.source_repository_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("source_repository_id")}`, spec_repositoryRelationship.attributes.source_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.source_repository_id.codec) ?? spec_repositoryRelationship.attributes.source_repository_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("target_repository_id")}`, spec_repositoryRelationship.attributes.target_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.target_repository_id.codec) ?? spec_repositoryRelationship.attributes.target_repository_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("target_repository_id")}`, spec_repositoryRelationship.attributes.target_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.target_repository_id.codec) ?? spec_repositoryRelationship.attributes.target_repository_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("updated_at")}`, spec_repositoryRelationship.attributes.updated_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.updated_at.codec) ?? spec_repositoryRelationship.attributes.updated_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("updated_at")}`, spec_repositoryRelationship.attributes.updated_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.updated_at.codec) ?? spec_repositoryRelationship.attributes.updated_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_repositoryRelationship.attributes.version_constraint.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.version_constraint.codec) ?? spec_repositoryRelationship.attributes.version_constraint.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_repositoryRelationship.attributes.version_constraint.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.version_constraint.codec) ?? spec_repositoryRelationship.attributes.version_constraint.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MAX_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec4.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec4.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MAX_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec4.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec4.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MIN_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec3.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec3.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_MIN_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec3.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec3.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec7.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec7.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec7.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec7.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec6.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec6.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec6.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec6.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_SUM_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec2.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec2.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_SUM_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec2.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec2.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec9.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec9.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec9.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec9.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec8.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec8.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_SOURCE_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation4.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation4.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec8.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec8.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_AVERAGE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec5.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec5.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_AVERAGE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec5.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec5.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_COUNT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_COUNT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("branch")}`, spec_repositoryRelationship.attributes.branch.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.branch.codec) ?? spec_repositoryRelationship.attributes.branch.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_BRANCH_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("branch")}`, spec_repositoryRelationship.attributes.branch.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.branch.codec) ?? spec_repositoryRelationship.attributes.branch.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationship.attributes.created_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.created_at.codec) ?? spec_repositoryRelationship.attributes.created_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_CREATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationship.attributes.created_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.created_at.codec) ?? spec_repositoryRelationship.attributes.created_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_repositoryRelationship.attributes.detection_source.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.detection_source.codec) ?? spec_repositoryRelationship.attributes.detection_source.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_repositoryRelationship.attributes.detection_source.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.detection_source.codec) ?? spec_repositoryRelationship.attributes.detection_source.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_type_id")}`, spec_repositoryRelationship.attributes.relationship_type_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.relationship_type_id.codec) ?? spec_repositoryRelationship.attributes.relationship_type_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_type_id")}`, spec_repositoryRelationship.attributes.relationship_type_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.relationship_type_id.codec) ?? spec_repositoryRelationship.attributes.relationship_type_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationship.attributes.id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.id.codec) ?? spec_repositoryRelationship.attributes.id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_ROW_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationship.attributes.id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.id.codec) ?? spec_repositoryRelationship.attributes.id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("source_repository_id")}`, spec_repositoryRelationship.attributes.source_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.source_repository_id.codec) ?? spec_repositoryRelationship.attributes.source_repository_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("source_repository_id")}`, spec_repositoryRelationship.attributes.source_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.source_repository_id.codec) ?? spec_repositoryRelationship.attributes.source_repository_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("target_repository_id")}`, spec_repositoryRelationship.attributes.target_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.target_repository_id.codec) ?? spec_repositoryRelationship.attributes.target_repository_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("target_repository_id")}`, spec_repositoryRelationship.attributes.target_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.target_repository_id.codec) ?? spec_repositoryRelationship.attributes.target_repository_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("updated_at")}`, spec_repositoryRelationship.attributes.updated_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.updated_at.codec) ?? spec_repositoryRelationship.attributes.updated_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_UPDATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("updated_at")}`, spec_repositoryRelationship.attributes.updated_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.updated_at.codec) ?? spec_repositoryRelationship.attributes.updated_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_repositoryRelationship.attributes.version_constraint.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.version_constraint.codec) ?? spec_repositoryRelationship.attributes.version_constraint.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_repositoryRelationship.attributes.version_constraint.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.version_constraint.codec) ?? spec_repositoryRelationship.attributes.version_constraint.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MAX_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec4.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec4.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MAX_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec4.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec4.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MIN_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec3.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec3.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_MIN_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec3.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec3.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec7.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec7.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_POPULATION_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec7.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec7.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec6.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec6.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_STDDEV_SAMPLE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec6.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec6.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_SUM_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec2.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec2.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_SUM_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec2.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec2.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec9.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec9.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_POPULATION_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec9.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec9.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec8.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec8.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_TARGET_REPOSITORY_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation5.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation5.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec8.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec8.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
           direction: "DESC"
         });
       },
@@ -16965,6 +28792,1432 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
           attribute: "visibility",
           direction: "DESC"
         });
+      }
+    }
+  },
+  RepositoryRelationshipGroupBy: {
+    values: {
+      BRANCH($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("branch")}`,
+          codec: TYPES.text
+        });
+      },
+      CONFIDENCE($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("confidence")}`,
+          codec: TYPES.float4
+        });
+      },
+      CREATED_AT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("created_at")}`,
+          codec: TYPES.timestamptz
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_DAY($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec2.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec2.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_HOUR($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      DETECTION_SOURCE($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("detection_source")}`,
+          codec: detectionSourceCodec
+        });
+      },
+      RELATIONSHIP_TYPE_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("relationship_type_id")}`,
+          codec: TYPES.uuid
+        });
+      },
+      SOURCE_REPOSITORY_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("source_repository_id")}`,
+          codec: TYPES.uuid
+        });
+      },
+      TARGET_REPOSITORY_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("target_repository_id")}`,
+          codec: TYPES.uuid
+        });
+      },
+      UPDATED_AT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("updated_at")}`,
+          codec: TYPES.timestamptz
+        });
+      },
+      UPDATED_AT_TRUNCATED_TO_DAY($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec2.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("updated_at")}`),
+          codec: aggregateGroupBySpec2.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      UPDATED_AT_TRUNCATED_TO_HOUR($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("updated_at")}`),
+          codec: aggregateGroupBySpec.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      VERSION_CONSTRAINT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("version_constraint")}`,
+          codec: TYPES.text
+        });
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumGroupBy: {
+    values: {
+      CREATED_AT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("created_at")}`,
+          codec: TYPES.timestamptz
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_DAY($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec2.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec2.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_HOUR($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      KEY($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("key")}`,
+          codec: TYPES.text
+        });
+      },
+      RELATIONSHIP_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("relationship_id")}`,
+          codec: TYPES.uuid
+        });
+      },
+      VALUE($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("value")}`,
+          codec: TYPES.text
+        });
+      }
+    }
+  },
+  RepositoryRelationshipMetadatumOrderBy: {
+    values: {
+      CREATED_AT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "ASC"
+        });
+      },
+      CREATED_AT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "DESC"
+        });
+      },
+      KEY_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "key",
+          direction: "ASC"
+        });
+      },
+      KEY_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "key",
+          direction: "DESC"
+        });
+      },
+      PRIMARY_KEY_ASC(queryBuilder) {
+        repository_relationship_metadataUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "ASC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      PRIMARY_KEY_DESC(queryBuilder) {
+        repository_relationship_metadataUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "DESC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      RELATIONSHIP_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "relationship_id",
+          direction: "ASC"
+        });
+      },
+      RELATIONSHIP_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "relationship_id",
+          direction: "DESC"
+        });
+      },
+      ROW_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "ASC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      ROW_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "DESC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      VALUE_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "value",
+          direction: "ASC"
+        });
+      },
+      VALUE_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "value",
+          direction: "DESC"
+        });
+      }
+    }
+  },
+  RepositoryRelationshipOrderBy: {
+    values: {
+      BRANCH_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "branch",
+          direction: "ASC"
+        });
+      },
+      BRANCH_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "branch",
+          direction: "DESC"
+        });
+      },
+      CONFIDENCE_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "confidence",
+          direction: "ASC"
+        });
+      },
+      CONFIDENCE_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "confidence",
+          direction: "DESC"
+        });
+      },
+      CREATED_AT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "ASC"
+        });
+      },
+      CREATED_AT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "DESC"
+        });
+      },
+      PRIMARY_KEY_ASC(queryBuilder) {
+        repository_relationshipUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "ASC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      PRIMARY_KEY_DESC(queryBuilder) {
+        repository_relationshipUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "DESC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      RELATIONSHIP_TYPE_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "relationship_type_id",
+          direction: "ASC"
+        });
+      },
+      RELATIONSHIP_TYPE_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "relationship_type_id",
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationshipMetadata.attributes.created_at.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.created_at.codec) ?? spec_repositoryRelationshipMetadata.attributes.created_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationshipMetadata.attributes.created_at.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.created_at.codec) ?? spec_repositoryRelationshipMetadata.attributes.created_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("key")}`, spec_repositoryRelationshipMetadata.attributes.key.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.key.codec) ?? spec_repositoryRelationshipMetadata.attributes.key.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("key")}`, spec_repositoryRelationshipMetadata.attributes.key.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.key.codec) ?? spec_repositoryRelationshipMetadata.attributes.key.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_id")}`, spec_repositoryRelationshipMetadata.attributes.relationship_id.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.relationship_id.codec) ?? spec_repositoryRelationshipMetadata.attributes.relationship_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_id")}`, spec_repositoryRelationshipMetadata.attributes.relationship_id.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.relationship_id.codec) ?? spec_repositoryRelationshipMetadata.attributes.relationship_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationshipMetadata.attributes.id.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.id.codec) ?? spec_repositoryRelationshipMetadata.attributes.id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationshipMetadata.attributes.id.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.id.codec) ?? spec_repositoryRelationshipMetadata.attributes.id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("value")}`, spec_repositoryRelationshipMetadata.attributes.value.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.value.codec) ?? spec_repositoryRelationshipMetadata.attributes.value.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationship_metadataPgResource.name));
+        relation.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationship_metadataPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("value")}`, spec_repositoryRelationshipMetadata.attributes.value.codec)}
+from ${resource_repository_relationship_metadataPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationshipMetadata.attributes.value.codec) ?? spec_repositoryRelationshipMetadata.attributes.value.codec,
+          direction: "DESC"
+        });
+      },
+      ROW_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "ASC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      ROW_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "DESC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      SOURCE_REPOSITORY_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "source_repository_id",
+          direction: "ASC"
+        });
+      },
+      SOURCE_REPOSITORY_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "source_repository_id",
+          direction: "DESC"
+        });
+      },
+      TARGET_REPOSITORY_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "target_repository_id",
+          direction: "ASC"
+        });
+      },
+      TARGET_REPOSITORY_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "target_repository_id",
+          direction: "DESC"
+        });
+      },
+      UPDATED_AT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "updated_at",
+          direction: "ASC"
+        });
+      },
+      UPDATED_AT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "updated_at",
+          direction: "DESC"
+        });
+      },
+      VERSION_CONSTRAINT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "version_constraint",
+          direction: "ASC"
+        });
+      },
+      VERSION_CONSTRAINT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "version_constraint",
+          direction: "DESC"
+        });
+      }
+    }
+  },
+  RepositoryRelationshipTypeGroupBy: {
+    values: {
+      CREATED_AT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("created_at")}`,
+          codec: TYPES.timestamptz
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_DAY($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec2.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec2.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_HOUR($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      DESCRIPTION($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("description")}`,
+          codec: TYPES.text
+        });
+      },
+      IS_DIRECTED($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("is_directed")}`,
+          codec: TYPES.boolean
+        });
+      },
+      NAME($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("name")}`,
+          codec: TYPES.text
+        });
+      },
+      ORGANIZATION_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("organization_id")}`,
+          codec: TYPES.uuid
+        });
+      }
+    }
+  },
+  RepositoryRelationshipTypeOrderBy: {
+    values: {
+      CREATED_AT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "ASC"
+        });
+      },
+      CREATED_AT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "DESC"
+        });
+      },
+      DESCRIPTION_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "description",
+          direction: "ASC"
+        });
+      },
+      DESCRIPTION_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "description",
+          direction: "DESC"
+        });
+      },
+      IS_DIRECTED_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "is_directed",
+          direction: "ASC"
+        });
+      },
+      IS_DIRECTED_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "is_directed",
+          direction: "DESC"
+        });
+      },
+      NAME_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "name",
+          direction: "ASC"
+        });
+      },
+      NAME_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "name",
+          direction: "DESC"
+        });
+      },
+      ORGANIZATION_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "organization_id",
+          direction: "ASC"
+        });
+      },
+      ORGANIZATION_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "organization_id",
+          direction: "DESC"
+        });
+      },
+      PRIMARY_KEY_ASC(queryBuilder) {
+        repository_relationship_typeUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "ASC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      PRIMARY_KEY_DESC(queryBuilder) {
+        repository_relationship_typeUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "DESC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec5.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec5.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec5.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec5.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`select count(*)
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
+        $select.orderBy({
+          fragment,
+          codec: TYPES.bigint,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("branch")}`, spec_repositoryRelationship.attributes.branch.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.branch.codec) ?? spec_repositoryRelationship.attributes.branch.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("branch")}`, spec_repositoryRelationship.attributes.branch.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.branch.codec) ?? spec_repositoryRelationship.attributes.branch.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationship.attributes.created_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.created_at.codec) ?? spec_repositoryRelationship.attributes.created_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("created_at")}`, spec_repositoryRelationship.attributes.created_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.created_at.codec) ?? spec_repositoryRelationship.attributes.created_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_repositoryRelationship.attributes.detection_source.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.detection_source.codec) ?? spec_repositoryRelationship.attributes.detection_source.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("detection_source")}`, spec_repositoryRelationship.attributes.detection_source.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.detection_source.codec) ?? spec_repositoryRelationship.attributes.detection_source.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_type_id")}`, spec_repositoryRelationship.attributes.relationship_type_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.relationship_type_id.codec) ?? spec_repositoryRelationship.attributes.relationship_type_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("relationship_type_id")}`, spec_repositoryRelationship.attributes.relationship_type_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.relationship_type_id.codec) ?? spec_repositoryRelationship.attributes.relationship_type_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationship.attributes.id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.id.codec) ?? spec_repositoryRelationship.attributes.id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("id")}`, spec_repositoryRelationship.attributes.id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.id.codec) ?? spec_repositoryRelationship.attributes.id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("source_repository_id")}`, spec_repositoryRelationship.attributes.source_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.source_repository_id.codec) ?? spec_repositoryRelationship.attributes.source_repository_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("source_repository_id")}`, spec_repositoryRelationship.attributes.source_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.source_repository_id.codec) ?? spec_repositoryRelationship.attributes.source_repository_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("target_repository_id")}`, spec_repositoryRelationship.attributes.target_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.target_repository_id.codec) ?? spec_repositoryRelationship.attributes.target_repository_id.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("target_repository_id")}`, spec_repositoryRelationship.attributes.target_repository_id.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.target_repository_id.codec) ?? spec_repositoryRelationship.attributes.target_repository_id.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("updated_at")}`, spec_repositoryRelationship.attributes.updated_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.updated_at.codec) ?? spec_repositoryRelationship.attributes.updated_at.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("updated_at")}`, spec_repositoryRelationship.attributes.updated_at.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.updated_at.codec) ?? spec_repositoryRelationship.attributes.updated_at.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_repositoryRelationship.attributes.version_constraint.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.version_constraint.codec) ?? spec_repositoryRelationship.attributes.version_constraint.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("version_constraint")}`, spec_repositoryRelationship.attributes.version_constraint.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.version_constraint.codec) ?? spec_repositoryRelationship.attributes.version_constraint.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec4.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec4.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec4.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec4.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec3.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec3.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec3.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec3.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec7.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec7.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec7.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec7.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec6.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec6.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec6.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec6.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec2.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec2.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec2.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec2.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec9.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec9.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec9.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec9.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec8.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec8.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "ASC"
+        });
+      },
+      REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC($select) {
+        const foreignTableAlias = $select.alias,
+          conditions = [],
+          tableAlias = sql.identifier(Symbol(resource_repository_relationshipPgResource.name));
+        relation6.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation6.remoteAttributes[i];
+          conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
+        });
+        if (typeof resource_repository_relationshipPgResource.from === "function") throw Error("Function source unsupported");
+        const fragment = sql`(${sql.indent`
+select ${spec8.sqlAggregateWrap(sql.fragment`${tableAlias}.${sql.identifier("confidence")}`, spec_repositoryRelationship.attributes.confidence.codec)}
+from ${resource_repository_relationshipPgResource.from} ${tableAlias}
+where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
+        $select.orderBy({
+          fragment,
+          codec: spec8.pgTypeCodecModifier?.(spec_repositoryRelationship.attributes.confidence.codec) ?? spec_repositoryRelationship.attributes.confidence.codec,
+          direction: "DESC"
+        });
+      },
+      ROW_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "ASC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      ROW_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "DESC"
+        });
+        queryBuilder.setOrderIsUnique();
       }
     }
   },
@@ -17108,8 +30361,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17126,8 +30379,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17144,8 +30397,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17163,8 +30416,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17182,8 +30435,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17201,8 +30454,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17220,8 +30473,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17239,8 +30492,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17258,8 +30511,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17277,8 +30530,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17296,8 +30549,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17315,8 +30568,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_organization_memberPgResource.name));
-        relation2.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation2.remoteAttributes[i];
+        relation7.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation7.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_organization_memberPgResource.from === "function") throw Error("Function source unsupported");
@@ -17352,8 +30605,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17370,8 +30623,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17388,8 +30641,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17407,8 +30660,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17426,8 +30679,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17445,8 +30698,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17464,8 +30717,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17483,8 +30736,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17502,8 +30755,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17521,8 +30774,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17540,8 +30793,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17559,8 +30812,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17578,8 +30831,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17597,8 +30850,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17616,8 +30869,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17635,8 +30888,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17654,8 +30907,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17673,8 +30926,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17692,8 +30945,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17711,8 +30964,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17730,8 +30983,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17749,8 +31002,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repositoryPgResource.name));
-        relation3.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation3.remoteAttributes[i];
+        relation8.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation8.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repositoryPgResource.from === "function") throw Error("Function source unsupported");
@@ -17768,8 +31021,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17786,8 +31039,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17804,8 +31057,8 @@ where ${sql.parens(sql.join(conditions.map(c => sql.parens(c)), " AND "))}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17823,8 +31076,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17842,8 +31095,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17861,8 +31114,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17880,8 +31133,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17899,8 +31152,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17918,8 +31171,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17937,8 +31190,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17956,8 +31209,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");
@@ -17975,8 +31228,8 @@ where ${sql.join(conditions.map(c => sql.parens(c)), " AND ")}`})`;
         const foreignTableAlias = $select.alias,
           conditions = [],
           tableAlias = sql.identifier(Symbol(resource_repository_collaboratorPgResource.name));
-        relation4.localAttributes.forEach((localAttribute, i) => {
-          const remoteAttribute = relation4.remoteAttributes[i];
+        relation9.localAttributes.forEach((localAttribute, i) => {
+          const remoteAttribute = relation9.remoteAttributes[i];
           conditions.push(sql.fragment`${tableAlias}.${sql.identifier(remoteAttribute)} = ${foreignTableAlias}.${sql.identifier(localAttribute)}`);
         });
         if (typeof resource_repository_collaboratorPgResource.from === "function") throw Error("Function source unsupported");

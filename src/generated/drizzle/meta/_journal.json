@@ -15,6 +15,20 @@
       "when": 1766634022482,
       "tag": "0001_chief_grim_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1767239946445,
+      "tag": "0002_mute_stellaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1767240539198,
+      "tag": "0003_grey_starbolt",
+      "breakpoints": true
     }
   ]
 }

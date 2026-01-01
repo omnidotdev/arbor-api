@@ -11,6 +11,10 @@ import {
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
 import { organizationTable } from "./organization.table";
 import { repositoryCollaboratorTable } from "./repositoryCollaborator.table";
+import {
+  externalDependencyTable,
+  repositoryRelationshipTable,
+} from "./repositoryRelationship.table";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -63,6 +67,14 @@ export const repositoryRelations = relations(
       references: [organizationTable.id],
     }),
     collaborators: many(repositoryCollaboratorTable),
+    // polyrepo graph relationships
+    outgoingRelationships: many(repositoryRelationshipTable, {
+      relationName: "outgoingRelationships",
+    }),
+    incomingRelationships: many(repositoryRelationshipTable, {
+      relationName: "incomingRelationships",
+    }),
+    externalDependencies: many(externalDependencyTable),
   }),
 );
 
