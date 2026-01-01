@@ -8,11 +8,13 @@ import {
   OrganizationMemberPlugin,
   OrganizationPlugin,
   PrimaryKeyMutationsOnlyPlugin,
+  PullRequestPlugin,
   RepositoryCollaboratorPlugin,
   RepositoryPlugin,
   SmartTagPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
+import { GitMutationsPlugin, GitTypesPlugin } from "lib/graphql/plugins/git";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
 /**
@@ -29,10 +31,14 @@ const graphilePreset: GraphileConfig.Preset = {
     OrganizationPlugin,
     OrganizationMemberPlugin,
     PrimaryKeyMutationsOnlyPlugin,
+    PullRequestPlugin,
     RepositoryPlugin,
     RepositoryCollaboratorPlugin,
     SmartTagPlugin,
     UserPlugin,
+    // Git GraphQL types and mutations
+    GitTypesPlugin,
+    GitMutationsPlugin,
   ],
   disablePlugins: ["PgIndexBehaviorsPlugin"],
   schema: {
