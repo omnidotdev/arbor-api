@@ -5,8 +5,8 @@ import { makeSchema } from "postgraphile";
 import { context, lambda, object, sideEffect } from "postgraphile/grafast";
 import { replaceInFile } from "replace-in-file";
 
-import { organizationTable, repositoryTable, userTable } from "lib/db/schema";
 import graphilePreset from "lib/config/graphile.config";
+import { organizationTable, repositoryTable, userTable } from "lib/db/schema";
 import { gitService, repositoryService } from "lib/git";
 import {
   BASIC_TIER_MAX_ADMINS,

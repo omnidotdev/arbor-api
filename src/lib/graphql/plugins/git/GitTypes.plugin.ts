@@ -2,7 +2,6 @@ import { EXPORTABLE } from "graphile-export";
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
-import { organizationTable, userTable } from "lib/db/schema";
 import { gitService, repositoryService } from "lib/git";
 
 import type { FieldArgs } from "postgraphile/grafast";
