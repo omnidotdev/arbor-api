@@ -24,6 +24,8 @@ export const {
   IDP_WEBHOOK_SECRET,
   // Self-hosted mode
   SELF_HOSTED,
+  // Billing bypass
+  BILLING_BYPASS_SLUGS,
 } = process.env;
 
 export const isDevEnv = NODE_ENV === "development",
