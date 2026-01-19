@@ -1,5 +1,7 @@
+// Membership (organizationMember) is now managed by Gatekeeper IDP.
+// Users and roles are resolved from JWT claims at runtime.
+
 export * from "./organization.table";
-export * from "./organizationMember.table";
 export * from "./pullRequest.table";
 export * from "./repository.table";
 export * from "./repositoryCollaborator.table";

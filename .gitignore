@@ -1,6 +1,8 @@
 build/
 node_modules/
 
+data/
+
 # TLS
 *.pem
 

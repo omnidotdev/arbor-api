@@ -5,15 +5,15 @@ import app from "lib/config/app.config";
 import { STRIPE_WEBHOOK_SECRET } from "lib/config/env.config";
 import { dbPool as db } from "lib/db/db";
 import { organizationTable } from "lib/db/schema";
+import entitlementsWebhook from "lib/entitlements/webhooks";
 import payments from "lib/payments";
 
 import type { SelectOrganization } from "lib/db/schema";
 
 /**
- * Webhooks Elysia instance (effectively used as a plugin).
- * @see https://hookdeck.com/webhooks/guides/what-are-webhooks-how-they-work
+ * Stripe webhook handler.
  */
-const webhooks = new Elysia({ prefix: "/webhooks" }).post(
+const stripeWebhook = new Elysia().post(
   "/stripe",
   async ({ request, headers, status }) => {
     const productName = app.name.toLowerCase();
@@ -127,5 +127,13 @@ const webhooks = new Elysia({ prefix: "/webhooks" }).post(
     }),
   },
 );
+
+/**
+ * Webhooks Elysia instance (effectively used as a plugin).
+ * @see https://hookdeck.com/webhooks/guides/what-are-webhooks-how-they-work
+ */
+const webhooks = new Elysia({ prefix: "/webhooks" })
+  .use(stripeWebhook)
+  .use(entitlementsWebhook);
 
 export default webhooks;

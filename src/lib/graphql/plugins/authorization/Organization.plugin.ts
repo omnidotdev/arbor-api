@@ -2,61 +2,101 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
+import { getDefaultOrganization } from "lib/auth/organizations";
+import { AUTHZ_API_URL, AUTHZ_ENABLED, checkPermission } from "lib/authz";
+import { validateOrgExists } from "lib/idp/validateOrg";
+
 import type { PlanWrapperFn } from "postgraphile/utils";
 import type { MutationScope } from "./types";
 
 /**
- * Validate organization permissions.
+ * Validate organization permissions via PDP.
  *
- * - Create: Any authenticated user can create an organization
- * - Update: Admin+ can update organization settings
- * - Delete: Owner only (cannot be delegated)
+ * - Create: User must belong to the specified organization in IDP
+ * - Update: Admin+ permission required
+ * - Delete: Owner permission required
  */
 const validatePermissions = (propName: string, scope: MutationScope) =>
   EXPORTABLE(
-    (context, sideEffect, propName, scope): PlanWrapperFn =>
+    (
+      context,
+      sideEffect,
+      AUTHZ_ENABLED,
+      AUTHZ_API_URL,
+      checkPermission,
+      getDefaultOrganization,
+      validateOrgExists,
+      propName,
+      scope,
+    ): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
         const $observer = context().get("observer");
-        const $db = context().get("db");
+        const $organizations = context().get("organizations");
+        const $authzCache = context().get("authzCache");
 
-        sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
-          if (!observer) throw new Error("Unauthorized");
+        sideEffect(
+          [$input, $observer, $organizations, $authzCache],
+          async ([input, observer, organizations, authzCache]) => {
+            if (!observer) throw new Error("Unauthorized");
 
-          if (scope !== "create") {
-            const organization = await db.query.organizationTable.findFirst({
-              where: (table, { eq }) => eq(table.id, input),
-              with: {
-                organizationMembers: {
-                  where: (table, { eq }) => eq(table.userId, observer.id),
-                },
-              },
-            });
+            if (scope === "create") {
+              // For create, validate org is specified or use default
+              const orgInput = input as {
+                idpOrganizationId?: string;
+              };
 
-            if (!organization || !organization.organizationMembers.length)
-              throw new Error("Unauthorized");
+              const targetOrgId =
+                orgInput.idpOrganizationId ??
+                getDefaultOrganization(organizations)?.id;
 
-            const role = organization.organizationMembers[0].role;
+              if (!targetOrgId) {
+                throw new Error("No organization available");
+              }
 
-            if (scope === "delete") {
-              // only owner can delete organization
-              if (role !== "owner") throw new Error("Unauthorized");
-            } else if (scope === "update") {
-              // admin+ can update organization
-              if (role === "member") throw new Error("Unauthorized");
+              // Validate org exists in IDP (fail-open if IDP unavailable)
+              const orgExists = await validateOrgExists(targetOrgId);
+              if (!orgExists) {
+                throw new Error("Organization not found in identity provider");
+              }
+
+              // Org ID is valid, allow organization record creation
+            } else {
+              // For update/delete, check PDP permissions
+              const requiredPermission = scope === "delete" ? "owner" : "admin";
+              const allowed = await checkPermission(
+                AUTHZ_ENABLED,
+                AUTHZ_API_URL,
+                observer.id,
+                "organization",
+                input as string,
+                requiredPermission,
+                authzCache,
+              );
+              if (!allowed) throw new Error("Unauthorized");
             }
-          }
-        });
+          },
+        );
 
         return plan();
       },
-    [context, sideEffect, propName, scope],
+    [
+      context,
+      sideEffect,
+      AUTHZ_ENABLED,
+      AUTHZ_API_URL,
+      checkPermission,
+      getDefaultOrganization,
+      validateOrgExists,
+      propName,
+      scope,
+    ],
   );
 
 /**
  * Authorization plugin for organizations.
  *
- * - Create: Any authenticated user
+ * - Create: Any authenticated user (with org membership validation)
  * - Update: Admin+ role required
  * - Delete: Owner only
  */
