@@ -43,6 +43,13 @@
       "when": 1767291372072,
       "tag": "0005_jazzy_archangel",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1768860766294,
+      "tag": "0006_noisy_skrulls",
+      "breakpoints": true
     }
   ]
 }
