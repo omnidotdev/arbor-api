@@ -5,7 +5,6 @@ import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
 import { PostGraphileConnectionFilterPreset } from "postgraphile-plugin-connection-filter";
 
 import {
-  OrganizationMemberPlugin,
   OrganizationPlugin,
   PrimaryKeyMutationsOnlyPlugin,
   PullRequestPlugin,
@@ -33,7 +32,6 @@ const graphilePreset: GraphileConfig.Preset = {
   ],
   plugins: [
     OrganizationPlugin,
-    OrganizationMemberPlugin,
     PrimaryKeyMutationsOnlyPlugin,
     PullRequestPlugin,
     RepositoryPlugin,
