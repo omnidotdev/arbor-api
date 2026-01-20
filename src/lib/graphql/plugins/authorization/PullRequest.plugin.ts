@@ -14,15 +14,15 @@ import type { MutationScope } from "./types";
  * Check if user has read access to a repository.
  */
 const hasReadAccess = async (
-  db: any,
+  db: typeof import("lib/db/db").dbPool,
   repositoryId: string,
   userId: string,
 ): Promise<boolean> => {
   const repository = await db.query.repositoryTable.findFirst({
-    where: (table: any, { eq }: any) => eq(table.id, repositoryId),
+    where: (table, { eq }) => eq(table.id, repositoryId),
     with: {
       collaborators: {
-        where: (table: any, { eq }: any) => eq(table.userId, userId),
+        where: (table, { eq }) => eq(table.userId, userId),
       },
     },
   });
@@ -43,15 +43,15 @@ const hasReadAccess = async (
  * Check if user has write access to a repository.
  */
 const hasWriteAccess = async (
-  db: any,
+  db: typeof import("lib/db/db").dbPool,
   repositoryId: string,
   userId: string,
 ): Promise<boolean> => {
   const repository = await db.query.repositoryTable.findFirst({
-    where: (table: any, { eq }: any) => eq(table.id, repositoryId),
+    where: (table, { eq }) => eq(table.id, repositoryId),
     with: {
       collaborators: {
-        where: (table: any, { eq }: any) => eq(table.userId, userId),
+        where: (table, { eq }) => eq(table.userId, userId),
       },
     },
   });
@@ -100,13 +100,12 @@ const validatePullRequestPermissions = (
           } else {
             // Update or delete - get the PR first
             const pullRequest = await db.query.pullRequestTable.findFirst({
-              where: (table: any, { eq }: any) => eq(table.id, input),
+              where: (table, { eq }) => eq(table.id, input),
               with: {
                 repository: {
                   with: {
                     collaborators: {
-                      where: (table: any, { eq }: any) =>
-                        eq(table.userId, observer.id),
+                      where: (table, { eq }) => eq(table.userId, observer.id),
                     },
                   },
                 },
@@ -159,7 +158,7 @@ const validateReviewPermissions = (propName: string, scope: MutationScope) =>
               .pullRequestId;
 
             const pullRequest = await db.query.pullRequestTable.findFirst({
-              where: (table: any, { eq }: any) => eq(table.id, pullRequestId),
+              where: (table, { eq }) => eq(table.id, pullRequestId),
             });
 
             if (!pullRequest) throw new Error("Unauthorized");
@@ -172,7 +171,7 @@ const validateReviewPermissions = (propName: string, scope: MutationScope) =>
             if (!canRead) throw new Error("Unauthorized");
           } else {
             const review = await db.query.pullRequestReviewTable.findFirst({
-              where: (table: any, { eq }: any) => eq(table.id, input),
+              where: (table, { eq }) => eq(table.id, input),
               with: {
                 pullRequest: true,
               },
@@ -219,7 +218,7 @@ const validateCommentPermissions = (propName: string, scope: MutationScope) =>
               .pullRequestId;
 
             const pullRequest = await db.query.pullRequestTable.findFirst({
-              where: (table: any, { eq }: any) => eq(table.id, pullRequestId),
+              where: (table, { eq }) => eq(table.id, pullRequestId),
             });
 
             if (!pullRequest) throw new Error("Unauthorized");
@@ -232,7 +231,7 @@ const validateCommentPermissions = (propName: string, scope: MutationScope) =>
             if (!canRead) throw new Error("Unauthorized");
           } else {
             const comment = await db.query.pullRequestCommentTable.findFirst({
-              where: (table: any, { eq }: any) => eq(table.id, input),
+              where: (table, { eq }) => eq(table.id, input),
               with: {
                 pullRequest: true,
               },

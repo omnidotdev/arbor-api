@@ -10,15 +10,15 @@ import type { MutationScope } from "./types";
  * Check if user has write access to a repository.
  */
 const hasWriteAccess = async (
-  db: any,
+  db: typeof import("lib/db/db").dbPool,
   repositoryId: string,
   userId: string,
 ): Promise<boolean> => {
   const repository = await db.query.repositoryTable.findFirst({
-    where: (table: any, { eq }: any) => eq(table.id, repositoryId),
+    where: (table, { eq }) => eq(table.id, repositoryId),
     with: {
       collaborators: {
-        where: (table: any, { eq }: any) => eq(table.userId, userId),
+        where: (table, { eq }) => eq(table.userId, userId),
       },
     },
   });
@@ -68,7 +68,7 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
             // Update or delete - fetch the relationship first
             const relationship =
               await db.query.repositoryRelationshipTable.findFirst({
-                where: (table: any, { eq }: any) => eq(table.id, input),
+                where: (table, { eq }) => eq(table.id, input),
               });
 
             if (!relationship) throw new Error("Unauthorized");
@@ -136,7 +136,9 @@ const validateTypePermissions = (propName: string, scope: MutationScope) =>
               if (!organization) throw new Error("Organization not found");
 
               // Check admin+ role via IDP claims
-              if (!hasOrgAdminRole(organizations, organization.idpOrganizationId))
+              if (
+                !hasOrgAdminRole(organizations, organization.idpOrganizationId)
+              )
                 throw new Error("Unauthorized");
             } else {
               // Update or delete
@@ -159,7 +161,9 @@ const validateTypePermissions = (propName: string, scope: MutationScope) =>
               if (!organization) throw new Error("Organization not found");
 
               // Check admin+ role via IDP claims
-              if (!hasOrgAdminRole(organizations, organization.idpOrganizationId))
+              if (
+                !hasOrgAdminRole(organizations, organization.idpOrganizationId)
+              )
                 throw new Error("Unauthorized");
             }
           },
@@ -205,7 +209,7 @@ const validateExternalDependencyPermissions = (
           } else {
             // Update or delete
             const dep = await db.query.externalDependencyTable.findFirst({
-              where: (table: any, { eq }: any) => eq(table.id, input),
+              where: (table, { eq }) => eq(table.id, input),
             });
 
             if (!dep) throw new Error("Unauthorized");
