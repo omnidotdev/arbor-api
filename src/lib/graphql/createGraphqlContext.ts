@@ -12,12 +12,25 @@ import type {
 
 const withPgClient = createWithPgClient({ pool: pgPool });
 
+/** Organization claim structure from IDP JWT claims */
+export interface OrganizationClaim {
+  id: string;
+  slug: string;
+  type: "personal" | "team";
+  roles: string[];
+  teams: Array<{ id: string; name: string }>;
+}
+
 // Merge declarations for `observer` and `db` which are used within plan resolvers. See: https://grafast.org/grafast/step-library/standard-steps/context#typescript
 declare global {
   namespace Grafast {
     interface Context {
       observer: SelectUser | null;
       db: typeof dbPool;
+      /** Organization claims from IDP JWT, resolved by authentication plugin */
+      organizations: OrganizationClaim[];
+      /** Request-scoped authz permission cache to avoid duplicate PDP calls */
+      authzCache: Map<string, boolean>;
     }
   }
 }
@@ -35,6 +48,10 @@ export interface GraphQLContext {
   pgSettings: Record<string, string | undefined> | null;
   /** Postgres subscription client for the current request, injected by Postgraphile. */
   pgSubscriber: PgSubscriber | null;
+  /** Organization claims from IDP JWT, resolved by authentication plugin */
+  organizations: OrganizationClaim[];
+  /** Request-scoped authz permission cache to avoid duplicate PDP calls */
+  authzCache: Map<string, boolean>;
 }
 
 /**
@@ -44,11 +61,15 @@ export interface GraphQLContext {
 const createGraphqlContext = async ({
   request,
 }: Omit<YogaInitialContext, "waitUntil">): Promise<
-  Omit<GraphQLContext, "observer" | "pgSettings" | "pgSubscriber">
+  Omit<
+    GraphQLContext,
+    "observer" | "organizations" | "pgSettings" | "pgSubscriber"
+  >
 > => ({
   request,
   db: dbPool,
   withPgClient,
+  authzCache: new Map(),
 });
 
 export default createGraphqlContext;

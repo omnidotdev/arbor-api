@@ -88,69 +88,86 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
   );
 
 /**
+ * Check if user has admin+ role in organization via IDP claims.
+ */
+const hasOrgAdminRole = (
+  organizations: Array<{ id: string; roles: string[] }>,
+  idpOrganizationId: string,
+): boolean => {
+  const org = organizations.find((o) => o.id === idpOrganizationId);
+  if (!org) return false;
+  return org.roles.includes("admin") || org.roles.includes("owner");
+};
+
+/**
  * Validate repository relationship type permissions.
  *
  * - Create: Any authenticated user can create org-specific types (if admin+ in org)
  * - Update: Admin+ in organization
  * - Delete: Admin+ in organization
+ *
+ * Note: Organization membership and roles are resolved from IDP JWT claims.
  */
 const validateTypePermissions = (propName: string, scope: MutationScope) =>
   EXPORTABLE(
-    (context, sideEffect, propName, scope): PlanWrapperFn =>
+    (context, sideEffect, propName, scope, hasOrgAdminRole): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
         const $observer = context().get("observer");
+        const $organizations = context().get("organizations");
         const $db = context().get("db");
 
-        sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
-          if (!observer) throw new Error("Unauthorized");
+        sideEffect(
+          [$input, $observer, $organizations, $db],
+          async ([input, observer, organizations, db]) => {
+            if (!observer) throw new Error("Unauthorized");
 
-          if (scope === "create") {
-            const { organizationId } = input as { organizationId?: string };
+            if (scope === "create") {
+              const { organizationId } = input as { organizationId?: string };
 
-            // System-wide types can only be created by system (blocked)
-            if (!organizationId) throw new Error("Unauthorized");
+              // System-wide types can only be created by system (blocked)
+              if (!organizationId) throw new Error("Unauthorized");
 
-            const orgMember = await db.query.organizationMemberTable.findFirst({
-              where: (table: any, { and, eq }: any) =>
-                and(
-                  eq(table.organizationId, organizationId),
-                  eq(table.userId, observer.id),
-                ),
-            });
-
-            if (!orgMember) throw new Error("Unauthorized");
-            if (orgMember.role !== "admin" && orgMember.role !== "owner")
-              throw new Error("Unauthorized");
-          } else {
-            // Update or delete
-            const relType =
-              await db.query.repositoryRelationshipTypeTable.findFirst({
-                where: (table: any, { eq }: any) => eq(table.id, input),
+              // Fetch organization to get idpOrganizationId
+              const organization = await db.query.organizationTable.findFirst({
+                where: (table, { eq }) => eq(table.id, organizationId),
               });
 
-            if (!relType) throw new Error("Unauthorized");
+              if (!organization) throw new Error("Organization not found");
 
-            // System-wide types cannot be modified
-            if (!relType.organizationId) throw new Error("Unauthorized");
+              // Check admin+ role via IDP claims
+              if (!hasOrgAdminRole(organizations, organization.idpOrganizationId))
+                throw new Error("Unauthorized");
+            } else {
+              // Update or delete
+              const relType =
+                await db.query.repositoryRelationshipTypeTable.findFirst({
+                  where: (table, { eq }) => eq(table.id, input as string),
+                });
 
-            const orgMember = await db.query.organizationMemberTable.findFirst({
-              where: (table: any, { and, eq }: any) =>
-                and(
-                  eq(table.organizationId, relType.organizationId),
-                  eq(table.userId, observer.id),
-                ),
-            });
+              if (!relType) throw new Error("Unauthorized");
 
-            if (!orgMember) throw new Error("Unauthorized");
-            if (orgMember.role !== "admin" && orgMember.role !== "owner")
-              throw new Error("Unauthorized");
-          }
-        });
+              // System-wide types cannot be modified
+              const relTypeOrgId = relType.organizationId;
+              if (!relTypeOrgId) throw new Error("Unauthorized");
+
+              // Fetch organization to get idpOrganizationId
+              const organization = await db.query.organizationTable.findFirst({
+                where: (table, { eq }) => eq(table.id, relTypeOrgId),
+              });
+
+              if (!organization) throw new Error("Organization not found");
+
+              // Check admin+ role via IDP claims
+              if (!hasOrgAdminRole(organizations, organization.idpOrganizationId))
+                throw new Error("Unauthorized");
+            }
+          },
+        );
 
         return plan();
       },
-    [context, sideEffect, propName, scope],
+    [context, sideEffect, propName, scope, hasOrgAdminRole],
   );
 
 /**

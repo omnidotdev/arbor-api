@@ -3,8 +3,6 @@ import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
 import { getDefaultOrganization } from "lib/auth/organizations";
-import { AUTHZ_API_URL, AUTHZ_ENABLED, checkPermission } from "lib/authz";
-import { validateOrgExists } from "lib/idp/validateOrg";
 
 import type { PlanWrapperFn } from "postgraphile/utils";
 import type { MutationScope } from "./types";
@@ -15,17 +13,16 @@ import type { MutationScope } from "./types";
  * - Create: User must belong to the specified organization in IDP
  * - Update: Admin+ permission required
  * - Delete: Owner permission required
+ *
+ * NOTE: Functions that use native globals (fetch, AbortSignal) are imported
+ * dynamically inside sideEffect to avoid graphile-export serialization issues.
  */
 const validatePermissions = (propName: string, scope: MutationScope) =>
   EXPORTABLE(
     (
       context,
       sideEffect,
-      AUTHZ_ENABLED,
-      AUTHZ_API_URL,
-      checkPermission,
       getDefaultOrganization,
-      validateOrgExists,
       propName,
       scope,
     ): PlanWrapperFn =>
@@ -55,6 +52,8 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
               }
 
               // Validate org exists in IDP (fail-open if IDP unavailable)
+              // Dynamic import to avoid graphile-export serialization issues
+              const { validateOrgExists } = await import("lib/idp/validateOrg");
               const orgExists = await validateOrgExists(targetOrgId);
               if (!orgExists) {
                 throw new Error("Organization not found in identity provider");
@@ -62,7 +61,10 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
 
               // Org ID is valid, allow organization record creation
             } else {
-              // For update/delete, check PDP permissions
+              // For update/delete, check PDP permissions via dynamic import
+              // (checkPermission uses native globals that can't be serialized by graphile-export)
+              const { checkPermission, AUTHZ_ENABLED, AUTHZ_API_URL } =
+                await import("lib/authz");
               const requiredPermission = scope === "delete" ? "owner" : "admin";
               const allowed = await checkPermission(
                 AUTHZ_ENABLED,
@@ -80,17 +82,7 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
 
         return plan();
       },
-    [
-      context,
-      sideEffect,
-      AUTHZ_ENABLED,
-      AUTHZ_API_URL,
-      checkPermission,
-      getDefaultOrganization,
-      validateOrgExists,
-      propName,
-      scope,
-    ],
+    [context, sideEffect, getDefaultOrganization, propName, scope],
   );
 
 /**

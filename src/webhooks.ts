@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
 import app from "lib/config/app.config";
@@ -8,10 +8,12 @@ import { organizationTable } from "lib/db/schema";
 import entitlementsWebhook from "lib/entitlements/webhooks";
 import payments from "lib/payments";
 
-import type { SelectOrganization } from "lib/db/schema";
-
 /**
  * Stripe webhook handler.
+ *
+ * Note: Tier/entitlements are now managed by Aether. This webhook only caches
+ * the subscription ID for reference. Actual tier limits are enforced via
+ * Aether's entitlements service.
  */
 const stripeWebhook = new Elysia().post(
   "/stripe",
@@ -38,54 +40,14 @@ const stripeWebhook = new Elysia().post(
             event.data.object.id,
           );
 
-          const tier = subscription.items.data[0].price.metadata
-            .tier as SelectOrganization["tier"];
-
           const organizationId = subscription.metadata.organizationId;
 
+          // Cache subscription ID for reference (tier managed by Aether)
           if (subscription.status === "active")
             await db
               .update(organizationTable)
-              .set({ tier, stripeSubscriptionId: subscription.id })
+              .set({ subscriptionId: subscription.id })
               .where(eq(organizationTable.id, organizationId));
-
-          break;
-        }
-        case "customer.subscription.updated": {
-          if (event.data.object.metadata.omniProduct !== productName) break;
-
-          const subscription = await payments.subscriptions.retrieve(
-            event.data.object.id,
-          );
-
-          const organizationId = subscription.metadata.organizationId;
-
-          if (subscription.status === "active") {
-            const tier = subscription.items.data[0].price.metadata
-              .tier as SelectOrganization["tier"];
-
-            await db
-              .update(organizationTable)
-              .set({ tier })
-              .where(
-                and(
-                  eq(organizationTable.id, organizationId),
-                  eq(organizationTable.stripeSubscriptionId, subscription.id),
-                ),
-              );
-          }
-
-          // NB: If the status of the subscription is deemed `unpaid`, we eagerly set the tier to `free` but keep the current subscription ID attached to the organization.
-          if (subscription.status === "unpaid")
-            await db
-              .update(organizationTable)
-              .set({ tier: "free" })
-              .where(
-                and(
-                  eq(organizationTable.id, organizationId),
-                  eq(organizationTable.stripeSubscriptionId, subscription.id),
-                ),
-              );
 
           break;
         }
@@ -98,20 +60,17 @@ const stripeWebhook = new Elysia().post(
 
           const organizationId = subscription.metadata.organizationId;
 
+          // Clear cached subscription ID (tier managed by Aether)
           if (subscription.status === "canceled")
             await db
               .update(organizationTable)
-              .set({ tier: "free", stripeSubscriptionId: null })
-              .where(
-                and(
-                  eq(organizationTable.id, organizationId),
-                  eq(organizationTable.stripeSubscriptionId, subscription.id),
-                ),
-              );
+              .set({ subscriptionId: null })
+              .where(eq(organizationTable.id, organizationId));
 
           break;
         }
         default:
+          // Other subscription events (updated, etc.) are handled by Aether
           break;
       }
 

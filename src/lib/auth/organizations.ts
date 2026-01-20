@@ -1,13 +1,4 @@
-/**
- * Organization claim structure matching the IDP's JWT claims.
- */
-interface OrganizationClaim {
-  id: string;
-  slug: string;
-  type: "personal" | "team";
-  roles: string[];
-  teams: Array<{ id: string; name: string }>;
-}
+import type { OrganizationClaim } from "lib/graphql/createGraphqlContext";
 
 /**
  * Get the default organization for a user.

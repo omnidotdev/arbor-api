@@ -2,32 +2,21 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
-import {
-  BASIC_TIER_MAX_COLLABORATORS,
-  FREE_TIER_MAX_COLLABORATORS,
-  billingBypassSlugs,
-} from "./constants";
-
 import type { InsertRepositoryCollaborator } from "lib/db/schema";
 import type { PlanWrapperFn } from "postgraphile/utils";
 
 /**
  * Validate repository collaborator permissions for create and update.
  *
- * - Create: Owner or admin collaborator can add collaborators (with tier limits)
+ * - Create: Owner or admin collaborator can add collaborators
  * - Update: Owner or admin collaborator can change permissions
+ *
+ * Note: Tier limits (max collaborators) are enforced by Aether entitlements
+ * service and should be checked via a separate entitlements API call.
  */
 const validatePermissions = (propName: string, scope: "create" | "update") =>
   EXPORTABLE(
-    (
-      context,
-      sideEffect,
-      propName,
-      scope,
-      FREE_TIER_MAX_COLLABORATORS,
-      BASIC_TIER_MAX_COLLABORATORS,
-      billingBypassSlugs,
-    ): PlanWrapperFn =>
+    (context, sideEffect, propName, scope): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
         const $observer = context().get("observer");
@@ -43,7 +32,6 @@ const validatePermissions = (propName: string, scope: "create" | "update") =>
             where: (table, { eq }) => eq(table.id, repositoryId),
             with: {
               collaborators: true,
-              organization: true,
             },
           });
 
@@ -59,30 +47,8 @@ const validatePermissions = (propName: string, scope: "create" | "update") =>
           // Must be owner or admin collaborator
           if (!isOwner && !isAdminCollaborator) throw new Error("Unauthorized");
 
-          if (scope === "create") {
-            // Check tier limits for org repos
-            if (repository.organization) {
-              const org = repository.organization;
-
-              if (!billingBypassSlugs.includes(org.slug)) {
-                if (org.tier === "free") {
-                  if (
-                    repository.collaborators.length >=
-                    FREE_TIER_MAX_COLLABORATORS
-                  )
-                    throw new Error("Maximum number of collaborators reached");
-                }
-
-                if (org.tier === "basic") {
-                  if (
-                    repository.collaborators.length >=
-                    BASIC_TIER_MAX_COLLABORATORS
-                  )
-                    throw new Error("Maximum number of collaborators reached");
-                }
-              }
-            }
-          }
+          // Note: Tier limits (max collaborators) are enforced by Aether entitlements
+          // service - TODO: integrate with Aether entitlements API
 
           if (scope === "update") {
             const targetUserId = (input as InsertRepositoryCollaborator).userId;
@@ -96,15 +62,7 @@ const validatePermissions = (propName: string, scope: "create" | "update") =>
 
         return plan();
       },
-    [
-      context,
-      sideEffect,
-      propName,
-      scope,
-      FREE_TIER_MAX_COLLABORATORS,
-      BASIC_TIER_MAX_COLLABORATORS,
-      billingBypassSlugs,
-    ],
+    [context, sideEffect, propName, scope],
   );
 
 /**

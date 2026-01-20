@@ -1,8 +1,20 @@
 /**
  * Authorization module for Gaia.
  *
- * Provides EXPORTABLE-compatible functions for PostGraphile plugins
- * to check permissions via PDP (Warden).
+ * Provides functions for PostGraphile plugins to check permissions via PDP (Warden).
+ *
+ * IMPORTANT: This module is designed to be used via dynamic import inside
+ * EXPORTABLE sideEffect callbacks. Do NOT import and pass functions directly
+ * to EXPORTABLE as they reference native globals (fetch, AbortSignal) which
+ * graphile-export cannot serialize.
+ *
+ * Usage in plugins:
+ * ```ts
+ * sideEffect([$input], async ([input]) => {
+ *   const { checkPermission } = await import("lib/authz");
+ *   const allowed = await checkPermission(...);
+ * });
+ * ```
  */
 
 // Re-export for EXPORTABLE compatibility in plugins
@@ -100,7 +112,6 @@ const circuitBreaker = new CircuitBreaker();
 
 /**
  * Check if a user has permission on a resource.
- * Exported for graphile-export EXPORTABLE compatibility.
  *
  * Uses two-layer caching:
  * 1. Request-scoped cache (passed as parameter) - avoids duplicate calls within same request
@@ -109,6 +120,9 @@ const circuitBreaker = new CircuitBreaker();
  * Returns true if authorized, false otherwise.
  * Returns true (permissive) when authz is disabled.
  * Throws error (fail-closed) when PDP is unavailable.
+ *
+ * NOTE: Import this function dynamically inside sideEffect callbacks to avoid
+ * graphile-export serialization issues with native globals.
  */
 export async function checkPermission(
   authzEnabled: string | undefined,

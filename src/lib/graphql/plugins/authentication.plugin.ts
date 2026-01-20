@@ -1,3 +1,4 @@
+import { useExtendContext } from "@envelop/core";
 import { useGenericAuth } from "@envelop/generic-auth";
 import { QueryClient } from "@tanstack/query-core";
 import { createRemoteJWKSet, jwtVerify } from "jose";
@@ -11,10 +12,21 @@ import type { JWTPayload } from "jose";
 import type { InsertUser, SelectUser } from "lib/db/schema";
 import type { GraphQLContext } from "lib/graphql/createGraphqlContext";
 
+/** Organization claim structure from IDP JWT claims */
+interface OrganizationClaim {
+  id: string;
+  slug: string;
+  type: "personal" | "team";
+  roles: string[];
+  teams: Array<{ id: string; name: string }>;
+}
+
 interface UserInfoClaims extends JWTPayload {
   sub: string;
   preferred_username?: string;
   email?: string;
+  /** Organization memberships from Gatekeeper IDP */
+  organizations?: OrganizationClaim[];
 }
 
 class AuthenticationError extends Error {
@@ -26,6 +38,12 @@ class AuthenticationError extends Error {
     this.code = code;
   }
 }
+
+/**
+ * Request-scoped cache for organization claims.
+ * Used to pass organizations from resolveUser to context extension.
+ */
+const requestOrganizationsCache = new WeakMap<Request, OrganizationClaim[]>();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,18 +57,32 @@ const queryClient = new QueryClient({
 /**
  * Remote JWKS for verifying JWT signatures from Gatekeeper.
  * jose's createRemoteJWKSet handles caching and key rotation automatically.
+ * Lazily initialized to avoid errors during build scripts when AUTH_BASE_URL is not set.
  * @see https://www.better-auth.com/docs/plugins/jwt
  */
-const JWKS = createRemoteJWKSet(
-  new URL(`${AUTH_BASE_URL}/.well-known/jwks.json`),
-);
+let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getJWKS() {
+  if (!JWKS) {
+    if (!AUTH_BASE_URL) {
+      throw new AuthenticationError(
+        "AUTH_BASE_URL is not configured",
+        "AUTH_CONFIG_MISSING",
+      );
+    }
+    JWKS = createRemoteJWKSet(
+      new URL(`${AUTH_BASE_URL}/.well-known/jwks.json`),
+    );
+  }
+  return JWKS;
+}
 
 /**
  * Verify JWT signature using Gatekeeper's JWKS endpoint.
  * Returns the verified payload or throws an error.
  */
 async function verifyAccessToken(token: string): Promise<UserInfoClaims> {
-  const { payload } = await jwtVerify(token, JWKS, {
+  const { payload } = await jwtVerify(token, getJWKS(), {
     issuer: AUTH_BASE_URL,
   });
 
@@ -153,6 +185,9 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
         "MISSING_EMAIL_CLAIM",
       );
 
+    // Store organizations in request-scoped cache for context extension
+    requestOrganizationsCache.set(ctx.request, claims.organizations ?? []);
+
     const insertedUser: InsertUser = {
       identityProviderId: claims.sub,
       name: claims.preferred_username ?? claims.email,
@@ -187,13 +222,26 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
 };
 
 /**
+ * Context extension plugin to add organizations from IDP claims.
+ * Must be used after useGenericAuth to have access to the request.
+ */
+const organizationsContextPlugin = useExtendContext(
+  ({ request }: { request: Request }) => ({
+    organizations: requestOrganizationsCache.get(request) ?? [],
+  }),
+);
+
+/**
  * Authentication plugin.
  * @see https://the-guild.dev/graphql/envelop/plugins/use-generic-auth
  */
-const authenticationPlugin = useGenericAuth({
-  contextFieldName: "observer",
-  resolveUserFn: resolveUser,
-  mode: protectRoutes ? "protect-all" : "resolve-only",
-});
+const authenticationPlugin = [
+  useGenericAuth({
+    contextFieldName: "observer",
+    resolveUserFn: resolveUser,
+    mode: protectRoutes ? "protect-all" : "resolve-only",
+  }),
+  organizationsContextPlugin,
+];
 
 export default authenticationPlugin;

@@ -8,29 +8,6 @@ const SmartTagPlugin = jsonPgSmartTags({
   version: 1,
   config: {
     class: {
-      organization: {
-        attribute: {
-          tier: {
-            tags: {
-              behavior: "-insert -update +orderBy",
-            },
-          },
-          stripe_subscription_id: {
-            tags: {
-              behavior: "-insert -update",
-            },
-          },
-        },
-      },
-      organization_member: {
-        attribute: {
-          role: {
-            tags: {
-              behavior: "+orderBy",
-            },
-          },
-        },
-      },
       repository: {
         attribute: {
           visibility: {
