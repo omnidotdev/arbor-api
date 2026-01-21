@@ -1308,6 +1308,202 @@ const spec_repositoryRelationship = {
   executor: executor
 };
 const repositoryRelationshipCodec = recordCodec(spec_repositoryRelationship);
+const auditLogIdentifier = sql.identifier("public", "audit_log");
+const auditEventTypeCodec = enumCodec({
+  name: "auditEventType",
+  identifier: sql.identifier("public", "audit_event_type"),
+  values: ["permission_check", "permission_denied", "resource_create", "resource_update", "resource_delete", "authentication", "circuit_breaker"],
+  description: undefined,
+  extensions: {
+    oid: "308547",
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "audit_event_type"
+    },
+    tags: {
+      __proto__: null
+    }
+  }
+});
+const spec_auditLog = {
+  name: "auditLog",
+  identifier: auditLogIdentifier,
+  attributes: {
+    __proto__: null,
+    id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    event_type: {
+      description: undefined,
+      codec: auditEventTypeCodec,
+      notNull: true,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    user_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    idp_user_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    resource_type: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    resource_id: {
+      description: undefined,
+      codec: TYPES.uuid,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    action: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    allowed: {
+      description: undefined,
+      codec: TYPES.boolean,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    duration_ms: {
+      description: undefined,
+      codec: TYPES.int,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    ip_address: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    user_agent: {
+      description: undefined,
+      codec: TYPES.text,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    metadata: {
+      description: undefined,
+      codec: TYPES.jsonb,
+      notNull: false,
+      hasDefault: false,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    },
+    created_at: {
+      description: undefined,
+      codec: TYPES.timestamptz,
+      notNull: true,
+      hasDefault: true,
+      extensions: {
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true
+      }
+    }
+  },
+  description: undefined,
+  extensions: {
+    oid: "308563",
+    isTableLike: true,
+    pg: {
+      serviceName: "main",
+      schemaName: "public",
+      name: "audit_log"
+    },
+    tags: {
+      __proto__: null
+    }
+  },
+  executor: executor
+};
+const auditLogCodec = recordCodec(spec_auditLog);
 const pullRequestStateCodec = enumCodec({
   name: "pullRequestState",
   identifier: sql.identifier("public", "pull_request_state"),
@@ -1928,6 +2124,16 @@ const registryConfig_pgResources_repository_relationship_repository_relationship
     canDelete: true
   }
 };
+const audit_logUniques = [{
+  isPrimary: true,
+  attributes: ["id"],
+  description: undefined,
+  extensions: {
+    tags: {
+      __proto__: null
+    }
+  }
+}];
 const pull_requestUniques = [{
   isPrimary: true,
   attributes: ["id"],
@@ -1992,6 +2198,9 @@ const registryConfig = {
     reviewState: reviewStateCodec,
     repositoryRelationship: repositoryRelationshipCodec,
     float4: TYPES.float4,
+    auditLog: auditLogCodec,
+    auditEventType: auditEventTypeCodec,
+    jsonb: TYPES.jsonb,
     pullRequestState: pullRequestStateCodec,
     pullRequest: pullRequestCodec
   },
@@ -2007,6 +2216,32 @@ const registryConfig = {
     repository: registryConfig_pgResources_repository_repository,
     pull_request_review: registryConfig_pgResources_pull_request_review_pull_request_review,
     repository_relationship: registryConfig_pgResources_repository_relationship_repository_relationship,
+    audit_log: {
+      executor: executor,
+      name: "audit_log",
+      identifier: "main.public.audit_log",
+      from: auditLogIdentifier,
+      codec: auditLogCodec,
+      uniques: audit_logUniques,
+      isVirtual: false,
+      description: undefined,
+      extensions: {
+        description: undefined,
+        pg: {
+          serviceName: "main",
+          schemaName: "public",
+          name: "audit_log"
+        },
+        isInsertable: true,
+        isUpdatable: true,
+        isDeletable: true,
+        tags: {},
+        canSelect: true,
+        canInsert: true,
+        canUpdate: true,
+        canDelete: true
+      }
+    },
     pull_request: registryConfig_pgResources_pull_request_pull_request
   },
   pgRelations: {
@@ -2567,6 +2802,7 @@ const pgResource_organizationPgResource = registry.pgResources["organization"];
 const pgResource_repositoryPgResource = registry.pgResources["repository"];
 const pgResource_pull_request_reviewPgResource = registry.pgResources["pull_request_review"];
 const pgResource_repository_relationshipPgResource = registry.pgResources["repository_relationship"];
+const pgResource_audit_logPgResource = registry.pgResources["audit_log"];
 const pgResource_pull_requestPgResource = registry.pgResources["pull_request"];
 const nodeIdHandlerByTypeName = {
   __proto__: null,
@@ -2820,6 +3056,28 @@ const nodeIdHandlerByTypeName = {
     },
     match(obj) {
       return obj[0] === "RepositoryRelationship";
+    }
+  },
+  AuditLog: {
+    typeName: "AuditLog",
+    codec: nodeIdHandlerByTypeName_RepositoryRelationshipMetadatum_codec_base64JSON,
+    deprecationReason: undefined,
+    plan($record) {
+      return list([constant("AuditLog", false), $record.get("id")]);
+    },
+    getSpec($list) {
+      return {
+        id: inhibitOnNull(access($list, [1]))
+      };
+    },
+    getIdentifiers(value) {
+      return value.slice(1);
+    },
+    get(spec) {
+      return pgResource_audit_logPgResource.get(spec);
+    },
+    match(obj) {
+      return obj[0] === "AuditLog";
     }
   },
   PullRequest: {
@@ -5199,6 +5457,127 @@ const relation14 = registry.pgRelations["user"]["pullRequestsByTheirAuthorId"];
 const relation15 = registry.pgRelations["user"]["pullRequestsByTheirMergedById"];
 const relation16 = registry.pgRelations["organization"]["repositoriesByTheirOrganizationId"];
 const relation17 = registry.pgRelations["organization"]["repositoryRelationshipTypesByTheirOrganizationId"];
+const colSpec97 = {
+  fieldName: "rowId",
+  attributeName: "id",
+  attribute: spec_auditLog.attributes.id
+};
+const colSpec98 = {
+  fieldName: "eventType",
+  attributeName: "event_type",
+  attribute: spec_auditLog.attributes.event_type
+};
+const colSpec99 = {
+  fieldName: "userId",
+  attributeName: "user_id",
+  attribute: spec_auditLog.attributes.user_id
+};
+const colSpec100 = {
+  fieldName: "idpUserId",
+  attributeName: "idp_user_id",
+  attribute: spec_auditLog.attributes.idp_user_id
+};
+const colSpec101 = {
+  fieldName: "resourceType",
+  attributeName: "resource_type",
+  attribute: spec_auditLog.attributes.resource_type
+};
+const colSpec102 = {
+  fieldName: "resourceId",
+  attributeName: "resource_id",
+  attribute: spec_auditLog.attributes.resource_id
+};
+const colSpec103 = {
+  fieldName: "action",
+  attributeName: "action",
+  attribute: spec_auditLog.attributes.action
+};
+const colSpec104 = {
+  fieldName: "allowed",
+  attributeName: "allowed",
+  attribute: spec_auditLog.attributes.allowed
+};
+const colSpec105 = {
+  fieldName: "durationMs",
+  attributeName: "duration_ms",
+  attribute: spec_auditLog.attributes.duration_ms
+};
+const colSpec106 = {
+  fieldName: "ipAddress",
+  attributeName: "ip_address",
+  attribute: spec_auditLog.attributes.ip_address
+};
+const colSpec107 = {
+  fieldName: "userAgent",
+  attributeName: "user_agent",
+  attribute: spec_auditLog.attributes.user_agent
+};
+const colSpec108 = {
+  fieldName: "createdAt",
+  attributeName: "created_at",
+  attribute: spec_auditLog.attributes.created_at
+};
+function assertAllowed59(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+const resolve160 = (i, _v, input) => sql`${i} ${input ? sql`IS NULL` : sql`IS NOT NULL`}`;
+const resolveInputCodec51 = () => TYPES.boolean;
+const resolveSqlValue24 = () => sql.null;
+const resolve161 = (i, v) => sql`${i} = ${v}`;
+const forceTextTypesSensitive14 = [TYPES.citext, TYPES.char, TYPES.bpchar];
+function resolveDomains14(c) {
+  let current = c;
+  while (current.domainOfCodec) current = current.domainOfCodec;
+  return current;
+}
+function resolveInputCodec52(c) {
+  if (c.arrayOfCodec) {
+    if (forceTextTypesSensitive14.includes(resolveDomains14(c.arrayOfCodec))) return listOfCodec(TYPES.text, {
+      extensions: {
+        listItemNonNull: c.extensions?.listItemNonNull
+      }
+    });
+    return c;
+  } else {
+    if (forceTextTypesSensitive14.includes(resolveDomains14(c))) return TYPES.text;
+    return c;
+  }
+}
+function resolveSqlIdentifier25(identifier, c) {
+  if (c.arrayOfCodec && forceTextTypesSensitive14.includes(resolveDomains14(c.arrayOfCodec))) return [sql`(${identifier})::text[]`, listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: c.extensions?.listItemNonNull
+    }
+  })];else if (forceTextTypesSensitive14.includes(resolveDomains14(c))) return [sql`(${identifier})::text`, TYPES.text];else return [identifier, c];
+}
+const resolve162 = (i, v) => sql`${i} <> ${v}`;
+const resolve163 = (i, v) => sql`${i} IS DISTINCT FROM ${v}`;
+const resolve164 = (i, v) => sql`${i} IS NOT DISTINCT FROM ${v}`;
+const resolve165 = (i, v) => sql`${i} = ANY(${v})`;
+function resolveInputCodec53(c) {
+  if (forceTextTypesSensitive14.includes(resolveDomains14(c))) return listOfCodec(TYPES.text, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });else return listOfCodec(c, {
+    extensions: {
+      listItemNonNull: !0
+    }
+  });
+}
+const resolve166 = (i, v) => sql`${i} <> ALL(${v})`;
+const resolve167 = (i, v) => sql`${i} < ${v}`;
+const resolve168 = (i, v) => sql`${i} <= ${v}`;
+const resolve169 = (i, v) => sql`${i} > ${v}`;
+const resolve170 = (i, v) => sql`${i} >= ${v}`;
 const getPgSelectSingleFromMutationResult = (resource, pkAttributes, $mutation) => {
   const $result = $mutation.getStepForKey("result", !0);
   if (!$result) return null;
@@ -5274,21 +5653,14 @@ const nodeFetcher_RepositoryRelationship = $nodeId => {
   const $decoded = lambda($nodeId, specForHandler(nodeIdHandlerByTypeName.RepositoryRelationship));
   return nodeIdHandlerByTypeName.RepositoryRelationship.get(nodeIdHandlerByTypeName.RepositoryRelationship.getSpec($decoded));
 };
+const nodeFetcher_AuditLog = $nodeId => {
+  const $decoded = lambda($nodeId, specForHandler(nodeIdHandlerByTypeName.AuditLog));
+  return nodeIdHandlerByTypeName.AuditLog.get(nodeIdHandlerByTypeName.AuditLog.getSpec($decoded));
+};
 const nodeFetcher_PullRequest = $nodeId => {
   const $decoded = lambda($nodeId, specForHandler(nodeIdHandlerByTypeName.PullRequest));
   return nodeIdHandlerByTypeName.PullRequest.get(nodeIdHandlerByTypeName.PullRequest.getSpec($decoded));
 };
-function assertAllowed59(value, mode) {
-  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
-  if (mode === "list" && !true) {
-    const arr = value;
-    if (arr) {
-      const l = arr.length;
-      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
-    }
-  }
-  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
-}
 function assertAllowed60(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
@@ -5389,6 +5761,28 @@ function assertAllowed68(value, mode) {
   if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
 }
 function assertAllowed69(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed70(value, mode) {
+  if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+  if (mode === "list" && !true) {
+    const arr = value;
+    if (arr) {
+      const l = arr.length;
+      for (let i = 0; i < l; i++) if (isEmpty(arr[i])) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+    }
+  }
+  if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+}
+function assertAllowed71(value, mode) {
   if (mode === "object" && !true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
   if (mode === "list" && !true) {
     const arr = value;
@@ -5982,6 +6376,10 @@ const specFromArgs_RepositoryRelationship = args => {
   const $nodeId = args.getRaw(["input", "id"]);
   return specFromNodeId(nodeIdHandlerByTypeName.RepositoryRelationship, $nodeId);
 };
+const specFromArgs_AuditLog = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandlerByTypeName.AuditLog, $nodeId);
+};
 const specFromArgs_PullRequest = args => {
   const $nodeId = args.getRaw(["input", "id"]);
   return specFromNodeId(nodeIdHandlerByTypeName.PullRequest, $nodeId);
@@ -6308,6 +6706,10 @@ const planWrapper20 = (plan, _, fieldArgs) => {
 const specFromArgs_RepositoryRelationship2 = args => {
   const $nodeId = args.getRaw(["input", "id"]);
   return specFromNodeId(nodeIdHandlerByTypeName.RepositoryRelationship, $nodeId);
+};
+const specFromArgs_AuditLog2 = args => {
+  const $nodeId = args.getRaw(["input", "id"]);
+  return specFromNodeId(nodeIdHandlerByTypeName.AuditLog, $nodeId);
 };
 const specFromArgs_PullRequest2 = args => {
   const $nodeId = args.getRaw(["input", "id"]);
@@ -11814,6 +12216,41 @@ enum RepositoryRelationshipMetadatumOrderBy {
   CREATED_AT_DESC
 }
 
+type AuditLog implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  eventType: AuditEventType!
+  userId: UUID
+  idpUserId: UUID
+  resourceType: String
+  resourceId: UUID
+  action: String
+  allowed: Boolean
+  durationMs: Int
+  ipAddress: String
+  userAgent: String
+  metadata: JSON
+  createdAt: Datetime!
+}
+
+enum AuditEventType {
+  permission_check
+  permission_denied
+  resource_create
+  resource_update
+  resource_delete
+  authentication
+  circuit_breaker
+}
+
+"""
+Represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 """A connection to a list of \`User\` values."""
 type UserConnection {
   """A list of \`User\` objects."""
@@ -12481,6 +12918,421 @@ enum OrganizationOrderBy {
   REPOSITORY_RELATIONSHIP_TYPES_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
+"""A connection to a list of \`AuditLog\` values."""
+type AuditLogConnection {
+  """A list of \`AuditLog\` objects."""
+  nodes: [AuditLog!]!
+
+  """
+  A list of edges which contains the \`AuditLog\` and cursor to aid in pagination.
+  """
+  edges: [AuditLogEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* \`AuditLog\` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: AuditLogAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping \`AuditLog\` for these aggregates."""
+    groupBy: [AuditLogGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: AuditLogHavingInput
+  ): [AuditLogAggregates!]
+}
+
+"""A \`AuditLog\` edge in the connection."""
+type AuditLogEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The \`AuditLog\` at the end of the edge."""
+  node: AuditLog!
+}
+
+type AuditLogAggregates {
+  keys: [String]
+
+  """
+  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  sum: AuditLogSumAggregates
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: AuditLogDistinctCountAggregates
+
+  """
+  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  min: AuditLogMinAggregates
+
+  """
+  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  max: AuditLogMaxAggregates
+
+  """
+  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  average: AuditLogAverageAggregates
+
+  """
+  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevSample: AuditLogStddevSampleAggregates
+
+  """
+  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevPopulation: AuditLogStddevPopulationAggregates
+
+  """
+  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  varianceSample: AuditLogVarianceSampleAggregates
+
+  """
+  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  variancePopulation: AuditLogVariancePopulationAggregates
+}
+
+type AuditLogSumAggregates {
+  """Sum of durationMs across the matching connection"""
+  durationMs: BigInt!
+}
+
+type AuditLogDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of eventType across the matching connection"""
+  eventType: BigInt
+
+  """Distinct count of userId across the matching connection"""
+  userId: BigInt
+
+  """Distinct count of idpUserId across the matching connection"""
+  idpUserId: BigInt
+
+  """Distinct count of resourceType across the matching connection"""
+  resourceType: BigInt
+
+  """Distinct count of resourceId across the matching connection"""
+  resourceId: BigInt
+
+  """Distinct count of action across the matching connection"""
+  action: BigInt
+
+  """Distinct count of allowed across the matching connection"""
+  allowed: BigInt
+
+  """Distinct count of durationMs across the matching connection"""
+  durationMs: BigInt
+
+  """Distinct count of ipAddress across the matching connection"""
+  ipAddress: BigInt
+
+  """Distinct count of userAgent across the matching connection"""
+  userAgent: BigInt
+
+  """Distinct count of metadata across the matching connection"""
+  metadata: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+type AuditLogMinAggregates {
+  """Minimum of durationMs across the matching connection"""
+  durationMs: Int
+}
+
+type AuditLogMaxAggregates {
+  """Maximum of durationMs across the matching connection"""
+  durationMs: Int
+}
+
+type AuditLogAverageAggregates {
+  """Mean average of durationMs across the matching connection"""
+  durationMs: BigFloat
+}
+
+type AuditLogStddevSampleAggregates {
+  """Sample standard deviation of durationMs across the matching connection"""
+  durationMs: BigFloat
+}
+
+type AuditLogStddevPopulationAggregates {
+  """
+  Population standard deviation of durationMs across the matching connection
+  """
+  durationMs: BigFloat
+}
+
+type AuditLogVarianceSampleAggregates {
+  """Sample variance of durationMs across the matching connection"""
+  durationMs: BigFloat
+}
+
+type AuditLogVariancePopulationAggregates {
+  """Population variance of durationMs across the matching connection"""
+  durationMs: BigFloat
+}
+
+"""Grouping methods for \`AuditLog\` for usage during aggregation."""
+enum AuditLogGroupBy {
+  EVENT_TYPE
+  USER_ID
+  IDP_USER_ID
+  RESOURCE_TYPE
+  RESOURCE_ID
+  ACTION
+  ALLOWED
+  DURATION_MS
+  IP_ADDRESS
+  USER_AGENT
+  METADATA
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for \`AuditLog\` aggregates."""
+input AuditLogHavingInput {
+  AND: [AuditLogHavingInput!]
+  OR: [AuditLogHavingInput!]
+  sum: AuditLogHavingSumInput
+  distinctCount: AuditLogHavingDistinctCountInput
+  min: AuditLogHavingMinInput
+  max: AuditLogHavingMaxInput
+  average: AuditLogHavingAverageInput
+  stddevSample: AuditLogHavingStddevSampleInput
+  stddevPopulation: AuditLogHavingStddevPopulationInput
+  varianceSample: AuditLogHavingVarianceSampleInput
+  variancePopulation: AuditLogHavingVariancePopulationInput
+}
+
+input AuditLogHavingSumInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingDistinctCountInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingMinInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingMaxInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingAverageInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingStddevSampleInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingStddevPopulationInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingVarianceSampleInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input AuditLogHavingVariancePopulationInput {
+  durationMs: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against \`AuditLog\` object types. All fields are tested
+for equality and combined with a logical ‘and.’
+"""
+input AuditLogCondition {
+  """Checks for equality with the object’s \`rowId\` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s \`eventType\` field."""
+  eventType: AuditEventType
+
+  """Checks for equality with the object’s \`userId\` field."""
+  userId: UUID
+
+  """Checks for equality with the object’s \`idpUserId\` field."""
+  idpUserId: UUID
+
+  """Checks for equality with the object’s \`resourceType\` field."""
+  resourceType: String
+
+  """Checks for equality with the object’s \`resourceId\` field."""
+  resourceId: UUID
+
+  """Checks for equality with the object’s \`action\` field."""
+  action: String
+
+  """Checks for equality with the object’s \`allowed\` field."""
+  allowed: Boolean
+
+  """Checks for equality with the object’s \`durationMs\` field."""
+  durationMs: Int
+
+  """Checks for equality with the object’s \`ipAddress\` field."""
+  ipAddress: String
+
+  """Checks for equality with the object’s \`userAgent\` field."""
+  userAgent: String
+
+  """Checks for equality with the object’s \`createdAt\` field."""
+  createdAt: Datetime
+}
+
+"""
+A filter to be used against \`AuditLog\` object types. All fields are combined with a logical ‘and.’
+"""
+input AuditLogFilter {
+  """Filter by the object’s \`rowId\` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s \`eventType\` field."""
+  eventType: AuditEventTypeFilter
+
+  """Filter by the object’s \`userId\` field."""
+  userId: UUIDFilter
+
+  """Filter by the object’s \`idpUserId\` field."""
+  idpUserId: UUIDFilter
+
+  """Filter by the object’s \`resourceType\` field."""
+  resourceType: StringFilter
+
+  """Filter by the object’s \`resourceId\` field."""
+  resourceId: UUIDFilter
+
+  """Filter by the object’s \`action\` field."""
+  action: StringFilter
+
+  """Filter by the object’s \`allowed\` field."""
+  allowed: BooleanFilter
+
+  """Filter by the object’s \`durationMs\` field."""
+  durationMs: IntFilter
+
+  """Filter by the object’s \`ipAddress\` field."""
+  ipAddress: StringFilter
+
+  """Filter by the object’s \`userAgent\` field."""
+  userAgent: StringFilter
+
+  """Filter by the object’s \`createdAt\` field."""
+  createdAt: DatetimeFilter
+
+  """Checks for all expressions in this list."""
+  and: [AuditLogFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [AuditLogFilter!]
+
+  """Negates the expression."""
+  not: AuditLogFilter
+}
+
+"""
+A filter to be used against AuditEventType fields. All fields are combined with a logical ‘and.’
+"""
+input AuditEventTypeFilter {
+  """
+  Is null (if \`true\` is specified) or is not null (if \`false\` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: AuditEventType
+
+  """Not equal to the specified value."""
+  notEqualTo: AuditEventType
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: AuditEventType
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: AuditEventType
+
+  """Included in the specified list."""
+  in: [AuditEventType!]
+
+  """Not included in the specified list."""
+  notIn: [AuditEventType!]
+
+  """Less than the specified value."""
+  lessThan: AuditEventType
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: AuditEventType
+
+  """Greater than the specified value."""
+  greaterThan: AuditEventType
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: AuditEventType
+}
+
+"""Methods to use when ordering \`AuditLog\`."""
+enum AuditLogOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  IDP_USER_ID_ASC
+  IDP_USER_ID_DESC
+  RESOURCE_TYPE_ASC
+  RESOURCE_TYPE_DESC
+  RESOURCE_ID_ASC
+  RESOURCE_ID_DESC
+  ACTION_ASC
+  ACTION_DESC
+  ALLOWED_ASC
+  ALLOWED_DESC
+  DURATION_MS_ASC
+  DURATION_MS_DESC
+  IP_ADDRESS_ASC
+  IP_ADDRESS_DESC
+  USER_AGENT_ASC
+  USER_AGENT_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+}
+
 """The output of our create \`RepositoryRelationshipMetadatum\` mutation."""
 type CreateRepositoryRelationshipMetadatumPayload {
   """
@@ -12954,6 +13806,58 @@ input RepositoryRelationshipInput {
   branch: String
   createdAt: Datetime
   updatedAt: Datetime
+}
+
+"""The output of our create \`AuditLog\` mutation."""
+type CreateAuditLogPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`AuditLog\` that was created by this mutation."""
+  auditLog: AuditLog
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`AuditLog\`. May be used by Relay 1."""
+  auditLogEdge(
+    """The method to use when ordering \`AuditLog\`."""
+    orderBy: [AuditLogOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): AuditLogEdge
+}
+
+"""All input for the create \`AuditLog\` mutation."""
+input CreateAuditLogInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The \`AuditLog\` to be created by this mutation."""
+  auditLog: AuditLogInput!
+}
+
+"""An input for mutations affecting \`AuditLog\`"""
+input AuditLogInput {
+  rowId: UUID
+  eventType: AuditEventType!
+  userId: UUID
+  idpUserId: UUID
+  resourceType: String
+  resourceId: UUID
+  action: String
+  allowed: Boolean
+  durationMs: Int
+  ipAddress: String
+  userAgent: String
+  metadata: JSON
+  createdAt: Datetime
 }
 
 """The output of our create \`PullRequest\` mutation."""
@@ -13726,6 +14630,82 @@ input UpdateRepositoryRelationshipInput {
   patch: RepositoryRelationshipPatch!
 }
 
+"""The output of our update \`AuditLog\` mutation."""
+type UpdateAuditLogPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`AuditLog\` that was updated by this mutation."""
+  auditLog: AuditLog
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`AuditLog\`. May be used by Relay 1."""
+  auditLogEdge(
+    """The method to use when ordering \`AuditLog\`."""
+    orderBy: [AuditLogOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): AuditLogEdge
+}
+
+"""All input for the \`updateAuditLogById\` mutation."""
+input UpdateAuditLogByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`AuditLog\` to be updated.
+  """
+  id: ID!
+
+  """
+  An object where the defined keys will be set on the \`AuditLog\` being updated.
+  """
+  patch: AuditLogPatch!
+}
+
+"""
+Represents an update to a \`AuditLog\`. Fields that are set will be updated.
+"""
+input AuditLogPatch {
+  rowId: UUID
+  eventType: AuditEventType
+  userId: UUID
+  idpUserId: UUID
+  resourceType: String
+  resourceId: UUID
+  action: String
+  allowed: Boolean
+  durationMs: Int
+  ipAddress: String
+  userAgent: String
+  metadata: JSON
+  createdAt: Datetime
+}
+
+"""All input for the \`updateAuditLog\` mutation."""
+input UpdateAuditLogInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the \`AuditLog\` being updated.
+  """
+  patch: AuditLogPatch!
+}
+
 """The output of our update \`PullRequest\` mutation."""
 type UpdatePullRequestPayload {
   """
@@ -14291,6 +15271,54 @@ input DeleteRepositoryRelationshipInput {
   rowId: UUID!
 }
 
+"""The output of our delete \`AuditLog\` mutation."""
+type DeleteAuditLogPayload {
+  """
+  The exact same \`clientMutationId\` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The \`AuditLog\` that was deleted by this mutation."""
+  auditLog: AuditLog
+  deletedAuditLogId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our \`AuditLog\`. May be used by Relay 1."""
+  auditLogEdge(
+    """The method to use when ordering \`AuditLog\`."""
+    orderBy: [AuditLogOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): AuditLogEdge
+}
+
+"""All input for the \`deleteAuditLogById\` mutation."""
+input DeleteAuditLogByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique \`ID\` which will identify a single \`AuditLog\` to be deleted.
+  """
+  id: ID!
+}
+
+"""All input for the \`deleteAuditLog\` mutation."""
+input DeleteAuditLogInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
 """The output of our delete \`PullRequest\` mutation."""
 type DeletePullRequestPayload {
   """
@@ -14586,6 +15614,9 @@ type Query implements Node {
   """Get a single \`RepositoryRelationship\`."""
   repositoryRelationship(rowId: UUID!): RepositoryRelationship
 
+  """Get a single \`AuditLog\`."""
+  auditLog(rowId: UUID!): AuditLog
+
   """Get a single \`PullRequest\`."""
   pullRequest(rowId: UUID!): PullRequest
 
@@ -14674,6 +15705,12 @@ type Query implements Node {
     """
     id: ID!
   ): RepositoryRelationship
+
+  """Reads a single \`AuditLog\` using its globally unique \`ID\`."""
+  auditLogById(
+    """The globally unique \`ID\` to be used in selecting a single \`AuditLog\`."""
+    id: ID!
+  ): AuditLog
 
   """Reads a single \`PullRequest\` using its globally unique \`ID\`."""
   pullRequestById(
@@ -15031,6 +16068,40 @@ type Query implements Node {
     orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryRelationshipConnection
 
+  """Reads and enables pagination through a set of \`AuditLog\`."""
+  auditLogs(
+    """Only read the first \`n\` values of the set."""
+    first: Int
+
+    """Only read the last \`n\` values of the set."""
+    last: Int
+
+    """
+    Skip the first \`n\` values from our \`after\` cursor, an alternative to cursor
+    based pagination. May not be used with \`last\`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: AuditLogCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: AuditLogFilter
+
+    """The method to use when ordering \`AuditLog\`."""
+    orderBy: [AuditLogOrderBy!] = [PRIMARY_KEY_ASC]
+  ): AuditLogConnection
+
   """Reads and enables pagination through a set of \`PullRequest\`."""
   pullRequests(
     """Only read the first \`n\` values of the set."""
@@ -15149,6 +16220,14 @@ type Mutation {
     """
     input: CreateRepositoryRelationshipInput!
   ): CreateRepositoryRelationshipPayload
+
+  """Creates a single \`AuditLog\`."""
+  createAuditLog(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateAuditLogInput!
+  ): CreateAuditLogPayload
 
   """Creates a single \`PullRequest\`."""
   createPullRequest(
@@ -15344,6 +16423,22 @@ type Mutation {
     input: UpdateRepositoryRelationshipInput!
   ): UpdateRepositoryRelationshipPayload
 
+  """Updates a single \`AuditLog\` using its globally unique id and a patch."""
+  updateAuditLogById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateAuditLogByIdInput!
+  ): UpdateAuditLogPayload
+
+  """Updates a single \`AuditLog\` using a unique key and a patch."""
+  updateAuditLog(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateAuditLogInput!
+  ): UpdateAuditLogPayload
+
   """
   Updates a single \`PullRequest\` using its globally unique id and a patch.
   """
@@ -15530,6 +16625,22 @@ type Mutation {
     input: DeleteRepositoryRelationshipInput!
   ): DeleteRepositoryRelationshipPayload
 
+  """Deletes a single \`AuditLog\` using its globally unique id."""
+  deleteAuditLogById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteAuditLogByIdInput!
+  ): DeleteAuditLogPayload
+
+  """Deletes a single \`AuditLog\` using a unique key."""
+  deleteAuditLog(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteAuditLogInput!
+  ): DeleteAuditLogPayload
+
   """Deletes a single \`PullRequest\` using its globally unique id."""
   deletePullRequestById(
     """
@@ -15630,6 +16741,56 @@ export const objects = {
       return !0;
     },
     plans: {
+      auditLog(_$root, {
+        $rowId
+      }) {
+        return pgResource_audit_logPgResource.get({
+          id: $rowId
+        });
+      },
+      auditLogById(_$parent, args) {
+        const $nodeId = args.getRaw("id");
+        return nodeFetcher_AuditLog($nodeId);
+      },
+      auditLogs: {
+        plan() {
+          return connection(pgResource_audit_logPgResource.find());
+        },
+        args: {
+          first(_, $connection, arg) {
+            $connection.setFirst(arg.getRaw());
+          },
+          last(_, $connection, val) {
+            $connection.setLast(val.getRaw());
+          },
+          offset(_, $connection, val) {
+            $connection.setOffset(val.getRaw());
+          },
+          before(_, $connection, val) {
+            $connection.setBefore(val.getRaw());
+          },
+          after(_, $connection, val) {
+            $connection.setAfter(val.getRaw());
+          },
+          condition(_condition, $connection, arg) {
+            const $select = $connection.getSubplan();
+            arg.apply($select, qbWhereBuilder);
+          },
+          filter(_, $connection, fieldArg) {
+            const $pgSelect = $connection.getSubplan();
+            fieldArg.apply($pgSelect, (queryBuilder, value) => {
+              assertAllowed70(value, "object");
+              if (value == null) return;
+              const condition = new PgCondition(queryBuilder);
+              return condition;
+            });
+          },
+          orderBy(parent, $connection, value) {
+            const $select = $connection.getSubplan();
+            value.apply($select);
+          }
+        }
+      },
       externalDependencies: {
         plan() {
           return connection(pgResource_external_dependencyPgResource.find());
@@ -15657,7 +16818,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed61(value, "object");
+              assertAllowed62(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -15732,7 +16893,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed65(value, "object");
+              assertAllowed66(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -15793,7 +16954,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed63(value, "object");
+              assertAllowed64(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -15843,7 +17004,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed67(value, "object");
+              assertAllowed68(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -15882,7 +17043,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed69(value, "object");
+              assertAllowed71(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -15924,7 +17085,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed66(value, "object");
+              assertAllowed67(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -15987,7 +17148,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed60(value, "object");
+              assertAllowed61(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -16037,7 +17198,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed59(value, "object");
+              assertAllowed60(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -16087,7 +17248,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed68(value, "object");
+              assertAllowed69(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -16137,7 +17298,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed62(value, "object");
+              assertAllowed63(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -16208,7 +17369,7 @@ export const objects = {
           filter(_, $connection, fieldArg) {
             const $pgSelect = $connection.getSubplan();
             fieldArg.apply($pgSelect, (queryBuilder, value) => {
-              assertAllowed64(value, "object");
+              assertAllowed65(value, "object");
               if (value == null) return;
               const condition = new PgCondition(queryBuilder);
               return condition;
@@ -16225,6 +17386,20 @@ export const objects = {
   Mutation: {
     assertStep: __ValueStep,
     plans: {
+      createAuditLog: {
+        plan(_, args) {
+          const $insert = pgInsertSingle(pgResource_audit_logPgResource, Object.create(null));
+          args.apply($insert);
+          return object({
+            result: $insert
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
       createExternalDependency: {
         plan(_, args) {
           const $insert = pgInsertSingle(pgResource_external_dependencyPgResource, Object.create(null));
@@ -16663,6 +17838,36 @@ ${String(oldPlan3)}`);
           if ($newPlan === void 0) throw Error("Your plan wrapper didn't return anything; it must return a step or null!");
           if ($newPlan !== null && !isExecutableStep($newPlan)) throw Error(`Your plan wrapper returned something other than a step... It must return a step (or null). (Returned: ${inspect($newPlan)})`);
           return $newPlan;
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteAuditLog: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(pgResource_audit_logPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      deleteAuditLogById: {
+        plan(_$root, args) {
+          const $delete = pgDeleteSingle(pgResource_audit_logPgResource, specFromArgs_AuditLog2(args));
+          args.apply($delete);
+          return object({
+            result: $delete
+          });
         },
         args: {
           input(_, $object) {
@@ -17211,6 +18416,36 @@ ${String(oldPlan17)}`);
           };
         });
       },
+      updateAuditLog: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(pgResource_audit_logPgResource, {
+            id: args.getRaw(['input', "rowId"])
+          });
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
+      updateAuditLogById: {
+        plan(_$root, args) {
+          const $update = pgUpdateSingle(pgResource_audit_logPgResource, specFromArgs_AuditLog(args));
+          args.apply($update);
+          return object({
+            result: $update
+          });
+        },
+        args: {
+          input(_, $object) {
+            return $object;
+          }
+        }
+      },
       updateExternalDependency: {
         plan(_$root, args) {
           const $update = pgUpdateSingle(pgResource_external_dependencyPgResource, {
@@ -17606,6 +18841,255 @@ ${String(oldPlan10)}`);
       }
     }
   },
+  AuditLog: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      createdAt($record) {
+        return $record.get("created_at");
+      },
+      durationMs($record) {
+        return $record.get("duration_ms");
+      },
+      eventType($record) {
+        return $record.get("event_type");
+      },
+      id($parent) {
+        const specifier = nodeIdHandlerByTypeName.AuditLog.plan($parent);
+        return lambda(specifier, nodeIdCodecs[nodeIdHandlerByTypeName.AuditLog.codec.name].encode);
+      },
+      idpUserId($record) {
+        return $record.get("idp_user_id");
+      },
+      ipAddress($record) {
+        return $record.get("ip_address");
+      },
+      resourceId($record) {
+        return $record.get("resource_id");
+      },
+      resourceType($record) {
+        return $record.get("resource_type");
+      },
+      rowId($record) {
+        return $record.get("id");
+      },
+      userAgent($record) {
+        return $record.get("user_agent");
+      },
+      userId($record) {
+        return $record.get("user_id");
+      }
+    },
+    planType($specifier) {
+      const spec = Object.create(null);
+      for (const pkCol of audit_logUniques[0].attributes) spec[pkCol] = get2($specifier, pkCol);
+      return pgResource_audit_logPgResource.get(spec);
+    }
+  },
+  AuditLogAggregates: {
+    assertStep: assertPgClassSingleStep,
+    plans: {
+      average($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      distinctCount($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      keys($pgSelectSingle) {
+        const $groupDetails = $pgSelectSingle.getClassStep().getGroupDetails();
+        return lambda([$groupDetails, $pgSelectSingle], ([groupDetails, item]) => {
+          if (groupDetails.indicies.length === 0 || item == null) return null;else return groupDetails.indicies.map(({
+            index
+          }) => item[index]);
+        });
+      },
+      max($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      min($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      stddevPopulation($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      stddevSample($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      sum($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      variancePopulation($pgSelectSingle) {
+        return $pgSelectSingle;
+      },
+      varianceSample($pgSelectSingle) {
+        return $pgSelectSingle;
+      }
+    }
+  },
+  AuditLogAverageAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec5.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.numeric);
+      }
+    }
+  },
+  AuditLogConnection: {
+    assertStep: ConnectionStep,
+    plans: {
+      aggregates($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").single();
+      },
+      groupedAggregates: {
+        plan($connection) {
+          return $connection.cloneSubplanWithoutPagination("aggregate");
+        },
+        args: {
+          groupBy(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect);
+          },
+          having(_$parent, $pgSelect, input) {
+            return input.apply($pgSelect, queryBuilder => queryBuilder.havingBuilder());
+          }
+        }
+      },
+      totalCount($connection) {
+        return $connection.cloneSubplanWithoutPagination("aggregate").singleAsRecord().select(sql`count(*)`, TYPES.bigint, !1);
+      }
+    }
+  },
+  AuditLogDistinctCountAggregates: {
+    plans: {
+      action($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("action")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      allowed($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("allowed")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.boolean);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      createdAt($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("created_at")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.timestamptz);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      eventType($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("event_type")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, auditEventTypeCodec);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      idpUserId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("idp_user_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      ipAddress($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("ip_address")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      metadata($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("metadata")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.jsonb);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      resourceId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("resource_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      resourceType($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("resource_type")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      rowId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      userAgent($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("user_agent")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.text);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      },
+      userId($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("user_id")}`,
+          sqlAggregate = spec.sqlAggregateWrap(sqlAttribute, TYPES.uuid);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      }
+    }
+  },
+  AuditLogMaxAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec4.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.int);
+      }
+    }
+  },
+  AuditLogMinAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec3.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.int);
+      }
+    }
+  },
+  AuditLogStddevPopulationAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec7.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.numeric);
+      }
+    }
+  },
+  AuditLogStddevSampleAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec6.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.numeric);
+      }
+    }
+  },
+  AuditLogSumAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec2.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.bigint);
+      }
+    }
+  },
+  AuditLogVariancePopulationAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec9.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.numeric);
+      }
+    }
+  },
+  AuditLogVarianceSampleAggregates: {
+    plans: {
+      durationMs($pgSelectSingle) {
+        const sqlAttribute = sql.fragment`${$pgSelectSingle.getClassStep().alias}.${sql.identifier("duration_ms")}`,
+          sqlAggregate = spec8.sqlAggregateWrap(sqlAttribute, TYPES.int);
+        return $pgSelectSingle.select(sqlAggregate, TYPES.numeric);
+      }
+    }
+  },
   Blob: {
     plans: {
       byteSize($blob) {
@@ -17756,6 +19240,23 @@ ${String(oldPlan10)}`);
             }))
           };
         });
+      }
+    }
+  },
+  CreateAuditLogPayload: {
+    assertStep: assertExecutableStep,
+    plans: {
+      auditLog($object) {
+        return $object.get("result");
+      },
+      auditLogEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(pgResource_audit_logPgResource, audit_logUniques[0].attributes, $mutation, fieldArgs);
+      },
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
       }
     }
   },
@@ -17972,6 +19473,28 @@ ${String(oldPlan10)}`);
       },
       userEdge($mutation, fieldArgs) {
         return pgMutationPayloadEdge(pgResource_userPgResource, userUniques[0].attributes, $mutation, fieldArgs);
+      }
+    }
+  },
+  DeleteAuditLogPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      auditLog($object) {
+        return $object.get("result");
+      },
+      auditLogEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(pgResource_audit_logPgResource, audit_logUniques[0].attributes, $mutation, fieldArgs);
+      },
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      deletedAuditLogId($object) {
+        const $record = $object.getStepForKey("result"),
+          specifier = nodeIdHandlerByTypeName.AuditLog.plan($record);
+        return lambda(specifier, nodeIdHandlerByTypeName_RepositoryRelationshipMetadatum_codec_base64JSON.encode);
+      },
+      query() {
+        return rootValue();
       }
     }
   },
@@ -20583,6 +22106,23 @@ ${String(oldPlan10)}`);
       }
     }
   },
+  UpdateAuditLogPayload: {
+    assertStep: ObjectStep,
+    plans: {
+      auditLog($object) {
+        return $object.get("result");
+      },
+      auditLogEdge($mutation, fieldArgs) {
+        return pgMutationPayloadEdge(pgResource_audit_logPgResource, audit_logUniques[0].attributes, $mutation, fieldArgs);
+      },
+      clientMutationId($mutation) {
+        return $mutation.getStepForKey("result").getMeta("clientMutationId");
+      },
+      query() {
+        return rootValue();
+      }
+    }
+  },
   UpdateExternalDependencyPayload: {
     assertStep: ObjectStep,
     plans: {
@@ -21161,6 +22701,831 @@ export const interfaces = {
   }
 };
 export const inputObjects = {
+  AuditEventTypeFilter: {
+    plans: {
+      distinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve163(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "distinctFrom"
+          });
+        $where.where(fragment);
+      },
+      equalTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve161(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "equalTo"
+          });
+        $where.where(fragment);
+      },
+      greaterThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve169(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThan"
+          });
+        $where.where(fragment);
+      },
+      greaterThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve170(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "greaterThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      in($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec53 ? resolveInputCodec53(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve165(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "in"
+          });
+        $where.where(fragment);
+      },
+      isNull($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec51 ? resolveInputCodec51(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = resolveSqlValue24 ? resolveSqlValue24($where, value, inputCodec) : sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve160(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "isNull"
+          });
+        $where.where(fragment);
+      },
+      lessThan($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve167(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThan"
+          });
+        $where.where(fragment);
+      },
+      lessThanOrEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve168(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "lessThanOrEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notDistinctFrom($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve164(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notDistinctFrom"
+          });
+        $where.where(fragment);
+      },
+      notEqualTo($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec52 ? resolveInputCodec52(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve162(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notEqualTo"
+          });
+        $where.where(fragment);
+      },
+      notIn($where, value) {
+        if (!$where.extensions?.pgFilterAttribute) throw Error("Planning error: expected 'pgFilterAttribute' to be present on the $where plan's extensions; your extensions to `postgraphile-plugin-connection-filter` does not implement the required interfaces.");
+        if (value === void 0) return;
+        const {
+            fieldName: parentFieldName,
+            attributeName,
+            attribute,
+            codec,
+            expression
+          } = $where.extensions.pgFilterAttribute,
+          sourceAlias = attribute ? attribute.expression ? attribute.expression($where.alias) : sql`${$where.alias}.${sql.identifier(attributeName)}` : expression ? expression : $where.alias,
+          sourceCodec = codec ?? attribute.codec,
+          [sqlIdentifier, identifierCodec] = resolveSqlIdentifier25 ? resolveSqlIdentifier25(sourceAlias, sourceCodec) : [sourceAlias, sourceCodec];
+        if (true && value === null) return;
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const resolvedInput = value,
+          inputCodec = resolveInputCodec53 ? resolveInputCodec53(codec ?? attribute.codec) : codec ?? attribute.codec,
+          sqlValue = sqlValueWithCodec(resolvedInput, inputCodec),
+          fragment = resolve166(sqlIdentifier, sqlValue, value, $where, {
+            fieldName: parentFieldName ?? null,
+            operatorName: "notIn"
+          });
+        $where.where(fragment);
+      }
+    }
+  },
+  AuditLogCondition: {
+    plans: {
+      action($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "action",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      allowed($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "allowed",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.boolean)}`;
+          }
+        });
+      },
+      createdAt($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "created_at",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.timestamptz)}`;
+          }
+        });
+      },
+      durationMs($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "duration_ms",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.int)}`;
+          }
+        });
+      },
+      eventType($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "event_type",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, auditEventTypeCodec)}`;
+          }
+        });
+      },
+      idpUserId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "idp_user_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      ipAddress($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "ip_address",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      resourceId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "resource_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      resourceType($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "resource_type",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      rowId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      },
+      userAgent($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "user_agent",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.text)}`;
+          }
+        });
+      },
+      userId($condition, val) {
+        $condition.where({
+          type: "attribute",
+          attribute: "user_id",
+          callback(expression) {
+            return val === null ? sql`${expression} is null` : sql`${expression} = ${sqlValueWithCodec(val, TYPES.uuid)}`;
+          }
+        });
+      }
+    }
+  },
+  AuditLogFilter: {
+    plans: {
+      action(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec103;
+        return condition;
+      },
+      allowed(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec104;
+        return condition;
+      },
+      and($where, value) {
+        assertAllowed59(value, "list");
+        if (value == null) return;
+        return $where.andPlan();
+      },
+      createdAt(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec108;
+        return condition;
+      },
+      durationMs(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec105;
+        return condition;
+      },
+      eventType(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec98;
+        return condition;
+      },
+      idpUserId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec100;
+        return condition;
+      },
+      ipAddress(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec106;
+        return condition;
+      },
+      not($where, value) {
+        assertAllowed59(value, "object");
+        if (value == null) return;
+        return $where.notPlan().andPlan();
+      },
+      or($where, value) {
+        assertAllowed59(value, "list");
+        if (value == null) return;
+        const $or = $where.orPlan();
+        return () => $or.andPlan();
+      },
+      resourceId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec102;
+        return condition;
+      },
+      resourceType(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec101;
+        return condition;
+      },
+      rowId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec97;
+        return condition;
+      },
+      userAgent(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec107;
+        return condition;
+      },
+      userId(queryBuilder, value) {
+        if (value === void 0) return;
+        if (!true && isEmpty(value)) throw Object.assign(Error("Empty objects are forbidden in filter argument input."), {});
+        if (!true && value === null) throw Object.assign(Error("Null literals are forbidden in filter argument input."), {});
+        const condition = new PgCondition(queryBuilder);
+        condition.extensions.pgFilterAttribute = colSpec99;
+        return condition;
+      }
+    }
+  },
+  AuditLogHavingAverageInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec5.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingDistinctCountInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingInput: {
+    plans: {
+      AND($where) {
+        return $where;
+      },
+      average($having) {
+        return $having;
+      },
+      distinctCount($having) {
+        return $having;
+      },
+      max($having) {
+        return $having;
+      },
+      min($having) {
+        return $having;
+      },
+      OR($where) {
+        return new PgOrFilter($where);
+      },
+      stddevPopulation($having) {
+        return $having;
+      },
+      stddevSample($having) {
+        return $having;
+      },
+      sum($having) {
+        return $having;
+      },
+      variancePopulation($having) {
+        return $having;
+      },
+      varianceSample($having) {
+        return $having;
+      }
+    }
+  },
+  AuditLogHavingMaxInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec4.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingMinInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec3.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingStddevPopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec7.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingStddevSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec6.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingSumInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec2.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingVariancePopulationInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec9.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogHavingVarianceSampleInput: {
+    plans: {
+      createdAt($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("created_at")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.created_at.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      },
+      durationMs($having) {
+        const attributeExpression = sql.fragment`${$having.alias}.${sql.identifier("duration_ms")}`,
+          aggregateExpression = spec8.sqlAggregateWrap(attributeExpression, spec_auditLog.attributes.duration_ms.codec);
+        return new PgBooleanFilter($having, aggregateExpression);
+      }
+    }
+  },
+  AuditLogInput: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      action(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("action", bakedInputRuntime(schema, field.type, val));
+      },
+      allowed(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("allowed", bakedInputRuntime(schema, field.type, val));
+      },
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      durationMs(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("duration_ms", bakedInputRuntime(schema, field.type, val));
+      },
+      eventType(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("event_type", bakedInputRuntime(schema, field.type, val));
+      },
+      idpUserId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("idp_user_id", bakedInputRuntime(schema, field.type, val));
+      },
+      ipAddress(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("ip_address", bakedInputRuntime(schema, field.type, val));
+      },
+      metadata(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("metadata", bakedInputRuntime(schema, field.type, val));
+      },
+      resourceId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("resource_id", bakedInputRuntime(schema, field.type, val));
+      },
+      resourceType(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("resource_type", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      userAgent(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("user_agent", bakedInputRuntime(schema, field.type, val));
+      },
+      userId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("user_id", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
+  AuditLogPatch: {
+    baked: createObjectAndApplyChildren,
+    plans: {
+      action(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("action", bakedInputRuntime(schema, field.type, val));
+      },
+      allowed(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("allowed", bakedInputRuntime(schema, field.type, val));
+      },
+      createdAt(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("created_at", bakedInputRuntime(schema, field.type, val));
+      },
+      durationMs(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("duration_ms", bakedInputRuntime(schema, field.type, val));
+      },
+      eventType(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("event_type", bakedInputRuntime(schema, field.type, val));
+      },
+      idpUserId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("idp_user_id", bakedInputRuntime(schema, field.type, val));
+      },
+      ipAddress(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("ip_address", bakedInputRuntime(schema, field.type, val));
+      },
+      metadata(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("metadata", bakedInputRuntime(schema, field.type, val));
+      },
+      resourceId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("resource_id", bakedInputRuntime(schema, field.type, val));
+      },
+      resourceType(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("resource_type", bakedInputRuntime(schema, field.type, val));
+      },
+      rowId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("id", bakedInputRuntime(schema, field.type, val));
+      },
+      userAgent(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("user_agent", bakedInputRuntime(schema, field.type, val));
+      },
+      userId(obj, val, {
+        field,
+        schema
+      }) {
+        obj.set("user_id", bakedInputRuntime(schema, field.type, val));
+      }
+    }
+  },
   BigFloatFilter: {
     plans: {
       distinctFrom($where, value) {
@@ -21965,6 +24330,16 @@ export const inputObjects = {
       }
     }
   },
+  CreateAuditLogInput: {
+    plans: {
+      auditLog(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      },
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
   CreateExternalDependencyInput: {
     plans: {
       clientMutationId(qb, val) {
@@ -22340,6 +24715,20 @@ export const inputObjects = {
             operatorName: "notIn"
           });
         $where.where(fragment);
+      }
+    }
+  },
+  DeleteAuditLogByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      }
+    }
+  },
+  DeleteAuditLogInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
       }
     }
   },
@@ -32363,6 +34752,26 @@ export const inputObjects = {
       }
     }
   },
+  UpdateAuditLogByIdInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
+  UpdateAuditLogInput: {
+    plans: {
+      clientMutationId(qb, val) {
+        qb.setMeta("clientMutationId", val);
+      },
+      patch(qb, arg) {
+        if (arg != null) return qb.setBuilder();
+      }
+    }
+  },
   UpdateExternalDependencyByIdInput: {
     plans: {
       clientMutationId(qb, val) {
@@ -34175,6 +36584,46 @@ export const scalars = {
       return ast.value;
     }
   },
+  JSON: {
+    serialize(value) {
+      return value;
+    },
+    parseValue(value) {
+      return value;
+    },
+    parseLiteral: (() => {
+      const parseLiteralToObject = (ast, variables) => {
+        switch (ast.kind) {
+          case Kind.STRING:
+          case Kind.BOOLEAN:
+            return ast.value;
+          case Kind.INT:
+          case Kind.FLOAT:
+            return parseFloat(ast.value);
+          case Kind.OBJECT:
+            {
+              const value = Object.create(null);
+              ast.fields.forEach(field => {
+                value[field.name.value] = parseLiteralToObject(field.value, variables);
+              });
+              return value;
+            }
+          case Kind.LIST:
+            return ast.values.map(n => parseLiteralToObject(n, variables));
+          case Kind.NULL:
+            return null;
+          case Kind.VARIABLE:
+            {
+              const name = ast.name.value;
+              return variables ? variables[name] : void 0;
+            }
+          default:
+            return;
+        }
+      };
+      return parseLiteralToObject;
+    })()
+  },
   UUID: {
     serialize: UUIDSerialize,
     parseValue(value) {
@@ -34187,6 +36636,250 @@ export const scalars = {
   }
 };
 export const enums = {
+  AuditLogGroupBy: {
+    values: {
+      ACTION($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("action")}`,
+          codec: TYPES.text
+        });
+      },
+      ALLOWED($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("allowed")}`,
+          codec: TYPES.boolean
+        });
+      },
+      CREATED_AT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("created_at")}`,
+          codec: TYPES.timestamptz
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_DAY($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec2.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec2.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      CREATED_AT_TRUNCATED_TO_HOUR($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: aggregateGroupBySpec.sqlWrap(sql`${$pgSelect.alias}.${sql.identifier("created_at")}`),
+          codec: aggregateGroupBySpec.sqlWrapCodec(TYPES.timestamptz)
+        });
+      },
+      DURATION_MS($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("duration_ms")}`,
+          codec: TYPES.int
+        });
+      },
+      EVENT_TYPE($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("event_type")}`,
+          codec: auditEventTypeCodec
+        });
+      },
+      IDP_USER_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("idp_user_id")}`,
+          codec: TYPES.uuid
+        });
+      },
+      IP_ADDRESS($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("ip_address")}`,
+          codec: TYPES.text
+        });
+      },
+      METADATA($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("metadata")}`,
+          codec: TYPES.jsonb
+        });
+      },
+      RESOURCE_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("resource_id")}`,
+          codec: TYPES.uuid
+        });
+      },
+      RESOURCE_TYPE($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("resource_type")}`,
+          codec: TYPES.text
+        });
+      },
+      USER_AGENT($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("user_agent")}`,
+          codec: TYPES.text
+        });
+      },
+      USER_ID($pgSelect) {
+        $pgSelect.groupBy({
+          fragment: sql.fragment`${$pgSelect.alias}.${sql.identifier("user_id")}`,
+          codec: TYPES.uuid
+        });
+      }
+    }
+  },
+  AuditLogOrderBy: {
+    values: {
+      ACTION_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "action",
+          direction: "ASC"
+        });
+      },
+      ACTION_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "action",
+          direction: "DESC"
+        });
+      },
+      ALLOWED_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "allowed",
+          direction: "ASC"
+        });
+      },
+      ALLOWED_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "allowed",
+          direction: "DESC"
+        });
+      },
+      CREATED_AT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "ASC"
+        });
+      },
+      CREATED_AT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "created_at",
+          direction: "DESC"
+        });
+      },
+      DURATION_MS_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "duration_ms",
+          direction: "ASC"
+        });
+      },
+      DURATION_MS_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "duration_ms",
+          direction: "DESC"
+        });
+      },
+      IDP_USER_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "idp_user_id",
+          direction: "ASC"
+        });
+      },
+      IDP_USER_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "idp_user_id",
+          direction: "DESC"
+        });
+      },
+      IP_ADDRESS_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "ip_address",
+          direction: "ASC"
+        });
+      },
+      IP_ADDRESS_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "ip_address",
+          direction: "DESC"
+        });
+      },
+      PRIMARY_KEY_ASC(queryBuilder) {
+        audit_logUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "ASC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      PRIMARY_KEY_DESC(queryBuilder) {
+        audit_logUniques[0].attributes.forEach(attributeName => {
+          queryBuilder.orderBy({
+            attribute: attributeName,
+            direction: "DESC"
+          });
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      RESOURCE_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "resource_id",
+          direction: "ASC"
+        });
+      },
+      RESOURCE_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "resource_id",
+          direction: "DESC"
+        });
+      },
+      RESOURCE_TYPE_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "resource_type",
+          direction: "ASC"
+        });
+      },
+      RESOURCE_TYPE_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "resource_type",
+          direction: "DESC"
+        });
+      },
+      ROW_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "ASC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      ROW_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "id",
+          direction: "DESC"
+        });
+        queryBuilder.setOrderIsUnique();
+      },
+      USER_AGENT_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "user_agent",
+          direction: "ASC"
+        });
+      },
+      USER_AGENT_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "user_agent",
+          direction: "DESC"
+        });
+      },
+      USER_ID_ASC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "user_id",
+          direction: "ASC"
+        });
+      },
+      USER_ID_DESC(queryBuilder) {
+        queryBuilder.orderBy({
+          attribute: "user_id",
+          direction: "DESC"
+        });
+      }
+    }
+  },
   ExternalDependencyGroupBy: {
     values: {
       CREATED_AT($pgSelect) {

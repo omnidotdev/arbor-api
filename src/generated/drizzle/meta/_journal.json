@@ -50,6 +50,13 @@
       "when": 1768860766294,
       "tag": "0006_noisy_skrulls",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1768947763719,
+      "tag": "0007_new_magik",
+      "breakpoints": true
     }
   ]
 }

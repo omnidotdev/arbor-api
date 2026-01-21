@@ -14,7 +14,7 @@ import type { FieldArgs } from "postgraphile/grafast";
  * - createRef: Create a new branch or tag
  * - deleteRef: Delete a branch or tag
  */
-const GitMutationsPlugin = extendSchema((build) => {
+const GitMutationsPlugin = extendSchema((_build) => {
   return {
     typeDefs: /* GraphQL */ `
       """
@@ -202,8 +202,8 @@ const GitMutationsPlugin = extendSchema((build) => {
 
                 return lambda(
                   object({ input: $input, db: $db, observer: $observer }),
-                  async (args) => {
-                    const { input, db, observer } = args as any;
+                  async (args: any) => {
+                    const { input, db, observer } = args;
 
                     if (!observer) {
                       return {
@@ -292,8 +292,8 @@ const GitMutationsPlugin = extendSchema((build) => {
 
                 return lambda(
                   object({ input: $input, db: $db, observer: $observer }),
-                  async (args) => {
-                    const { input, db, observer } = args as any;
+                  async (args: any) => {
+                    const { input, db, observer } = args;
 
                     if (!observer) {
                       return { ref: null, error: "Unauthorized" };
@@ -410,8 +410,8 @@ const GitMutationsPlugin = extendSchema((build) => {
 
                 return lambda(
                   object({ input: $input, db: $db, observer: $observer }),
-                  async (args) => {
-                    const { input, db, observer } = args as any;
+                  async (args: any) => {
+                    const { input, db, observer } = args;
 
                     if (!observer) {
                       return { success: false, error: "Unauthorized" };

@@ -1,5 +1,5 @@
 /**
- * Authorization module for Gaia.
+ * Authorization module for Arbor.
  *
  * Provides functions for PostGraphile plugins to check permissions via PDP (Warden).
  *
@@ -17,6 +17,8 @@
  * ```
  */
 
+import { logCircuitBreakerEvent, logPermissionCheck } from "lib/audit";
+
 // Re-export for EXPORTABLE compatibility in plugins
 export { AUTHZ_API_URL, AUTHZ_ENABLED } from "lib/config/env.config";
 
@@ -28,33 +30,6 @@ const CIRCUIT_BREAKER_THRESHOLD = 5;
 
 /** Circuit breaker cooldown in milliseconds before half-open */
 const CIRCUIT_BREAKER_COOLDOWN_MS = 30000;
-
-type AuthzEventType =
-  | "permission_check"
-  | "circuit_open"
-  | "circuit_half_open"
-  | "circuit_closed";
-
-interface AuthzEvent {
-  type: AuthzEventType;
-  userId?: string;
-  resourceType?: string;
-  resourceId?: string;
-  permission?: string;
-  allowed?: boolean;
-  durationMs?: number;
-  error?: string;
-}
-
-/**
- * Log authz events as structured JSON for observability.
- */
-function logAuthzEvent(event: AuthzEvent): void {
-  // biome-ignore lint/suspicious/noConsole: structured logging
-  console.log(
-    JSON.stringify({ ...event, timestamp: new Date().toISOString() }),
-  );
-}
 
 /**
  * Circuit breaker for AuthZ PDP calls.
@@ -69,7 +44,7 @@ class CircuitBreaker {
     if (this.state === "open") {
       if (Date.now() - this.lastFailure > CIRCUIT_BREAKER_COOLDOWN_MS) {
         this.state = "half-open";
-        logAuthzEvent({ type: "circuit_half_open" });
+        logCircuitBreakerEvent("half_open");
       } else {
         throw new Error("AuthZ PDP unavailable - circuit open (fail-closed)");
       }
@@ -87,7 +62,7 @@ class CircuitBreaker {
 
   private reset(): void {
     if (this.failures > 0 || this.state !== "closed") {
-      logAuthzEvent({ type: "circuit_closed" });
+      logCircuitBreakerEvent("closed");
     }
     this.failures = 0;
     this.state = "closed";
@@ -99,10 +74,11 @@ class CircuitBreaker {
 
     if (this.failures >= CIRCUIT_BREAKER_THRESHOLD) {
       this.state = "open";
-      logAuthzEvent({
-        type: "circuit_open",
-        error: `Circuit opened after ${this.failures} consecutive failures`,
-      });
+      logCircuitBreakerEvent(
+        "open",
+        this.failures,
+        `Circuit opened after ${this.failures} consecutive failures`,
+      );
     }
   }
 }
@@ -188,8 +164,8 @@ export async function checkPermission(
     requestCache?.set(cacheKey, allowed);
     setCachedPermission(cacheKey, allowed);
 
-    logAuthzEvent({
-      type: "permission_check",
+    // Log to persistent audit trail
+    logPermissionCheck({
       userId,
       resourceType,
       resourceId,
@@ -200,14 +176,14 @@ export async function checkPermission(
 
     return allowed;
   } catch (error) {
-    logAuthzEvent({
-      type: "permission_check",
+    // Log denied permission to audit trail
+    logPermissionCheck({
       userId,
       resourceType,
       resourceId,
       permission,
+      allowed: false,
       durationMs: Date.now() - startTime,
-      error: error instanceof Error ? error.message : String(error),
     });
     // Fail-closed: deny access when PDP is unavailable
     throw error;

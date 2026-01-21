@@ -90,7 +90,7 @@ interface TreeEntryData {
  *
  * Following GitHub's GraphQL API patterns.
  */
-const GitTypesPlugin = extendSchema((build) => {
+const GitTypesPlugin = extendSchema((_build) => {
   return {
     typeDefs: /* GraphQL */ `
       """

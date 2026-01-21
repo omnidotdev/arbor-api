@@ -85,7 +85,6 @@ const entitlementsWebhook = new Elysia().post(
 
       const body = JSON.parse(rawBody) as EntitlementWebhookPayload;
 
-      // biome-ignore lint/suspicious/noConsole: webhook logging
       console.log(
         `Entitlement event received: ${body.eventType} for ${body.entityType}/${body.entityId}`,
       );
@@ -99,7 +98,6 @@ const entitlementsWebhook = new Elysia().post(
           invalidateCache(`${body.entityType}:${body.entityId}:*`);
           invalidateCache(`${body.entityType}:${body.entityId}`);
 
-          // biome-ignore lint/suspicious/noConsole: webhook logging
           console.log(
             `Cache invalidated for ${body.entityType} ${body.entityId}`,
           );

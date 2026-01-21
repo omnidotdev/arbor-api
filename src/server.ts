@@ -9,6 +9,7 @@ import { schema } from "generated/graphql/schema.executable";
 import { useGrafast } from "grafast/envelop";
 import webhooks from "webhooks";
 
+import { startAuditFlush, stopAuditFlush } from "lib/audit";
 import appConfig from "lib/config/app.config";
 import {
   CORS_ALLOWED_ORIGINS,
@@ -74,15 +75,25 @@ ensureReposDirectory().catch((err) => {
   console.error("[Git] Failed to create repositories directory:", err);
 });
 
-// biome-ignore lint/suspicious/noConsole: root logging
 console.log(
   `🦊 ${appConfig.name} Elysia server running at ${app.server?.url.toString().slice(0, -1)}`,
 );
 
-// biome-ignore lint/suspicious/noConsole: root logging
 console.log(
   `🧘 ${appConfig.name} GraphQL Yoga API running at ${app.server?.url}graphql`,
 );
 
-// biome-ignore lint/suspicious/noConsole: root logging
 console.log(`🌳 ${appConfig.name} Git API running at ${app.server?.url}git`);
+
+// Start audit log flush interval
+startAuditFlush();
+
+// Graceful shutdown - flush pending audit events
+const shutdown = async (signal: string) => {
+  console.log(`\n[${signal}] Shutting down gracefully...`);
+  await stopAuditFlush();
+  process.exit(0);
+};
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));

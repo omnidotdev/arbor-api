@@ -163,8 +163,8 @@ const RepositoryCreatePlugin = extendSchema(() => {
 
                 return lambda(
                   object({ input: $input, db: $db, observer: $observer }),
-                  async (args) => {
-                    const { input, db, observer } = args as any;
+                  async (args: any) => {
+                    const { input, db, observer } = args;
 
                     // Must be authenticated
                     if (!observer) {

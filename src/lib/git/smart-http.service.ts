@@ -48,7 +48,7 @@ export function getServiceResultContentType(service: GitService): string {
  */
 function pktLine(data: string): string {
   const length = data.length + 5; // +4 for length prefix, +1 for LF
-  return length.toString(16).padStart(4, "0") + data + "\n";
+  return `${length.toString(16).padStart(4, "0")}${data}\n`;
 }
 
 /**
