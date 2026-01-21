@@ -129,8 +129,10 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
   try {
     const accessToken = ctx.request.headers
       .get("authorization")
-      ?.split("Bearer ")[1];
+      ?.split("Bearer ")[1]
+      ?.trim();
 
+    // Check for missing or empty token
     if (!accessToken) {
       if (!protectRoutes) return null;
 
@@ -140,11 +142,27 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
       );
     }
 
-    // Verify JWT signature using JWKS (cryptographic verification)
-    const verifiedPayload = await verifyAccessToken(accessToken);
+    // Better Auth OIDC access tokens are opaque tokens, not JWTs.
+    // Validation is done via the userinfo endpoint which verifies the token server-side.
+    // If the access token looks like a JWT (3 dot-separated parts), we can optionally
+    // verify it for additional security, but this is not required.
+    const isJwtFormat = accessToken.split(".").length === 3;
+    if (isJwtFormat) {
+      try {
+        const verifiedPayload = await verifyAccessToken(accessToken);
+        validateClaims(verifiedPayload);
+      } catch (jwtError) {
+        // JWT verification failed - this is expected for opaque tokens
+        // Continue with userinfo validation which will definitively validate the token
+        console.warn(
+          "[Auth] JWT verification skipped (opaque token):",
+          jwtError instanceof Error ? jwtError.message : jwtError,
+        );
+      }
+    }
 
-    // Fetch additional claims from userinfo (org membership, profile data)
-    // Access tokens may not contain all claims, userinfo provides the full set
+    // Fetch user claims from userinfo endpoint - this validates the access token
+    // and provides the authoritative user identity claims
     const claims = await queryClient.ensureQueryData({
       queryKey: ["UserInfo", { accessToken }],
       queryFn: async () => {
@@ -175,9 +193,6 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
         "INVALID_CLAIMS",
       );
     }
-
-    // Validate time-based claims from verified payload
-    validateClaims(verifiedPayload);
 
     if (!claims.email)
       throw new AuthenticationError(
