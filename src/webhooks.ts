@@ -6,6 +6,7 @@ import { STRIPE_WEBHOOK_SECRET } from "lib/config/env.config";
 import { dbPool as db } from "lib/db/db";
 import { organizationTable } from "lib/db/schema";
 import entitlementsWebhook from "lib/entitlements/webhooks";
+import { idpWebhook } from "lib/idp";
 import payments from "lib/payments";
 
 /**
@@ -93,6 +94,7 @@ const stripeWebhook = new Elysia().post(
  */
 const webhooks = new Elysia({ prefix: "/webhooks" })
   .use(stripeWebhook)
-  .use(entitlementsWebhook);
+  .use(entitlementsWebhook)
+  .use(idpWebhook);
 
 export default webhooks;
