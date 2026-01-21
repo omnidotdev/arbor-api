@@ -103,7 +103,7 @@ const spec_repositoryRelationshipMetadata = {
   },
   description: undefined,
   extensions: {
-    oid: "179507",
+    oid: "310305",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -124,7 +124,7 @@ const permissionCodec = enumCodec({
   values: ["read", "write", "admin"],
   description: undefined,
   extensions: {
-    oid: "158196",
+    oid: "310154",
     pg: {
       serviceName: "main",
       schemaName: "public",
@@ -205,7 +205,7 @@ const spec_repositoryCollaborator = {
   },
   description: undefined,
   extensions: {
-    oid: "158257",
+    oid: "310215",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -226,7 +226,7 @@ const detectionSourceCodec = enumCodec({
   values: ["manual", "package_json", "go_mod", "cargo_toml", "arbor_manifest", "openapi", "graphql_schema"],
   description: undefined,
   extensions: {
-    oid: "179626",
+    oid: "310424",
     pg: {
       serviceName: "main",
       schemaName: "public",
@@ -329,7 +329,7 @@ const spec_externalDependency = {
   },
   description: undefined,
   extensions: {
-    oid: "179491",
+    oid: "310289",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -424,7 +424,7 @@ const spec_repositoryRelationshipType = {
   },
   description: undefined,
   extensions: {
-    oid: "179541",
+    oid: "310339",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -579,7 +579,7 @@ const spec_pullRequestComment = {
   },
   description: undefined,
   extensions: {
-    oid: "179875",
+    oid: "310487",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -710,7 +710,7 @@ const spec_user = {
   },
   description: undefined,
   extensions: {
-    oid: "158153",
+    oid: "310112",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -853,7 +853,7 @@ const spec_organization = {
   },
   description: undefined,
   extensions: {
-    oid: "158205",
+    oid: "310163",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -874,7 +874,7 @@ const visibilityCodec = enumCodec({
   values: ["public", "private"],
   description: undefined,
   extensions: {
-    oid: "158190",
+    oid: "310148",
     pg: {
       serviceName: "main",
       schemaName: "public",
@@ -1015,7 +1015,7 @@ const spec_repository = {
   },
   description: undefined,
   extensions: {
-    oid: "158237",
+    oid: "310195",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -1036,7 +1036,7 @@ const reviewStateCodec = enumCodec({
   values: ["approved", "changes_requested", "commented", "pending"],
   description: undefined,
   extensions: {
-    oid: "179864",
+    oid: "310476",
     pg: {
       serviceName: "main",
       schemaName: "public",
@@ -1151,7 +1151,7 @@ const spec_pullRequestReview = {
   },
   description: undefined,
   extensions: {
-    oid: "179891",
+    oid: "310503",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -1294,7 +1294,7 @@ const spec_repositoryRelationship = {
   },
   description: undefined,
   extensions: {
-    oid: "179521",
+    oid: "310319",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -1315,7 +1315,7 @@ const auditEventTypeCodec = enumCodec({
   values: ["permission_check", "permission_denied", "resource_create", "resource_update", "resource_delete", "authentication", "circuit_breaker"],
   description: undefined,
   extensions: {
-    oid: "308547",
+    oid: "310592",
     pg: {
       serviceName: "main",
       schemaName: "public",
@@ -1490,7 +1490,7 @@ const spec_auditLog = {
   },
   description: undefined,
   extensions: {
-    oid: "308563",
+    oid: "310609",
     isTableLike: true,
     pg: {
       serviceName: "main",
@@ -1510,7 +1510,7 @@ const pullRequestStateCodec = enumCodec({
   values: ["open", "closed", "merged", "draft"],
   description: undefined,
   extensions: {
-    oid: "179855",
+    oid: "310467",
     pg: {
       serviceName: "main",
       schemaName: "public",
@@ -1710,7 +1710,7 @@ const spec_pullRequest = {
   },
   description: undefined,
   extensions: {
-    oid: "179908",
+    oid: "310520",
     isTableLike: true,
     pg: {
       serviceName: "main",
