@@ -18,6 +18,7 @@ import {
   GitTypesPlugin,
   RepositoryCreatePlugin,
 } from "lib/graphql/plugins/git";
+import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
 /**
@@ -31,6 +32,9 @@ const graphilePreset: GraphileConfig.Preset = {
     PgAggregatesPreset,
   ],
   plugins: [
+    // Observer plugin (exposes current authenticated user)
+    ObserverPlugin,
+    // Authorization plugins (pre-mutation validation)
     OrganizationPlugin,
     PrimaryKeyMutationsOnlyPlugin,
     PullRequestPlugin,

@@ -15367,6 +15367,14 @@ input DeletePullRequestInput {
   rowId: UUID!
 }
 
+"""The currently authenticated user."""
+type Observer {
+  rowId: UUID!
+  identityProviderId: UUID!
+  name: String!
+  email: String!
+}
+
 """An actor in a Git commit (author or committer)."""
 type GitActor {
   name: String
@@ -16135,6 +16143,12 @@ type Query implements Node {
     """The method to use when ordering \`PullRequest\`."""
     orderBy: [PullRequestOrderBy!] = [PRIMARY_KEY_ASC]
   ): PullRequestConnection
+
+  """
+  Returns the currently authenticated user (observer).
+  Returns null if not authenticated.
+  """
+  observer: Observer
 }
 
 """
@@ -16847,6 +16861,18 @@ export const objects = {
       },
       node(_$root, fieldArgs) {
         return fieldArgs.getRaw("id");
+      },
+      observer() {
+        const $observer = context().get("observer");
+        return lambda($observer, observer => {
+          if (!observer) return null;
+          return {
+            rowId: observer.id,
+            identityProviderId: observer.identityProviderId,
+            name: observer.name,
+            email: observer.email
+          };
+        });
       },
       organization(_$root, {
         $rowId
