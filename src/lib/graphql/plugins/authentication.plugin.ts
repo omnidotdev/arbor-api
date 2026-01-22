@@ -126,18 +126,14 @@ const validateClaims = (claims: UserInfoClaims): void => {
  * @see https://the-guild.dev/graphql/envelop/plugins/use-generic-auth#getting-started
  */
 const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
-  console.log("[Auth] resolveUser called");
   try {
     const accessToken = ctx.request.headers
       .get("authorization")
       ?.split("Bearer ")[1]
       ?.trim();
 
-    console.log("[Auth] Access token present:", !!accessToken);
-
     // Check for missing or empty token
     if (!accessToken) {
-      console.log("[Auth] No access token, protectRoutes:", protectRoutes);
       if (!protectRoutes) return null;
 
       throw new AuthenticationError(
@@ -167,21 +163,16 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
 
     // Fetch user claims from userinfo endpoint - this validates the access token
     // and provides the authoritative user identity claims
-    console.log("[Auth] Fetching userinfo from:", `${AUTH_BASE_URL}/oauth2/userinfo`);
     const claims = await queryClient.ensureQueryData({
       queryKey: ["UserInfo", { accessToken }],
       queryFn: async () => {
-        console.log("[Auth] Making userinfo request...");
         const response = await fetch(`${AUTH_BASE_URL}/oauth2/userinfo`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         });
 
-        console.log("[Auth] Userinfo response status:", response.status);
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error("[Auth] Userinfo error response:", errorText);
           throw new AuthenticationError(
             "Invalid access token or request failed",
             "USERINFO_FAILED",
@@ -189,7 +180,6 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
         }
 
         const userInfoClaims: UserInfoClaims = await response.json();
-        console.log("[Auth] Userinfo claims received:", JSON.stringify(userInfoClaims));
 
         return userInfoClaims;
       },
@@ -213,7 +203,6 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
     // Store organizations in request-scoped cache for context extension
     requestOrganizationsCache.set(ctx.request, claims.organizations ?? []);
 
-    console.log("[Auth] Creating/updating user with sub:", claims.sub);
     const insertedUser: InsertUser = {
       identityProviderId: claims.sub,
       name: claims.preferred_username ?? claims.email,
@@ -221,7 +210,6 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
       email: claims.email,
     };
 
-    console.log("[Auth] User data:", JSON.stringify(insertedUser));
     const { identityProviderId, ...rest } = insertedUser;
 
     const [user] = await ctx.db
@@ -236,7 +224,6 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
       })
       .returning();
 
-    console.log("[Auth] User upserted successfully, id:", user.id);
     return user;
   } catch (err) {
     if (err instanceof AuthenticationError) {
