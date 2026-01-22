@@ -24,7 +24,9 @@ export const {
   IDP_WEBHOOK_SECRET,
   // Self-hosted mode
   SELF_HOSTED,
-  // Billing bypass
+  // Billing bypass (org IDs that skip billing checks)
+  BILLING_BYPASS_ORG_IDS,
+  // Legacy: org slugs for bypass (deprecated, use BILLING_BYPASS_ORG_IDS)
   BILLING_BYPASS_SLUGS,
 } = process.env;
 

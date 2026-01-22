@@ -20,6 +20,7 @@ import {
 import { ensureReposDirectory } from "lib/git";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
 import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
+import { rateLimit } from "lib/middleware/rateLimit";
 import gitRoutes from "routes/git.routes";
 
 /**
@@ -42,6 +43,19 @@ const app = new Elysia({
     cors({
       origin: CORS_ALLOWED_ORIGINS!.split(","),
       methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    }),
+  )
+  // Rate limiting: 100 requests per minute for general API
+  // Skip webhooks (they're server-to-server with signatures)
+  .use(
+    rateLimit({
+      max: isProdEnv ? 100 : 1000, // Higher limit in dev
+      windowMs: 60_000,
+      skip: (request) => {
+        const url = new URL(request.url);
+        // Skip rate limiting for webhooks (authenticated via signatures)
+        return url.pathname.startsWith("/webhooks");
+      },
     }),
   )
   .use(webhooks)

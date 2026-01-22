@@ -1,26 +1,16 @@
-import { BILLING_BYPASS_SLUGS } from "lib/config/env.config";
+import { BILLING_BYPASS_ORG_IDS } from "lib/config/env.config";
 
 /**
- * Organization slugs that bypass all billing/tier limits.
- * Configured via BILLING_BYPASS_SLUGS env var (comma-separated).
+ * Organization IDs that bypass all billing/tier limits.
+ * Configured via BILLING_BYPASS_ORG_IDS env var (comma-separated).
  *
  * NOTE: Exported as array for use in EXPORTABLE functions.
- * Use `billingBypassSlugs.includes(slug)` inline within EXPORTABLE blocks.
+ * Use `billingBypassOrgIds.includes(organizationId)` inline within EXPORTABLE blocks.
  */
-export const billingBypassSlugs: string[] =
-  BILLING_BYPASS_SLUGS?.split(",")
+export const billingBypassOrgIds: string[] =
+  BILLING_BYPASS_ORG_IDS?.split(",")
     .map((s) => s.trim())
     .filter(Boolean) ?? [];
-
-export const FREE_TIER_MAX_REPOSITORIES = 5;
-export const FREE_TIER_MAX_COLLABORATORS = 3;
-export const FREE_TIER_MAX_MEMBERS = 3;
-export const FREE_TIER_MAX_ADMINS = 1;
-
-export const BASIC_TIER_MAX_REPOSITORIES = 25;
-export const BASIC_TIER_MAX_COLLABORATORS = 10;
-export const BASIC_TIER_MAX_MEMBERS = 10;
-export const BASIC_TIER_MAX_ADMINS = 3;
 
 /**
  * Feature keys for entitlement checks.
@@ -31,4 +21,5 @@ export const FEATURE_KEYS = {
   MAX_COLLABORATORS: "max_collaborators",
   MAX_MEMBERS: "max_members",
   MAX_ADMINS: "max_admins",
+  MAX_PRIVATE_REPOS: "max_private_repos",
 } as const;

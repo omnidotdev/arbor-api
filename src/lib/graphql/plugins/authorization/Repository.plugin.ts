@@ -2,6 +2,9 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
+import { isWithinLimit } from "lib/entitlements";
+import { FEATURE_KEYS, billingBypassOrgIds } from "./constants";
+
 import type { InsertRepository } from "lib/db/schema";
 import type { PlanWrapperFn } from "postgraphile/utils";
 import type { MutationScope } from "./types";
@@ -55,32 +58,36 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
   );
 
 /**
- * Wrapper for createRepository that validates permissions.
+ * Wrapper for createRepository that validates permissions and tier limits.
  *
  * Note: Git repository initialization is handled by the custom
  * createRepositoryWithGit mutation in RepositoryCreate.plugin.ts.
- * This wrapper validates membership for org repos.
- *
- * Tier limits are enforced by Aether (entitlements service) and checked
- * separately - this plugin only validates basic membership.
+ * This wrapper validates membership for org repos and enforces tier limits.
  */
 const createRepositoryWrapper = EXPORTABLE(
-  (context, sideEffect): PlanWrapperFn =>
+  (
+    context,
+    sideEffect,
+    isWithinLimit,
+    FEATURE_KEYS,
+    billingBypassOrgIds,
+  ): PlanWrapperFn =>
     (plan, _, fieldArgs) => {
       const $input = fieldArgs.getRaw(["input", "repository"]);
       const $observer = context().get("observer");
       const $organizations = context().get("organizations");
       const $db = context().get("db");
+      const $withPgClient = context().get("withPgClient");
 
-      // Pre-mutation: validate permissions
+      // Pre-mutation: validate permissions and tier limits
       sideEffect(
-        [$input, $observer, $organizations, $db],
-        async ([input, observer, organizations, db]) => {
+        [$input, $observer, $organizations, $db, $withPgClient],
+        async ([input, observer, organizations, db, withPgClient]) => {
           if (!observer) throw new Error("Unauthorized");
 
           const organizationId = (input as InsertRepository).organizationId;
 
-          // Personal repos - no membership check needed
+          // Personal repos - no membership or tier check needed for now
           if (!organizationId) return;
 
           // Fetch organization to get idpOrganizationId
@@ -98,15 +105,35 @@ const createRepositoryWrapper = EXPORTABLE(
 
           if (!isMember) throw new Error("Unauthorized");
 
-          // Note: Tier limits (max repositories) are enforced by Aether entitlements
-          // service and should be checked via a separate entitlements API call
-          // TODO: Integrate with Aether entitlements API for tier limit checks
+          // Check tier limits via Aether entitlements
+          const totalRepos = await withPgClient(null, async (client) => {
+            const result = await client.query({
+              text: "SELECT count(*)::int as total FROM repository WHERE organization_id = $1",
+              values: [organizationId],
+            });
+            return (
+              (result.rows[0] as { total: number } | undefined)?.total ?? 0
+            );
+          });
+
+          const withinLimit = await isWithinLimit(
+            { organizationId },
+            FEATURE_KEYS.MAX_REPOSITORIES,
+            totalRepos,
+            billingBypassOrgIds,
+          );
+
+          if (!withinLimit) {
+            throw new Error(
+              "Maximum number of repositories reached for your plan",
+            );
+          }
         },
       );
 
       return plan();
     },
-  [context, sideEffect],
+  [context, sideEffect, isWithinLimit, FEATURE_KEYS, billingBypassOrgIds],
 );
 
 /**

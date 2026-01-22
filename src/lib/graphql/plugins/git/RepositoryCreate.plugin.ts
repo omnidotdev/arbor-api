@@ -3,11 +3,11 @@ import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
 import { repositoryTable } from "lib/db/schema";
+import { isWithinLimit } from "lib/entitlements";
 import { repositoryService } from "lib/git";
 import {
-  BASIC_TIER_MAX_REPOSITORIES,
-  FREE_TIER_MAX_REPOSITORIES,
-  billingBypassSlugs,
+  FEATURE_KEYS,
+  billingBypassOrgIds,
 } from "lib/graphql/plugins/authorization/constants";
 
 import type { FieldArgs } from "postgraphile/grafast";
@@ -152,19 +152,25 @@ const RepositoryCreatePlugin = extendSchema(() => {
               context,
               repositoryTable,
               repositoryService,
-              FREE_TIER_MAX_REPOSITORIES,
-              BASIC_TIER_MAX_REPOSITORIES,
-              billingBypassSlugs,
+              isWithinLimit,
+              FEATURE_KEYS,
+              billingBypassOrgIds,
             ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
                 const $observer = context().get("observer");
+                const $organizations = context().get("organizations");
 
                 return lambda(
-                  object({ input: $input, db: $db, observer: $observer }),
+                  object({
+                    input: $input,
+                    db: $db,
+                    observer: $observer,
+                    organizations: $organizations,
+                  }),
                   async (args: any) => {
-                    const { input, db, observer } = args;
+                    const { input, db, observer, organizations } = args;
 
                     // Must be authenticated
                     if (!observer) {
@@ -180,17 +186,13 @@ const RepositoryCreatePlugin = extendSchema(() => {
                       organizationId,
                     } = input;
 
-                    // Validate tier limits for organization repos
+                    // Validate membership and tier limits for organization repos
                     if (organizationId) {
                       const organization =
                         await db.query.organizationTable.findFirst({
                           where: (table: any, { eq }: any) =>
                             eq(table.id, organizationId),
                           with: {
-                            organizationMembers: {
-                              where: (table: any, { eq }: any) =>
-                                eq(table.userId, observer.id),
-                            },
                             repositories: true,
                           },
                         });
@@ -202,36 +204,30 @@ const RepositoryCreatePlugin = extendSchema(() => {
                         };
                       }
 
-                      // Must be a member to create repos in org
-                      if (!organization.organizationMembers.length) {
+                      // Check membership via IDP claims (from JWT)
+                      const isMember = organizations?.some(
+                        (org: { id: string }) =>
+                          org.id === organization.idpOrganizationId,
+                      );
+
+                      if (!isMember) {
                         return { repository: null, error: "Unauthorized" };
                       }
 
-                      // Check tier limits (bypass for exempt orgs)
-                      if (!billingBypassSlugs.includes(organization.slug)) {
-                        if (organization.tier === "free") {
-                          if (
-                            organization.repositories.length >=
-                            FREE_TIER_MAX_REPOSITORIES
-                          ) {
-                            return {
-                              repository: null,
-                              error: "Maximum number of repositories reached",
-                            };
-                          }
-                        }
+                      // Check tier limits via Aether entitlements
+                      const withinLimit = await isWithinLimit(
+                        { organizationId },
+                        FEATURE_KEYS.MAX_REPOSITORIES,
+                        organization.repositories.length,
+                        billingBypassOrgIds,
+                      );
 
-                        if (organization.tier === "basic") {
-                          if (
-                            organization.repositories.length >=
-                            BASIC_TIER_MAX_REPOSITORIES
-                          ) {
-                            return {
-                              repository: null,
-                              error: "Maximum number of repositories reached",
-                            };
-                          }
-                        }
+                      if (!withinLimit) {
+                        return {
+                          repository: null,
+                          error:
+                            "Maximum number of repositories reached for your plan",
+                        };
                       }
                     }
 
@@ -298,7 +294,6 @@ const RepositoryCreatePlugin = extendSchema(() => {
                     );
 
                     if (!success) {
-                      // TODO: Consider rolling back the DB insert on failure
                       return {
                         rowId: null,
                         slug: null,
@@ -325,9 +320,9 @@ const RepositoryCreatePlugin = extendSchema(() => {
               context,
               repositoryTable,
               repositoryService,
-              FREE_TIER_MAX_REPOSITORIES,
-              BASIC_TIER_MAX_REPOSITORIES,
-              billingBypassSlugs,
+              isWithinLimit,
+              FEATURE_KEYS,
+              billingBypassOrgIds,
             ],
           ),
         },

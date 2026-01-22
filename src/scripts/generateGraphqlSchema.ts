@@ -1,23 +1,24 @@
 import { existsSync, mkdirSync } from "node:fs";
 
+import { eq } from "drizzle-orm";
 import { EXPORTABLE, exportSchema } from "graphile-export";
 import { makeSchema } from "postgraphile";
 import { context, lambda, object, sideEffect } from "postgraphile/grafast";
 import { replaceInFile } from "replace-in-file";
 
 import graphilePreset from "lib/config/graphile.config";
-import { organizationTable, repositoryTable, userTable } from "lib/db/schema";
+import { dbPool } from "lib/db/db";
+import {
+  organizationTable,
+  pullRequestTable,
+  repositoryTable,
+  userTable,
+} from "lib/db/schema";
+import { isWithinLimit } from "lib/entitlements";
 import { gitService, repositoryService } from "lib/git";
 import {
-  BASIC_TIER_MAX_ADMINS,
-  BASIC_TIER_MAX_COLLABORATORS,
-  BASIC_TIER_MAX_MEMBERS,
-  BASIC_TIER_MAX_REPOSITORIES,
-  FREE_TIER_MAX_ADMINS,
-  FREE_TIER_MAX_COLLABORATORS,
-  FREE_TIER_MAX_MEMBERS,
-  FREE_TIER_MAX_REPOSITORIES,
-  billingBypassSlugs,
+  FEATURE_KEYS,
+  billingBypassOrgIds,
 } from "lib/graphql/plugins/authorization/constants";
 import { getOwnerSlug } from "lib/graphql/plugins/git/GitTypes.plugin";
 
@@ -42,19 +43,20 @@ const generateGraphqlSchema = async () => {
     modules: {
       "graphile-export": { EXPORTABLE },
       "postgraphile/grafast": { context, lambda, object, sideEffect },
+      "drizzle-orm": { eq },
       "lib/git": { gitService, repositoryService },
-      "lib/db/schema": { organizationTable, repositoryTable, userTable },
+      "lib/db/db": { dbPool },
+      "lib/db/schema": {
+        organizationTable,
+        pullRequestTable,
+        repositoryTable,
+        userTable,
+      },
+      "lib/entitlements": { isWithinLimit },
       "lib/graphql/plugins/git/GitTypes.plugin": { getOwnerSlug },
       "lib/graphql/plugins/authorization/constants": {
-        FREE_TIER_MAX_REPOSITORIES,
-        FREE_TIER_MAX_COLLABORATORS,
-        FREE_TIER_MAX_MEMBERS,
-        FREE_TIER_MAX_ADMINS,
-        BASIC_TIER_MAX_REPOSITORIES,
-        BASIC_TIER_MAX_COLLABORATORS,
-        BASIC_TIER_MAX_MEMBERS,
-        BASIC_TIER_MAX_ADMINS,
-        billingBypassSlugs,
+        FEATURE_KEYS,
+        billingBypassOrgIds,
       },
     },
   });
