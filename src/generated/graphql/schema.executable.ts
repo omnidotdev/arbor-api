@@ -1,10 +1,13 @@
 // @ts-nocheck
 import { PgBooleanFilter, PgCondition, PgDeleteSingleStep, PgExecutor, PgOrFilter, TYPES, assertPgClassSingleStep, enumCodec, listOfCodec, makeRegistry, pgDeleteSingle, pgInsertSingle, pgSelectFromRecord, pgUpdateSingle, pgWhereConditionSpecListToSQL, recordCodec, sqlValueWithCodec } from "@dataplan/pg";
+import { eq } from "drizzle-orm";
 import { ConnectionStep, EdgeStep, ExecutableStep, Modifier, ObjectStep, __ValueStep, access, assertExecutableStep, bakedInputRuntime, connection, constant, context, createObjectAndApplyChildren, first, get as get2, inhibitOnNull, inspect, isExecutableStep, lambda, list, makeDecodeNodeId, makeGrafastSchema, object, rootValue, sideEffect, specFromNodeId } from "grafast";
 import { GraphQLError, Kind } from "graphql";
-import { repositoryTable } from "lib/db/schema";
+import { dbPool } from "lib/db/db";
+import { pullRequestTable, repositoryTable } from "lib/db/schema";
+import { isWithinLimit } from "lib/entitlements";
 import { gitService, repositoryService } from "lib/git";
-import { billingBypassSlugs } from "lib/graphql/plugins/authorization/constants";
+import { FEATURE_KEYS, billingBypassOrgIds } from "lib/graphql/plugins/authorization/constants";
 import { getOwnerSlug } from "lib/graphql/plugins/git/GitTypes.plugin";
 import { sql } from "pg-sql2";
 const nodeIdHandlerByTypeName_RepositoryRelationshipMetadatum_codec_base64JSON = {
@@ -5966,8 +5969,9 @@ const planWrapper5 = (plan, _, fieldArgs) => {
   const $input = fieldArgs.getRaw(["input", "repository"]),
     $observer = context().get("observer"),
     $organizations = context().get("organizations"),
-    $db = context().get("db");
-  sideEffect([$input, $observer, $organizations, $db], async ([input, observer, organizations, db]) => {
+    $db = context().get("db"),
+    $withPgClient = context().get("withPgClient");
+  sideEffect([$input, $observer, $organizations, $db, $withPgClient], async ([input, observer, organizations, db, withPgClient]) => {
     if (!observer) throw Error("Unauthorized");
     const organizationId = input.organizationId;
     if (!organizationId) return;
@@ -5980,6 +5984,15 @@ const planWrapper5 = (plan, _, fieldArgs) => {
     });
     if (!organization) throw Error("Organization not found");
     if (!organizations.some(org => org.id === organization.idpOrganizationId)) throw Error("Unauthorized");
+    const totalRepos = await withPgClient(null, async client => {
+      return (await client.query({
+        text: "SELECT count(*)::int as total FROM repository WHERE organization_id = $1",
+        values: [organizationId]
+      })).rows[0]?.total ?? 0;
+    });
+    if (!(await isWithinLimit({
+      organizationId
+    }, FEATURE_KEYS.MAX_REPOSITORIES, totalRepos, billingBypassOrgIds))) throw Error("Maximum number of repositories reached for your plan");
   });
   return plan();
 };
@@ -15561,6 +15574,29 @@ type DeleteRefPayload {
   error: String
 }
 
+"""Input for merging a pull request."""
+input MergePullRequestInput {
+  """The pull request ID."""
+  pullRequestId: UUID!
+
+  """
+  Optional custom commit message. If not provided, a default message is used.
+  """
+  commitMessage: String
+}
+
+"""Payload for mergePullRequest mutation."""
+type MergePullRequestPayload {
+  """Whether the merge was successful."""
+  success: Boolean!
+
+  """The merge commit SHA."""
+  mergeCommitSha: String
+
+  """Error message if merge failed."""
+  error: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -16699,6 +16735,17 @@ type Mutation {
   ): DeleteRefPayload
 
   """
+  Merge a pull request into its target branch.
+  Requires write access to the repository.
+  """
+  mergePullRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: MergePullRequestInput!
+  ): MergePullRequestPayload
+
+  """
   Create a repository and initialize git storage.
   This replaces the standard createRepository mutation to ensure
   the git repository is properly initialized on disk.
@@ -17724,16 +17771,19 @@ ${String(oldPlan)}`);
       createRepositoryWithGit(_$root, fieldArgs) {
         const $input = fieldArgs.getRaw("input"),
           $db = context().get("db"),
-          $observer = context().get("observer");
+          $observer = context().get("observer"),
+          $organizations = context().get("organizations");
         return lambda(object({
           input: $input,
           db: $db,
-          observer: $observer
+          observer: $observer,
+          organizations: $organizations
         }), async args => {
           const {
             input,
             db,
-            observer
+            observer,
+            organizations
           } = args;
           if (!observer) return {
             repository: null,
@@ -17755,13 +17805,6 @@ ${String(oldPlan)}`);
                 return eq(table.id, organizationId);
               },
               with: {
-                organizationMembers: {
-                  where(table, {
-                    eq
-                  }) {
-                    return eq(table.userId, observer.id);
-                  }
-                },
                 repositories: !0
               }
             });
@@ -17769,24 +17812,16 @@ ${String(oldPlan)}`);
               repository: null,
               error: "Organization not found"
             };
-            if (!organization.organizationMembers.length) return {
+            if (!organizations?.some(org => org.id === organization.idpOrganizationId)) return {
               repository: null,
               error: "Unauthorized"
             };
-            if (!billingBypassSlugs.includes(organization.slug)) {
-              if (organization.tier === "free") {
-                if (organization.repositories.length >= 5) return {
-                  repository: null,
-                  error: "Maximum number of repositories reached"
-                };
-              }
-              if (organization.tier === "basic") {
-                if (organization.repositories.length >= 25) return {
-                  repository: null,
-                  error: "Maximum number of repositories reached"
-                };
-              }
-            }
+            if (!(await isWithinLimit({
+              organizationId
+            }, FEATURE_KEYS.MAX_REPOSITORIES, organization.repositories.length, billingBypassOrgIds))) return {
+              repository: null,
+              error: "Maximum number of repositories reached for your plan"
+            };
           }
           const [repository] = await db.insert(repositoryTable).values({
             name,
@@ -18438,6 +18473,109 @@ ${String(oldPlan17)}`);
           return {
             success: !0,
             repository,
+            error: null
+          };
+        });
+      },
+      mergePullRequest(_$root, fieldArgs) {
+        const $input = fieldArgs.getRaw("input"),
+          $db = context().get("db"),
+          $observer = context().get("observer");
+        return lambda(object({
+          input: $input,
+          db: $db,
+          observer: $observer
+        }), async args => {
+          const {
+            input,
+            db,
+            observer
+          } = args;
+          if (!observer) return {
+            success: !1,
+            mergeCommitSha: null,
+            error: "Unauthorized"
+          };
+          const {
+              pullRequestId,
+              commitMessage
+            } = input,
+            pullRequest = await db.query.pullRequestTable.findFirst({
+              where(table, {
+                eq
+              }) {
+                return eq(table.id, pullRequestId);
+              },
+              with: {
+                repository: {
+                  with: {
+                    owner: !0,
+                    organization: !0,
+                    collaborators: {
+                      where(table, {
+                        eq
+                      }) {
+                        return eq(table.userId, observer.id);
+                      }
+                    }
+                  }
+                },
+                author: !0
+              }
+            });
+          if (!pullRequest) return {
+            success: !1,
+            mergeCommitSha: null,
+            error: "Pull request not found"
+          };
+          if (pullRequest.state !== "open") return {
+            success: !1,
+            mergeCommitSha: null,
+            error: `Pull request is ${pullRequest.state}, not open`
+          };
+          const repository = pullRequest.repository,
+            isOwner = repository.ownerId === observer.id,
+            hasWriteAccess = repository.collaborators?.some(c => c.permission === "admin" || c.permission === "write");
+          if (!isOwner && !hasWriteAccess) return {
+            success: !1,
+            mergeCommitSha: null,
+            error: "Unauthorized - requires write access"
+          };
+          const ownerSlug = repository.organization?.slug || repository.owner?.username;
+          if (!ownerSlug) return {
+            success: !1,
+            mergeCommitSha: null,
+            error: "Invalid repository owner"
+          };
+          if (!(await repositoryService.exists(ownerSlug, repository.slug))) return {
+            success: !1,
+            mergeCommitSha: null,
+            error: "Repository not initialized"
+          };
+          const defaultMessage = `Merge pull request #${pullRequest.number} from ${pullRequest.sourceBranch}
+
+${pullRequest.title}`,
+            mergeMessage = commitMessage || defaultMessage,
+            mergeResult = await gitService.merge(ownerSlug, repository.slug, pullRequest.sourceBranch, pullRequest.targetBranch, {
+              name: observer.username || observer.email || "Unknown",
+              email: observer.email || "unknown@arbor.dev"
+            }, mergeMessage);
+          if (!mergeResult.sha) return {
+            success: !1,
+            mergeCommitSha: null,
+            error: mergeResult.error || "Merge failed"
+          };
+          const now = new Date();
+          await dbPool.update(pullRequestTable).set({
+            state: "merged",
+            mergeCommitSha: mergeResult.sha,
+            mergedAt: now,
+            mergedById: observer.id,
+            updatedAt: now.toISOString()
+          }).where(eq(pullRequestTable.id, pullRequestId));
+          return {
+            success: !0,
+            mergeCommitSha: mergeResult.sha,
             error: null
           };
         });
@@ -19918,6 +20056,19 @@ ${String(oldPlan10)}`);
       },
       repository($payload) {
         return lambda($payload, p => p?.repository ?? null);
+      },
+      success($payload) {
+        return lambda($payload, p => p?.success ?? !1);
+      }
+    }
+  },
+  MergePullRequestPayload: {
+    plans: {
+      error($payload) {
+        return lambda($payload, p => p?.error ?? null);
+      },
+      mergeCommitSha($payload) {
+        return lambda($payload, p => p?.mergeCommitSha ?? null);
       },
       success($payload) {
         return lambda($payload, p => p?.success ?? !1);
