@@ -1,7 +1,10 @@
+import { eq } from "drizzle-orm";
 import { EXPORTABLE } from "graphile-export";
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
+import { dbPool } from "lib/db/db";
+import { pullRequestTable } from "lib/db/schema";
 import { gitService, repositoryService } from "lib/git";
 
 import type { FieldArgs } from "postgraphile/grafast";
@@ -112,6 +115,41 @@ const GitMutationsPlugin = extendSchema((_build) => {
         error: String
       }
 
+      """
+      Input for merging a pull request.
+      """
+      input MergePullRequestInput {
+        """
+        The pull request ID.
+        """
+        pullRequestId: UUID!
+
+        """
+        Optional custom commit message. If not provided, a default message is used.
+        """
+        commitMessage: String
+      }
+
+      """
+      Payload for mergePullRequest mutation.
+      """
+      type MergePullRequestPayload {
+        """
+        Whether the merge was successful.
+        """
+        success: Boolean!
+
+        """
+        The merge commit SHA.
+        """
+        mergeCommitSha: String
+
+        """
+        Error message if merge failed.
+        """
+        error: String
+      }
+
       extend type Mutation {
         """
         Initialize git storage for a repository.
@@ -130,6 +168,12 @@ const GitMutationsPlugin = extendSchema((_build) => {
         Delete a ref (branch or tag).
         """
         deleteRef(input: DeleteRefInput!): DeleteRefPayload
+
+        """
+        Merge a pull request into its target branch.
+        Requires write access to the repository.
+        """
+        mergePullRequest(input: MergePullRequestInput!): MergePullRequestPayload
       }
     `,
 
@@ -179,6 +223,32 @@ const GitMutationsPlugin = extendSchema((_build) => {
           success: EXPORTABLE(
             (lambda) => ($payload: any) => {
               return lambda($payload, (p) => (p as any)?.success ?? false);
+            },
+            [lambda],
+          ),
+          error: EXPORTABLE(
+            (lambda) => ($payload: any) => {
+              return lambda($payload, (p) => (p as any)?.error ?? null);
+            },
+            [lambda],
+          ),
+        },
+      },
+
+      MergePullRequestPayload: {
+        plans: {
+          success: EXPORTABLE(
+            (lambda) => ($payload: any) => {
+              return lambda($payload, (p) => (p as any)?.success ?? false);
+            },
+            [lambda],
+          ),
+          mergeCommitSha: EXPORTABLE(
+            (lambda) => ($payload: any) => {
+              return lambda(
+                $payload,
+                (p) => (p as any)?.mergeCommitSha ?? null,
+              );
             },
             [lambda],
           ),
@@ -507,6 +577,174 @@ const GitMutationsPlugin = extendSchema((_build) => {
                 );
               },
             [lambda, object, context, repositoryService, gitService],
+          ),
+
+          mergePullRequest: EXPORTABLE(
+            (
+              lambda,
+              object,
+              context,
+              repositoryService,
+              gitService,
+              dbPool,
+              pullRequestTable,
+              eq,
+            ) =>
+              (_$root: any, fieldArgs: FieldArgs) => {
+                const $input = fieldArgs.getRaw("input");
+                const $db = context().get("db");
+                const $observer = context().get("observer");
+
+                return lambda(
+                  object({ input: $input, db: $db, observer: $observer }),
+                  async (args: any) => {
+                    const { input, db, observer } = args;
+
+                    if (!observer) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: "Unauthorized",
+                      };
+                    }
+
+                    const { pullRequestId, commitMessage } = input;
+
+                    // Fetch the pull request with repository and collaborators
+                    const pullRequest =
+                      await db.query.pullRequestTable.findFirst({
+                        where: (table: any, { eq }: any) =>
+                          eq(table.id, pullRequestId),
+                        with: {
+                          repository: {
+                            with: {
+                              owner: true,
+                              organization: true,
+                              collaborators: {
+                                where: (table: any, { eq }: any) =>
+                                  eq(table.userId, observer.id),
+                              },
+                            },
+                          },
+                          author: true,
+                        },
+                      });
+
+                    if (!pullRequest) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: "Pull request not found",
+                      };
+                    }
+
+                    // Check if PR is in a mergeable state
+                    if (pullRequest.state !== "open") {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: `Pull request is ${pullRequest.state}, not open`,
+                      };
+                    }
+
+                    const repository = pullRequest.repository;
+
+                    // Check write access
+                    const isOwner = repository.ownerId === observer.id;
+                    const hasWriteAccess = repository.collaborators?.some(
+                      (c: any) =>
+                        c.permission === "admin" || c.permission === "write",
+                    );
+
+                    if (!isOwner && !hasWriteAccess) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: "Unauthorized - requires write access",
+                      };
+                    }
+
+                    const ownerSlug =
+                      repository.organization?.slug ||
+                      repository.owner?.username;
+
+                    if (!ownerSlug) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: "Invalid repository owner",
+                      };
+                    }
+
+                    // Check repository exists on disk
+                    const exists = await repositoryService.exists(
+                      ownerSlug,
+                      repository.slug,
+                    );
+                    if (!exists) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: "Repository not initialized",
+                      };
+                    }
+
+                    // Build merge commit message
+                    const defaultMessage = `Merge pull request #${pullRequest.number} from ${pullRequest.sourceBranch}\n\n${pullRequest.title}`;
+                    const mergeMessage = commitMessage || defaultMessage;
+
+                    // Perform the merge
+                    const mergeResult = await gitService.merge(
+                      ownerSlug,
+                      repository.slug,
+                      pullRequest.sourceBranch,
+                      pullRequest.targetBranch,
+                      {
+                        name: observer.username || observer.email || "Unknown",
+                        email: observer.email || "unknown@arbor.dev",
+                      },
+                      mergeMessage,
+                    );
+
+                    if (!mergeResult.sha) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: mergeResult.error || "Merge failed",
+                      };
+                    }
+
+                    // Update the pull request in the database
+                    const now = new Date();
+                    await dbPool
+                      .update(pullRequestTable)
+                      .set({
+                        state: "merged",
+                        mergeCommitSha: mergeResult.sha,
+                        mergedAt: now, // Date type (plain timestamp())
+                        mergedById: observer.id,
+                        updatedAt: now.toISOString(), // String type (mode: "string")
+                      })
+                      .where(eq(pullRequestTable.id, pullRequestId));
+
+                    return {
+                      success: true,
+                      mergeCommitSha: mergeResult.sha,
+                      error: null,
+                    };
+                  },
+                );
+              },
+            [
+              lambda,
+              object,
+              context,
+              repositoryService,
+              gitService,
+              dbPool,
+              pullRequestTable,
+              eq,
+            ],
           ),
         },
       },

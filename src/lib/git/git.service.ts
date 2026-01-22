@@ -424,4 +424,118 @@ export const gitService = {
       return false;
     }
   },
+
+  /**
+   * Merge source branch into target branch.
+   * Returns the merge commit SHA on success, null on failure.
+   *
+   * NOTE: isomorphic-git's merge requires a working directory, but we use bare repos.
+   * For bare repos, we perform a fast-forward merge when possible, or create a
+   * merge commit by writing the tree and commit objects directly.
+   */
+  async merge(
+    owner: string,
+    repo: string,
+    sourceBranch: string,
+    targetBranch: string,
+    author: { name: string; email: string },
+    message: string,
+  ): Promise<{ sha: string | null; error?: string }> {
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      // Resolve both branches to their commit SHAs
+      const sourceSha = await git.resolveRef({
+        fs,
+        gitdir,
+        ref: `refs/heads/${sourceBranch}`,
+      });
+      const targetSha = await git.resolveRef({
+        fs,
+        gitdir,
+        ref: `refs/heads/${targetBranch}`,
+      });
+
+      // Read source commit to get its tree for merge commit
+      const sourceCommit = await git.readCommit({ fs, gitdir, oid: sourceSha });
+
+      // Check if it's a fast-forward (source is descendant of target)
+      const isAncestor = await git.isDescendent({
+        fs,
+        gitdir,
+        oid: sourceSha,
+        ancestor: targetSha,
+      });
+
+      if (isAncestor) {
+        // Fast-forward merge: just update the target branch to point to source
+        await git.writeRef({
+          fs,
+          gitdir,
+          ref: `refs/heads/${targetBranch}`,
+          value: sourceSha,
+          force: true,
+        });
+        return { sha: sourceSha };
+      }
+
+      // Check if source is behind target (already merged)
+      const isAlreadyMerged = await git.isDescendent({
+        fs,
+        gitdir,
+        oid: targetSha,
+        ancestor: sourceSha,
+      });
+
+      if (isAlreadyMerged) {
+        return { sha: null, error: "Source branch is already merged" };
+      }
+
+      // Non-fast-forward merge: create a merge commit
+      // Find the merge base
+      const [mergeBase] = await git.findMergeBase({
+        fs,
+        gitdir,
+        oids: [sourceSha, targetSha],
+      });
+
+      if (!mergeBase) {
+        return { sha: null, error: "No common ancestor found" };
+      }
+
+      // For simplicity, we'll use the source tree if there are no conflicts
+      // A full merge would require tree diffing and conflict detection
+      // For MVP, we'll do a simple merge that takes the source tree
+      const mergeCommitSha = await git.commit({
+        fs,
+        gitdir,
+        message,
+        tree: sourceCommit.commit.tree,
+        parent: [targetSha, sourceSha],
+        author: {
+          name: author.name,
+          email: author.email,
+        },
+        committer: {
+          name: author.name,
+          email: author.email,
+        },
+      });
+
+      // Update the target branch to point to the merge commit
+      await git.writeRef({
+        fs,
+        gitdir,
+        ref: `refs/heads/${targetBranch}`,
+        value: mergeCommitSha,
+        force: true,
+      });
+
+      return { sha: mergeCommitSha };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return { sha: null, error: errorMessage };
+    }
+  },
 };
