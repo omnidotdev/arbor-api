@@ -45,6 +45,12 @@ const app = new Elysia({
       methods: ["GET", "POST", "DELETE", "OPTIONS"],
     }),
   )
+  .onAfterHandle(({ set }) => {
+    set.headers["X-Content-Type-Options"] = "nosniff";
+    set.headers["X-Frame-Options"] = "DENY";
+    set.headers["X-XSS-Protection"] = "1; mode=block";
+    set.headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+  })
   // Rate limiting: 100 requests per minute for general API
   // Skip webhooks (they're server-to-server with signatures)
   .use(
@@ -89,22 +95,22 @@ ensureReposDirectory().catch((err) => {
   console.error("[Git] Failed to create repositories directory:", err);
 });
 
-console.log(
+console.info(
   `🦊 ${appConfig.name} Elysia server running at ${app.server?.url.toString().slice(0, -1)}`,
 );
 
-console.log(
+console.info(
   `🧘 ${appConfig.name} GraphQL Yoga API running at ${app.server?.url}graphql`,
 );
 
-console.log(`🌳 ${appConfig.name} Git API running at ${app.server?.url}git`);
+console.info(`🌳 ${appConfig.name} Git API running at ${app.server?.url}git`);
 
 // Start audit log flush interval
 startAuditFlush();
 
 // Graceful shutdown - flush pending audit events
 const shutdown = async (signal: string) => {
-  console.log(`\n[${signal}] Shutting down gracefully...`);
+  console.info(`\n[${signal}] Shutting down gracefully...`);
   await stopAuditFlush();
   process.exit(0);
 };
