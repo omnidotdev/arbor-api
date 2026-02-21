@@ -9,7 +9,6 @@ import { schema } from "generated/graphql/schema.executable";
 import { useGrafast } from "grafast/envelop";
 import webhooks from "webhooks";
 
-import { startAuditFlush, stopAuditFlush } from "lib/audit";
 import appConfig from "lib/config/app.config";
 import {
   CORS_ALLOWED_ORIGINS,
@@ -104,16 +103,3 @@ console.info(
 );
 
 console.info(`🌳 ${appConfig.name} Git API running at ${app.server?.url}git`);
-
-// Start audit log flush interval
-startAuditFlush();
-
-// Graceful shutdown - flush pending audit events
-const shutdown = async (signal: string) => {
-  console.info(`\n[${signal}] Shutting down gracefully...`);
-  await stopAuditFlush();
-  process.exit(0);
-};
-
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));

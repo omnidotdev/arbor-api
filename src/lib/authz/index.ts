@@ -17,8 +17,6 @@
  * ```
  */
 
-import { logCircuitBreakerEvent, logPermissionCheck } from "lib/audit";
-
 // Re-export for EXPORTABLE compatibility in plugins
 export { AUTHZ_API_URL, AUTHZ_ENABLED } from "lib/config/env.config";
 
@@ -44,7 +42,6 @@ class CircuitBreaker {
     if (this.state === "open") {
       if (Date.now() - this.lastFailure > CIRCUIT_BREAKER_COOLDOWN_MS) {
         this.state = "half-open";
-        logCircuitBreakerEvent("half_open");
       } else {
         throw new Error("AuthZ PDP unavailable - circuit open (fail-closed)");
       }
@@ -61,9 +58,6 @@ class CircuitBreaker {
   }
 
   private reset(): void {
-    if (this.failures > 0 || this.state !== "closed") {
-      logCircuitBreakerEvent("closed");
-    }
     this.failures = 0;
     this.state = "closed";
   }
@@ -74,11 +68,6 @@ class CircuitBreaker {
 
     if (this.failures >= CIRCUIT_BREAKER_THRESHOLD) {
       this.state = "open";
-      logCircuitBreakerEvent(
-        "open",
-        this.failures,
-        `Circuit opened after ${this.failures} consecutive failures`,
-      );
     }
   }
 }
@@ -137,8 +126,6 @@ export async function checkPermission(
     return cachedResult;
   }
 
-  const startTime = Date.now();
-
   try {
     const allowed = await circuitBreaker.execute(async () => {
       const response = await fetch(`${authzProviderUrl}/check`, {
@@ -164,27 +151,8 @@ export async function checkPermission(
     requestCache?.set(cacheKey, allowed);
     setCachedPermission(cacheKey, allowed);
 
-    // Log to persistent audit trail
-    logPermissionCheck({
-      userId,
-      resourceType,
-      resourceId,
-      permission,
-      allowed,
-      durationMs: Date.now() - startTime,
-    });
-
     return allowed;
   } catch (error) {
-    // Log denied permission to audit trail
-    logPermissionCheck({
-      userId,
-      resourceType,
-      resourceId,
-      permission,
-      allowed: false,
-      durationMs: Date.now() - startTime,
-    });
     // Fail-closed: deny access when PDP is unavailable
     throw error;
   }
