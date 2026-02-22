@@ -17,10 +17,10 @@ import {
   isProdEnv,
 } from "lib/config/env.config";
 import { ensureReposDirectory } from "lib/git";
-import { initializeSearchIndexes, search } from "lib/search";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
 import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
 import { rateLimit } from "lib/middleware/rateLimit";
+import { initializeSearchIndexes, search } from "lib/search";
 import gitRoutes from "routes/git.routes";
 
 /**

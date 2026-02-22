@@ -17,7 +17,6 @@ interface RepositoryDocument {
   updated_at: string;
 }
 
-
 /**
  * Document structure for issue (pull request) search index.
  */
@@ -89,7 +88,6 @@ export async function deleteRepositoryFromIndex(
     );
   }
 }
-
 
 /**
  * Index a pull request as an issue document.
