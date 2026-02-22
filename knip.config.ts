@@ -19,7 +19,11 @@ const knipConfig: KnipConfig = {
     "src/lib/payments.ts",
     "src/webhooks.ts",
   ],
-  ignoreDependencies: ["drizzle-kit"],
+  ignoreDependencies: [
+    "drizzle-kit",
+    // Conditionally used when SEARCH_ENABLED=true
+    "@omnidotdev/search",
+  ],
   rules: {
     unlisted: "off",
   },

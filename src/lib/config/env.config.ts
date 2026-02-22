@@ -28,6 +28,10 @@ export const {
   BILLING_BYPASS_ORG_IDS,
   // Legacy: org slugs for bypass (deprecated, use BILLING_BYPASS_ORG_IDS)
   BILLING_BYPASS_SLUGS,
+  // Meilisearch (unified search)
+  MEILISEARCH_URL,
+  MEILISEARCH_MASTER_KEY,
+  SEARCH_ENABLED,
 } = process.env;
 
 export const isDevEnv = NODE_ENV === "development",
@@ -35,3 +39,7 @@ export const isDevEnv = NODE_ENV === "development",
   protectRoutes = isProdEnv || PROTECT_ROUTES === "true",
   isAuthzEnabled = AUTHZ_ENABLED === "true",
   isSelfHosted = SELF_HOSTED === "true";
+
+/** Whether search indexing is enabled */
+export const isSearchEnabled =
+  SEARCH_ENABLED === "true" && !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;

@@ -19,6 +19,10 @@ import {
   RepositoryCreatePlugin,
 } from "lib/graphql/plugins/git";
 import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
+import {
+  PullRequestSearchPlugin,
+  RepositorySearchPlugin,
+} from "lib/graphql/plugins/search";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
 /**
@@ -46,6 +50,9 @@ const graphilePreset: GraphileConfig.Preset = {
     GitTypesPlugin,
     GitMutationsPlugin,
     RepositoryCreatePlugin,
+    // Search indexing plugins
+    RepositorySearchPlugin,
+    PullRequestSearchPlugin,
   ],
   disablePlugins: ["PgIndexBehaviorsPlugin"],
   schema: {

@@ -17,6 +17,7 @@ import {
   isProdEnv,
 } from "lib/config/env.config";
 import { ensureReposDirectory } from "lib/git";
+import { initializeSearchIndexes, search } from "lib/search";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
 import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
 import { rateLimit } from "lib/middleware/rateLimit";
@@ -93,6 +94,13 @@ const app = new Elysia({
 ensureReposDirectory().catch((err) => {
   console.error("[Git] Failed to create repositories directory:", err);
 });
+
+// Initialize search indexes if search is enabled
+if (search) {
+  initializeSearchIndexes().catch((err) => {
+    console.error("[Search] Failed to initialize indexes:", err);
+  });
+}
 
 console.info(
   `🦊 ${appConfig.name} Elysia server running at ${app.server?.url.toString().slice(0, -1)}`,
