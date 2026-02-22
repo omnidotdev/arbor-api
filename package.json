@@ -31,7 +31,7 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/graphql-yoga": "^1.4.0",
-    "@omnidotdev/search": "file:../../../search",
+    "@omnidotdev/search": "github:omnidotdev/search",
     "@envelop/generic-auth": "^11.0.0",
     "@envelop/opentelemetry": "^9.0.0",
     "@envelop/parser-cache": "^10.0.0",
