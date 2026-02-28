@@ -18,11 +18,13 @@ const knipConfig: KnipConfig = {
     "src/lib/graphql/**",
     "src/lib/payments.ts",
     "src/webhooks.ts",
+    "src/lib/providers/index.ts",
   ],
   ignoreDependencies: [
     "drizzle-kit",
     // Conditionally used when SEARCH_ENABLED=true
     "@omnidotdev/search",
+    "@omnidotdev/providers",
   ],
   rules: {
     unlisted: "off",

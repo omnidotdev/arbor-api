@@ -22,6 +22,9 @@ export const {
   AUTHZ_API_URL,
   // IDP webhooks
   IDP_WEBHOOK_SECRET,
+  // Vortex event emission
+  VORTEX_API_URL,
+  VORTEX_API_KEY,
   // Self-hosted mode
   SELF_HOSTED,
   // Billing bypass (org IDs that skip billing checks)
