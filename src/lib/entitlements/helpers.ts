@@ -19,7 +19,7 @@ const PRODUCT_ID = "arbor";
 const CACHE_PREFIX = "organization";
 
 /** Tier type */
-type Tier = "free" | "basic" | "team" | "enterprise";
+type Tier = "free" | "pro" | "team" | "enterprise";
 
 /** Default limits for FREE tier only (used when entitlements found but limit not specified) */
 const FREE_TIER_LIMITS: Record<string, number> = {
