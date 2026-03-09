@@ -57,6 +57,13 @@
       "when": 1768947763719,
       "tag": "0007_new_magik",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1773027342170,
+      "tag": "0008_drop_unused_tier_enum",
+      "breakpoints": true
     }
   ]
 }
