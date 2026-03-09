@@ -9,6 +9,7 @@ import {
   FEATURE_KEYS,
   billingBypassOrgIds,
 } from "lib/graphql/plugins/authorization/constants";
+import events from "lib/providers";
 
 import type { FieldArgs } from "postgraphile/grafast";
 
@@ -155,6 +156,7 @@ const RepositoryCreatePlugin = extendSchema(() => {
               isWithinLimit,
               FEATURE_KEYS,
               billingBypassOrgIds,
+              events,
             ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
@@ -303,6 +305,24 @@ const RepositoryCreatePlugin = extendSchema(() => {
                       };
                     }
 
+                    events
+                      .emit({
+                        type: "arbor.repository.created",
+                        data: {
+                          repositoryId: fullRepository.id,
+                          name,
+                          slug,
+                          visibility,
+                          ownerId: observer.id,
+                          organizationId: organizationId || null,
+                        },
+                        organizationId: organizationId || observer.id,
+                        subject: fullRepository.id,
+                      })
+                      .catch((err) =>
+                        console.warn("[arbor] Event emit failed", err),
+                      );
+
                     return {
                       rowId: fullRepository.id,
                       slug: fullRepository.slug,
@@ -323,6 +343,7 @@ const RepositoryCreatePlugin = extendSchema(() => {
               isWithinLimit,
               FEATURE_KEYS,
               billingBypassOrgIds,
+              events,
             ],
           ),
         },

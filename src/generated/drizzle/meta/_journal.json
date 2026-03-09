@@ -64,6 +64,13 @@
       "when": 1773027342170,
       "tag": "0008_drop_unused_tier_enum",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1773028723743,
+      "tag": "0009_messy_sunspot",
+      "breakpoints": true
     }
   ]
 }

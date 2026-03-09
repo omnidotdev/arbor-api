@@ -2,7 +2,6 @@ import { relations } from "drizzle-orm";
 import {
   index,
   integer,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -15,20 +14,6 @@ import { repositoryTable } from "./repository.table";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
-
-export const pullRequestState = pgEnum("pull_request_state", [
-  "open",
-  "closed",
-  "merged",
-  "draft",
-]);
-
-export const reviewState = pgEnum("review_state", [
-  "approved",
-  "changes_requested",
-  "commented",
-  "pending",
-]);
 
 /**
  * Pull request table.
@@ -46,7 +31,7 @@ export const pullRequestTable = pgTable(
       .references(() => userTable.id, { onDelete: "cascade" }),
     title: text().notNull(),
     description: text(),
-    state: pullRequestState().notNull().default("open"),
+    state: text().notNull().default("open"),
     sourceBranch: text().notNull(),
     targetBranch: text().notNull(),
     mergeCommitSha: text(), // Set when merged
@@ -79,7 +64,7 @@ export const pullRequestReviewTable = pgTable(
     reviewerId: uuid()
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),
-    state: reviewState().notNull().default("pending"),
+    state: text().notNull().default("pending"),
     body: text(),
     submittedAt: timestamp(),
     createdAt: generateDefaultDate(),

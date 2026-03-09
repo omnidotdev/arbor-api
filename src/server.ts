@@ -4,6 +4,7 @@ import { useOpenTelemetry } from "@envelop/opentelemetry";
 import { useParserCache } from "@envelop/parser-cache";
 import { useValidationCache } from "@envelop/validation-cache";
 import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection";
+import { registerSchemas } from "@omnidotdev/providers";
 import { Elysia } from "elysia";
 import { schema } from "generated/graphql/schema.executable";
 import { useGrafast } from "grafast/envelop";
@@ -13,6 +14,8 @@ import appConfig from "lib/config/app.config";
 import {
   CORS_ALLOWED_ORIGINS,
   PORT,
+  VORTEX_API_KEY,
+  VORTEX_API_URL,
   isDevEnv,
   isProdEnv,
 } from "lib/config/env.config";
@@ -22,6 +25,34 @@ import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
 import { rateLimit } from "lib/middleware/rateLimit";
 import { initializeSearchIndexes, search } from "lib/search";
 import gitRoutes from "routes/git.routes";
+
+// Register event schemas with Vortex
+if (VORTEX_API_URL && VORTEX_API_KEY) {
+  registerSchemas(VORTEX_API_URL, VORTEX_API_KEY, [
+    {
+      name: "arbor.repository.created",
+      source: "omni.arbor",
+      description: "Repository created",
+    },
+    {
+      name: "arbor.ref.created",
+      source: "omni.arbor",
+      description: "Branch or tag created",
+    },
+    {
+      name: "arbor.ref.deleted",
+      source: "omni.arbor",
+      description: "Branch or tag deleted",
+    },
+    {
+      name: "arbor.pull_request.merged",
+      source: "omni.arbor",
+      description: "Pull request merged",
+    },
+  ]).catch((err) => {
+    console.warn("[Events] Schema registration failed:", err);
+  });
+}
 
 /**
  * Elysia server.

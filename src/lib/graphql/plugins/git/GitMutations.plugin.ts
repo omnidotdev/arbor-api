@@ -6,6 +6,7 @@ import { extendSchema } from "postgraphile/utils";
 import { dbPool } from "lib/db/db";
 import { pullRequestTable } from "lib/db/schema";
 import { gitService, repositoryService } from "lib/git";
+import events from "lib/providers";
 
 import type { FieldArgs } from "postgraphile/grafast";
 
@@ -354,7 +355,7 @@ const GitMutationsPlugin = extendSchema((_build) => {
           ),
 
           createRef: EXPORTABLE(
-            (lambda, object, context, repositoryService, gitService) =>
+            (lambda, object, context, repositoryService, gitService, events) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
@@ -455,6 +456,22 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       name,
                     );
 
+                    events
+                      .emit({
+                        type: "arbor.ref.created",
+                        data: {
+                          repositoryId,
+                          ref: name,
+                          oid: sha || oid,
+                        },
+                        organizationId:
+                          repository.organizationId || repository.ownerId,
+                        subject: repositoryId,
+                      })
+                      .catch((err) =>
+                        console.warn("[arbor] Event emit failed", err),
+                      );
+
                     return {
                       ref: {
                         prefix,
@@ -468,11 +485,11 @@ const GitMutationsPlugin = extendSchema((_build) => {
                   },
                 );
               },
-            [lambda, object, context, repositoryService, gitService],
+            [lambda, object, context, repositoryService, gitService, events],
           ),
 
           deleteRef: EXPORTABLE(
-            (lambda, object, context, repositoryService, gitService) =>
+            (lambda, object, context, repositoryService, gitService, events) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
@@ -572,11 +589,23 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       return { success: false, error: "Failed to delete ref" };
                     }
 
+                    events
+                      .emit({
+                        type: "arbor.ref.deleted",
+                        data: { repositoryId, ref: name },
+                        organizationId:
+                          repository.organizationId || repository.ownerId,
+                        subject: repositoryId,
+                      })
+                      .catch((err) =>
+                        console.warn("[arbor] Event emit failed", err),
+                      );
+
                     return { success: true, error: null };
                   },
                 );
               },
-            [lambda, object, context, repositoryService, gitService],
+            [lambda, object, context, repositoryService, gitService, events],
           ),
 
           mergePullRequest: EXPORTABLE(
@@ -589,6 +618,7 @@ const GitMutationsPlugin = extendSchema((_build) => {
               dbPool,
               pullRequestTable,
               eq,
+              events,
             ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
@@ -727,6 +757,24 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       })
                       .where(eq(pullRequestTable.id, pullRequestId));
 
+                    events
+                      .emit({
+                        type: "arbor.pull_request.merged",
+                        data: {
+                          pullRequestId,
+                          mergeCommitSha: mergeResult.sha,
+                          repositoryId: repository.id,
+                          sourceBranch: pullRequest.sourceBranch,
+                          targetBranch: pullRequest.targetBranch,
+                        },
+                        organizationId:
+                          repository.organizationId || repository.ownerId,
+                        subject: pullRequestId,
+                      })
+                      .catch((err) =>
+                        console.warn("[arbor] Event emit failed", err),
+                      );
+
                     return {
                       success: true,
                       mergeCommitSha: mergeResult.sha,
@@ -744,6 +792,7 @@ const GitMutationsPlugin = extendSchema((_build) => {
               dbPool,
               pullRequestTable,
               eq,
+              events,
             ],
           ),
         },

@@ -2,7 +2,6 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   index,
-  pgEnum,
   pgTable,
   real,
   text,
@@ -15,19 +14,6 @@ import { organizationTable } from "./organization.table";
 import { repositoryTable } from "./repository.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
-
-/**
- * Detection source for how a relationship was discovered.
- */
-export const detectionSource = pgEnum("detection_source", [
-  "manual",
-  "package_json",
-  "go_mod",
-  "cargo_toml",
-  "arbor_manifest",
-  "openapi",
-  "graphql_schema",
-]);
 
 /**
  * Repository relationship type table.
@@ -90,7 +76,7 @@ export const repositoryRelationshipTable = pgTable(
       .references(() => repositoryRelationshipTypeTable.id, {
         onDelete: "cascade",
       }),
-    detectionSource: detectionSource().notNull().default("manual"),
+    detectionSource: text().notNull().default("manual"),
     // confidence score for auto-detected relationships (0.0 - 1.0)
     confidence: real().notNull().default(1.0),
     // optional version constraint (e.g., "^1.0.0", ">=2.0.0")
@@ -198,7 +184,7 @@ export const externalDependencyTable = pgTable(
     packageManager: text().notNull(), // "npm", "cargo", "go", "pip", etc.
     packageName: text().notNull(),
     versionConstraint: text(),
-    detectionSource: detectionSource().notNull().default("manual"),
+    detectionSource: text().notNull().default("manual"),
     createdAt: generateDefaultDate(),
   },
   (table) => [
