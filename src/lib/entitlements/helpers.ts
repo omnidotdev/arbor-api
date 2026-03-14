@@ -26,10 +26,9 @@ type Tier = "free" | "pro" | "team" | "enterprise";
 
 /** Default limits for FREE tier only (used when entitlements found but limit not specified) */
 const FREE_TIER_LIMITS: Record<string, number> = {
-  max_repositories: 5,
-  max_collaborators: 3,
   max_private_repos: 1,
-  max_org_members: 5,
+  max_storage_bytes: 524_288_000,
+  max_collaborators: 1,
 };
 
 interface CachedEntitlements {
