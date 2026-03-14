@@ -21,6 +21,9 @@ const CACHE_PREFIX = "organization";
 /** Tier type */
 type Tier = "free" | "pro" | "team" | "enterprise";
 
+// FALLBACK ONLY — source of truth is Omni API plan_feature table (kind="operational")
+// Keep in sync: run `bun sync:limits` in aether-api after updating API seed data
+
 /** Default limits for FREE tier only (used when entitlements found but limit not specified) */
 const FREE_TIER_LIMITS: Record<string, number> = {
   max_repositories: 5,
