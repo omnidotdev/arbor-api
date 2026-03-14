@@ -29,8 +29,6 @@ export const {
   SELF_HOSTED,
   // Billing bypass (org IDs that skip billing checks)
   BILLING_BYPASS_ORG_IDS,
-  // Legacy: org slugs for bypass (deprecated, use BILLING_BYPASS_ORG_IDS)
-  BILLING_BYPASS_SLUGS,
   // Meilisearch (unified search)
   MEILISEARCH_URL,
   MEILISEARCH_MASTER_KEY,
