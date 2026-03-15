@@ -1,6 +1,24 @@
-import { createEventsProvider } from "@omnidotdev/providers";
+import {
+  createBillingProvider,
+  createEventsProvider,
+} from "@omnidotdev/providers";
 
-import { VORTEX_API_KEY, VORTEX_API_URL } from "lib/config/env.config";
+import {
+  BILLING_BASE_URL,
+  BILLING_SERVICE_API_KEY,
+  VORTEX_API_KEY,
+  VORTEX_API_URL,
+} from "lib/config/env.config";
+
+export const billing = createBillingProvider(
+  BILLING_BASE_URL
+    ? {
+        baseUrl: BILLING_BASE_URL,
+        serviceApiKey: BILLING_SERVICE_API_KEY,
+        appId: "arbor",
+      }
+    : {},
+);
 
 /** @knipignore */
 const events = createEventsProvider(

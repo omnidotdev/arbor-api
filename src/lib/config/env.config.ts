@@ -13,10 +13,10 @@ export const {
   AUTH_DEBUG,
   STRIPE_API_KEY,
   STRIPE_WEBHOOK_SECRET,
-  // Aether entitlements
+  // Billing entitlements
   BILLING_BASE_URL,
   BILLING_WEBHOOK_SECRET,
-  AETHER_SERVICE_API_KEY,
+  BILLING_SERVICE_API_KEY,
   // PDP authorization
   AUTHZ_ENABLED,
   AUTHZ_API_URL,

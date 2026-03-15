@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { Elysia, t } from "elysia";
 
 import { BILLING_WEBHOOK_SECRET } from "lib/config/env.config";
-import { invalidateCache } from "./cache";
+import { invalidateCache } from "lib/entitlements";
 
 interface EntitlementWebhookPayload {
   eventType: string;
@@ -85,6 +85,7 @@ const entitlementsWebhook = new Elysia().post(
 
       const body = JSON.parse(rawBody) as EntitlementWebhookPayload;
 
+      // biome-ignore lint/suspicious/noConsole: webhook logging
       console.log(
         `Entitlement event received: ${body.eventType} for ${body.entityType}/${body.entityId}`,
       );
@@ -98,6 +99,7 @@ const entitlementsWebhook = new Elysia().post(
           invalidateCache(`${body.entityType}:${body.entityId}:*`);
           invalidateCache(`${body.entityType}:${body.entityId}`);
 
+          // biome-ignore lint/suspicious/noConsole: webhook logging
           console.log(
             `Cache invalidated for ${body.entityType} ${body.entityId}`,
           );
