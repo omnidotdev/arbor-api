@@ -2,21 +2,29 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
+import { isWithinLimit } from "lib/entitlements";
+import { FEATURE_KEYS, billingBypassOrgIds } from "./constants";
+
 import type { InsertRepositoryCollaborator } from "lib/db/schema";
 import type { PlanWrapperFn } from "postgraphile/utils";
 
 /**
  * Validate repository collaborator permissions for create and update.
  *
- * - Create: Owner or admin collaborator can add collaborators
+ * - Create: Owner or admin collaborator can add collaborators (with tier limits)
  * - Update: Owner or admin collaborator can change permissions
- *
- * Note: Tier limits (max collaborators) are enforced by Aether entitlements
- * service and should be checked via a separate entitlements API call.
  */
 const validatePermissions = (propName: string, scope: "create" | "update") =>
   EXPORTABLE(
-    (context, sideEffect, propName, scope): PlanWrapperFn =>
+    (
+      context,
+      sideEffect,
+      isWithinLimit,
+      FEATURE_KEYS,
+      billingBypassOrgIds,
+      propName,
+      scope,
+    ): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
         const $observer = context().get("observer");
@@ -47,8 +55,23 @@ const validatePermissions = (propName: string, scope: "create" | "update") =>
           // Must be owner or admin collaborator
           if (!isOwner && !isAdminCollaborator) throw new Error("Unauthorized");
 
-          // Note: Tier limits (max collaborators) are enforced by Aether entitlements
-          // service - TODO: integrate with Aether entitlements API
+          if (scope === "create") {
+            // Enforce max_collaborators entitlement for org repos
+            if (repository.organizationId) {
+              const withinLimit = await isWithinLimit(
+                { organizationId: repository.organizationId },
+                FEATURE_KEYS.MAX_COLLABORATORS,
+                repository.collaborators.length,
+                billingBypassOrgIds,
+              );
+
+              if (!withinLimit) {
+                throw new Error(
+                  "Collaborator limit reached. Upgrade your plan for more collaborators",
+                );
+              }
+            }
+          }
 
           if (scope === "update") {
             const targetUserId = (input as InsertRepositoryCollaborator).userId;
@@ -62,7 +85,15 @@ const validatePermissions = (propName: string, scope: "create" | "update") =>
 
         return plan();
       },
-    [context, sideEffect, propName, scope],
+    [
+      context,
+      sideEffect,
+      isWithinLimit,
+      FEATURE_KEYS,
+      billingBypassOrgIds,
+      propName,
+      scope,
+    ],
   );
 
 /**

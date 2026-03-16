@@ -1,7 +1,5 @@
-import {
-  createBillingProvider,
-  createEventsProvider,
-} from "@omnidotdev/providers";
+import { createBillingProvider } from "@omnidotdev/providers/billing";
+import { createEventsProvider } from "@omnidotdev/providers/events";
 
 import {
   BILLING_BASE_URL,
@@ -13,6 +11,7 @@ import {
 export const billing = createBillingProvider(
   BILLING_BASE_URL
     ? {
+        provider: "aether",
         baseUrl: BILLING_BASE_URL,
         serviceApiKey: BILLING_SERVICE_API_KEY,
         appId: "arbor",

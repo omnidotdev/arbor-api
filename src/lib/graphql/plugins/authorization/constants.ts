@@ -22,4 +22,5 @@ export const FEATURE_KEYS = {
   MAX_MEMBERS: "max_members",
   MAX_ADMINS: "max_admins",
   MAX_PRIVATE_REPOS: "max_private_repos",
+  MAX_STORAGE_BYTES: "max_storage_bytes",
 } as const;

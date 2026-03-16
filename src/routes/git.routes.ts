@@ -1,5 +1,9 @@
+import { and, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
+import { dbPool } from "lib/db/db";
+import { repositoryTable, userTable } from "lib/db/schema";
+import { isWithinLimit } from "lib/entitlements";
 import {
   advertiseRefs,
   getServiceContentType,
@@ -10,6 +14,11 @@ import {
   repositoryService,
   uploadPack,
 } from "lib/git";
+import {
+  getOrganizationStorageBytes,
+  invalidateRepositorySizeCache,
+} from "lib/git/storage.config";
+import { FEATURE_KEYS, billingBypassOrgIds } from "lib/graphql/plugins/authorization/constants";
 
 /**
  * Git REST API routes.
@@ -333,6 +342,9 @@ const gitRoutes = new Elysia({ prefix: "/git" })
   /**
    * git-receive-pack - used by git push.
    * POST /:owner/:repo/git-receive-pack
+   *
+   * Enforces `max_storage_bytes` entitlement for organization repos
+   * before accepting the push.
    */
   .post(
     "/:owner/:repo/git-receive-pack",
@@ -346,6 +358,37 @@ const gitRoutes = new Elysia({ prefix: "/git" })
         return { error: "Repository not found" };
       }
 
+      // Check storage limits for organization repos.
+      // Look up the repository by owner username + slug
+      const [repository] = await dbPool
+        .select({ organizationId: repositoryTable.organizationId })
+        .from(repositoryTable)
+        .innerJoin(userTable, eq(repositoryTable.ownerId, userTable.id))
+        .where(and(eq(userTable.username, owner), eq(repositoryTable.slug, repo)))
+        .limit(1);
+
+      if (repository?.organizationId) {
+        const currentBytes = await getOrganizationStorageBytes(
+          repository.organizationId,
+          dbPool,
+        );
+
+        const withinLimit = await isWithinLimit(
+          { organizationId: repository.organizationId },
+          FEATURE_KEYS.MAX_STORAGE_BYTES,
+          currentBytes,
+          billingBypassOrgIds,
+        );
+
+        if (!withinLimit) {
+          set.status = 403;
+          return {
+            error:
+              "Storage limit exceeded for your plan. Upgrade to push more data",
+          };
+        }
+      }
+
       const body = Buffer.from(await request.arrayBuffer());
       const result = await receivePack(owner, repo, body);
 
@@ -353,6 +396,9 @@ const gitRoutes = new Elysia({ prefix: "/git" })
         set.status = 500;
         return { error: "Receive pack failed" };
       }
+
+      // Invalidate size cache after successful push
+      invalidateRepositorySizeCache(owner, repo);
 
       set.headers["content-type"] =
         getServiceResultContentType("git-receive-pack");

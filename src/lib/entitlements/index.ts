@@ -6,11 +6,11 @@
  * defaults to free-tier limits instead of failing.
  */
 
-import { isWithinLimit as checkLimit } from "@omnidotdev/providers";
+import { isWithinLimit as checkLimit } from "@omnidotdev/providers/billing";
 
 import { billing } from "lib/providers";
 
-import type { EntitlementsResponse } from "@omnidotdev/providers";
+import type { EntitlementsResponse } from "@omnidotdev/providers/billing";
 
 /** Arbor app ID for entitlements */
 const APP_ID = "arbor";
@@ -20,9 +20,13 @@ const APP_ID = "arbor";
  * Prevents hard failures for orgs that haven't been provisioned in Aether.
  */
 const DEFAULT_LIMITS: Record<string, Record<string, number>> = {
-  max_collaborators: { free: 1 },
+  max_collaborators: { free: 1, pro: 10, team: -1 },
   max_private_repos: { free: 1 },
-  max_storage_bytes: { free: 524_288_000 },
+  max_storage_bytes: {
+    free: 524_288_000,
+    pro: 2_147_483_648,
+    team: 10_737_418_240,
+  },
 };
 
 /** Tier type */
