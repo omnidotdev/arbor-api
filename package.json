@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "NODE_ENV=development GRAPHILE_ENV=development bun run --env-file .env.local --env-file .env.development --watch src/server.ts",
     "build": "bun build --target node --outdir build src/server.ts",
-    "start": "NODE_ENV=production GRAPHILE_ENV=production bun db:migrate && NODE_ENV=production GRAPHILE_ENV=production bun run build/server.js",
+    "start": "NODE_ENV=production GRAPHILE_ENV=production bun run src/scripts/db/migrate.ts && NODE_ENV=production GRAPHILE_ENV=production bun run build/server.js",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "lint": "biome lint",
