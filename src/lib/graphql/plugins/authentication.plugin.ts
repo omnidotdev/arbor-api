@@ -12,21 +12,15 @@ import type { JWTPayload } from "jose";
 import type { InsertUser, SelectUser } from "lib/db/schema";
 import type { GraphQLContext } from "lib/graphql/createGraphqlContext";
 
-/** Organization claim structure from IDP JWT claims */
-interface OrganizationClaim {
-  id: string;
-  slug: string;
-  type: "personal" | "team";
-  roles: string[];
-  teams: Array<{ id: string; name: string }>;
-}
+import { extractOrgClaims } from "@omnidotdev/providers";
+
+import type { OrganizationClaim } from "@omnidotdev/providers";
 
 interface UserInfoClaims extends JWTPayload {
   sub: string;
   preferred_username?: string;
   email?: string;
-  /** Organization memberships from Gatekeeper IDP */
-  organizations?: OrganizationClaim[];
+  [key: string]: unknown;
 }
 
 class AuthenticationError extends Error {
@@ -201,7 +195,7 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
       );
 
     // Store organizations in request-scoped cache for context extension
-    requestOrganizationsCache.set(ctx.request, claims.organizations ?? []);
+    requestOrganizationsCache.set(ctx.request, extractOrgClaims(claims));
 
     const insertedUser: InsertUser = {
       identityProviderId: claims.sub,
