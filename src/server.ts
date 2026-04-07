@@ -70,6 +70,7 @@ const app = new Elysia({
     },
   }),
 })
+  .get("/health", () => ({ status: "ok" }))
   .use(
     cors({
       origin: CORS_ALLOWED_ORIGINS!.split(","),
