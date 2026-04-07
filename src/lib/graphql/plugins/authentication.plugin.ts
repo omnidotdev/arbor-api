@@ -1,5 +1,6 @@
 import { useExtendContext } from "@envelop/core";
 import { useGenericAuth } from "@envelop/generic-auth";
+import { extractOrgClaims } from "@omnidotdev/providers";
 import { QueryClient } from "@tanstack/query-core";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import ms from "ms";
@@ -8,13 +9,10 @@ import { AUTH_BASE_URL, protectRoutes } from "lib/config/env.config";
 import { userTable } from "lib/db/schema";
 
 import type { ResolveUserFn } from "@envelop/generic-auth";
+import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { JWTPayload } from "jose";
 import type { InsertUser, SelectUser } from "lib/db/schema";
 import type { GraphQLContext } from "lib/graphql/createGraphqlContext";
-
-import { extractOrgClaims } from "@omnidotdev/providers";
-
-import type { OrganizationClaim } from "@omnidotdev/providers";
 
 interface UserInfoClaims extends JWTPayload {
   sub: string;

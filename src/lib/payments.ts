@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { STRIPE_API_KEY } from "lib/config/env.config";
 
 if (!STRIPE_API_KEY) {
-  console.warn("STRIPE_API_KEY not set — Stripe billing disabled");
+  console.warn("STRIPE_API_KEY not set, Stripe billing disabled");
 }
 
 /**

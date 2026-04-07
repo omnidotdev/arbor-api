@@ -43,11 +43,11 @@ export const isSearchEnabled =
   SEARCH_ENABLED === "true" && !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
 
 // Startup warnings for optional integrations
-if (!STRIPE_API_KEY) console.warn("STRIPE_API_KEY not set - Stripe disabled");
+if (!STRIPE_API_KEY) console.warn("STRIPE_API_KEY not set, Stripe disabled");
 if (!BILLING_BASE_URL)
-  console.warn("BILLING_BASE_URL not set - billing disabled");
+  console.warn("BILLING_BASE_URL not set, billing disabled");
 if (!AUTHZ_API_URL)
-  console.warn("AUTHZ_API_URL not set - authorization disabled");
+  console.warn("AUTHZ_API_URL not set, authorization disabled");
 if (!VORTEX_API_URL)
-  console.warn("VORTEX_API_URL not set - event streaming disabled");
-if (!MEILISEARCH_URL) console.warn("MEILISEARCH_URL not set - search disabled");
+  console.warn("VORTEX_API_URL not set, event streaming disabled");
+if (!MEILISEARCH_URL) console.warn("MEILISEARCH_URL not set, search disabled");

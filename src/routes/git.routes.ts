@@ -18,7 +18,10 @@ import {
   getOrganizationStorageBytes,
   invalidateRepositorySizeCache,
 } from "lib/git/storage.config";
-import { FEATURE_KEYS, billingBypassOrgIds } from "lib/graphql/plugins/authorization/constants";
+import {
+  FEATURE_KEYS,
+  billingBypassOrgIds,
+} from "lib/graphql/plugins/authorization/constants";
 
 /**
  * Git REST API routes.
@@ -364,7 +367,9 @@ const gitRoutes = new Elysia({ prefix: "/git" })
         .select({ organizationId: repositoryTable.organizationId })
         .from(repositoryTable)
         .innerJoin(userTable, eq(repositoryTable.ownerId, userTable.id))
-        .where(and(eq(userTable.username, owner), eq(repositoryTable.slug, repo)))
+        .where(
+          and(eq(userTable.username, owner), eq(repositoryTable.slug, repo)),
+        )
         .limit(1);
 
       if (repository?.organizationId) {
