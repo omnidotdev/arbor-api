@@ -18,7 +18,7 @@ export const {
   BILLING_WEBHOOK_SECRET,
   BILLING_SERVICE_API_KEY,
   // PDP authorization
-  AUTHZ_ENABLED,
+
   AUTHZ_API_URL,
   // IDP webhooks
   IDP_WEBHOOK_SECRET,
@@ -36,7 +36,7 @@ export const {
 export const isDevEnv = NODE_ENV === "development",
   isProdEnv = NODE_ENV === "production",
   protectRoutes = isProdEnv || PROTECT_ROUTES === "true",
-  isAuthzEnabled = AUTHZ_ENABLED === "true";
+  isAuthzEnabled = !!AUTHZ_API_URL;
 
 /** Whether search indexing is enabled */
 export const isSearchEnabled =

@@ -18,7 +18,7 @@
  */
 
 // Re-export for EXPORTABLE compatibility in plugins
-export { AUTHZ_API_URL, AUTHZ_ENABLED } from "lib/config/env.config";
+export { AUTHZ_API_URL } from "lib/config/env.config";
 
 /** Request timeout in milliseconds */
 const REQUEST_TIMEOUT_MS = 5000;

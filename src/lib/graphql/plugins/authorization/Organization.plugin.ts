@@ -63,11 +63,11 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
             } else {
               // For update/delete, check PDP permissions via dynamic import
               // (checkPermission uses native globals that can't be serialized by graphile-export)
-              const { checkPermission, AUTHZ_ENABLED, AUTHZ_API_URL } =
+              const { checkPermission, AUTHZ_API_URL, AUTHZ_API_URL } =
                 await import("lib/authz");
               const requiredPermission = scope === "delete" ? "owner" : "admin";
               const allowed = await checkPermission(
-                AUTHZ_ENABLED,
+                "true",
                 AUTHZ_API_URL,
                 observer.id,
                 "organization",
