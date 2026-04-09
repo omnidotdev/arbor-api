@@ -30,7 +30,6 @@ export const {
   // Meilisearch (unified search)
   MEILISEARCH_URL,
   MEILISEARCH_MASTER_KEY,
-  SEARCH_ENABLED,
 } = process.env;
 
 export const isDevEnv = NODE_ENV === "development",
@@ -39,8 +38,7 @@ export const isDevEnv = NODE_ENV === "development",
   isAuthzEnabled = !!AUTHZ_API_URL;
 
 /** Whether search indexing is enabled */
-export const isSearchEnabled =
-  SEARCH_ENABLED === "true" && !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
+export const isSearchEnabled = !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
 
 // Startup warnings for optional integrations
 if (!STRIPE_API_KEY) console.warn("STRIPE_API_KEY not set, Stripe disabled");
