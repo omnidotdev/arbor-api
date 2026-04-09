@@ -68,7 +68,6 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
               );
               const requiredPermission = scope === "delete" ? "owner" : "admin";
               const allowed = await checkPermission(
-                "true",
                 AUTHZ_API_URL,
                 observer.id,
                 "organization",

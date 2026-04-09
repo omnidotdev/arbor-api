@@ -5949,11 +5949,10 @@ const planWrapper4 = (plan, _, fieldArgs) => {
     } else {
       const {
           checkPermission,
-          AUTHZ_ENABLED,
           AUTHZ_API_URL
         } = await import("lib/authz"),
         requiredPermission = "create" === "delete" ? "owner" : "admin";
-      if (!(await checkPermission(AUTHZ_ENABLED, AUTHZ_API_URL, observer.id, "organization", input, requiredPermission, authzCache))) throw Error("Unauthorized");
+      if (!(await checkPermission(AUTHZ_API_URL, observer.id, "organization", input, requiredPermission, authzCache))) throw Error("Unauthorized");
     }
   });
   return plan();
@@ -6277,11 +6276,10 @@ const planWrapper11 = (plan, _, fieldArgs) => {
     } else {
       const {
           checkPermission,
-          AUTHZ_ENABLED,
           AUTHZ_API_URL
         } = await import("lib/authz"),
         requiredPermission = "update" === "delete" ? "owner" : "admin";
-      if (!(await checkPermission(AUTHZ_ENABLED, AUTHZ_API_URL, observer.id, "organization", input, requiredPermission, authzCache))) throw Error("Unauthorized");
+      if (!(await checkPermission(AUTHZ_API_URL, observer.id, "organization", input, requiredPermission, authzCache))) throw Error("Unauthorized");
     }
   });
   return plan();
@@ -6608,11 +6606,10 @@ const planWrapper18 = (plan, _, fieldArgs) => {
     } else {
       const {
           checkPermission,
-          AUTHZ_ENABLED,
           AUTHZ_API_URL
         } = await import("lib/authz"),
         requiredPermission = "delete" === "delete" ? "owner" : "admin";
-      if (!(await checkPermission(AUTHZ_ENABLED, AUTHZ_API_URL, observer.id, "organization", input, requiredPermission, authzCache))) throw Error("Unauthorized");
+      if (!(await checkPermission(AUTHZ_API_URL, observer.id, "organization", input, requiredPermission, authzCache))) throw Error("Unauthorized");
     }
   });
   return plan();

@@ -83,14 +83,13 @@ const circuitBreaker = new CircuitBreaker();
  * 2. TTL cache (module-level) - avoids duplicate calls across requests
  *
  * Returns true if authorized, false otherwise.
- * Returns true (permissive) when authz is disabled.
+ * Returns true (permissive) when AUTHZ_API_URL is unset.
  * Throws error (fail-closed) when PDP is unavailable.
  *
  * NOTE: Import this function dynamically inside sideEffect callbacks to avoid
  * graphile-export serialization issues with native globals.
  */
 export async function checkPermission(
-  authzEnabled: string | undefined,
   authzProviderUrl: string | undefined,
   userId: string,
   resourceType: string,
@@ -99,7 +98,6 @@ export async function checkPermission(
   requestCache?: Map<string, boolean>,
 ): Promise<boolean> {
   // Permissive when disabled
-  if (authzEnabled !== "true") return true;
   if (!authzProviderUrl) return true;
 
   // Import cache functions inline to avoid circular dependencies
