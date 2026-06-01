@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { cors } from "@elysiajs/cors";
 import { yoga } from "@elysiajs/graphql-yoga";
 import { useOpenTelemetry } from "@envelop/opentelemetry";
@@ -25,6 +26,8 @@ import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
 import { rateLimit } from "lib/middleware/rateLimit";
 import { initializeSearchIndexes, search } from "lib/search";
 import gitRoutes from "routes/git.routes";
+
+const commit = (() => { try { return readFileSync("/app/.git-sha", "utf-8").trim(); } catch { return "unknown"; } })();
 
 // Register event schemas with Vortex
 if (VORTEX_API_URL && VORTEX_API_KEY) {
@@ -70,7 +73,7 @@ const app = new Elysia({
     },
   }),
 })
-  .get("/health", () => ({ status: "ok" }))
+  .get("/health", () => ({ status: "ok", commit }))
   .use(
     cors({
       origin: CORS_ALLOWED_ORIGINS!.split(","),
