@@ -30,7 +30,7 @@
     "tls:generate": "bun src/scripts/generateTlsCert.ts"
   },
   "dependencies": {
-    "@omnidotdev/providers": "github:omnidotdev/providers#ddc7829",
+    "@omnidotdev/providers": "github:omnidotdev/providers#8fec17c",
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/graphql-yoga": "^1.4.0",
     "@omnidotdev/search": "github:omnidotdev/search",
