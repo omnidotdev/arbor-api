@@ -5983,15 +5983,17 @@ const planWrapper5 = (plan, _, fieldArgs) => {
     });
     if (!organization) throw Error("Organization not found");
     if (!organizations.some(org => org.id === organization.idpOrganizationId)) throw Error("Unauthorized");
-    const totalRepos = await withPgClient(null, async client => {
+    const privateRepos = await withPgClient(null, async client => {
       return (await client.query({
-        text: "SELECT count(*)::int as total FROM repository WHERE organization_id = $1",
+        text: "SELECT count(*)::int as total FROM repository WHERE organization_id = $1 AND visibility = 'private'",
         values: [organizationId]
       })).rows[0]?.total ?? 0;
     });
-    if (!(await isWithinLimit({
-      organizationId
-    }, FEATURE_KEYS.MAX_REPOSITORIES, totalRepos, billingBypassOrgIds))) throw Error("Maximum number of repositories reached for your plan");
+    if (input.visibility === "private") {
+      if (!(await isWithinLimit({
+        organizationId
+      }, FEATURE_KEYS.MAX_PRIVATE_REPOS, privateRepos, billingBypassOrgIds))) throw Error("Maximum number of private repositories reached for your plan");
+    }
   });
   return plan();
 };
@@ -17813,12 +17815,15 @@ ${String(oldPlan)}`);
               repository: null,
               error: "Unauthorized"
             };
-            if (!(await isWithinLimit({
-              organizationId
-            }, FEATURE_KEYS.MAX_REPOSITORIES, organization.repositories.length, billingBypassOrgIds))) return {
-              repository: null,
-              error: "Maximum number of repositories reached for your plan"
-            };
+            if (visibility === "private") {
+              const privateRepoCount = organization.repositories.filter(repo => repo.visibility === "private").length;
+              if (!(await isWithinLimit({
+                organizationId
+              }, FEATURE_KEYS.MAX_PRIVATE_REPOS, privateRepoCount, billingBypassOrgIds))) return {
+                repository: null,
+                error: "Maximum number of private repositories reached for your plan"
+              };
+            }
           }
           const [repository] = await db.insert(repositoryTable).values({
             name,

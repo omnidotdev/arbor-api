@@ -105,10 +105,14 @@ const createRepositoryWrapper = EXPORTABLE(
 
           if (!isMember) throw new Error("Unauthorized");
 
-          // Check tier limits via Aether entitlements
-          const totalRepos = await withPgClient(null, async (client) => {
+          // Check tier limits via Aether entitlements.
+          // The catalog limit (max_private_repos) only governs private repos,
+          // so only count existing private repos. Creating a public repo is
+          // unaffected when the new repo itself is public, but the limit is
+          // enforced against the current private repo count regardless.
+          const privateRepos = await withPgClient(null, async (client) => {
             const result = await client.query({
-              text: "SELECT count(*)::int as total FROM repository WHERE organization_id = $1",
+              text: "SELECT count(*)::int as total FROM repository WHERE organization_id = $1 AND visibility = 'private'",
               values: [organizationId],
             });
             return (
@@ -116,17 +120,20 @@ const createRepositoryWrapper = EXPORTABLE(
             );
           });
 
-          const withinLimit = await isWithinLimit(
-            { organizationId },
-            FEATURE_KEYS.MAX_REPOSITORIES,
-            totalRepos,
-            billingBypassOrgIds,
-          );
-
-          if (!withinLimit) {
-            throw new Error(
-              "Maximum number of repositories reached for your plan",
+          // Public repos are unlimited; only enforce the limit for private repos
+          if ((input as InsertRepository).visibility === "private") {
+            const withinLimit = await isWithinLimit(
+              { organizationId },
+              FEATURE_KEYS.MAX_PRIVATE_REPOS,
+              privateRepos,
+              billingBypassOrgIds,
             );
+
+            if (!withinLimit) {
+              throw new Error(
+                "Maximum number of private repositories reached for your plan",
+              );
+            }
           }
         },
       );

@@ -216,20 +216,31 @@ const RepositoryCreatePlugin = extendSchema(() => {
                         return { repository: null, error: "Unauthorized" };
                       }
 
-                      // Check tier limits via Aether entitlements
-                      const withinLimit = await isWithinLimit(
-                        { organizationId },
-                        FEATURE_KEYS.MAX_REPOSITORIES,
-                        organization.repositories.length,
-                        billingBypassOrgIds,
-                      );
+                      // Check tier limits via Aether entitlements.
+                      // The catalog limit (max_private_repos) only governs
+                      // private repos, so public repos are unlimited and only
+                      // private repos count toward the limit.
+                      if (visibility === "private") {
+                        const privateRepoCount =
+                          organization.repositories.filter(
+                            (repo: { visibility: string }) =>
+                              repo.visibility === "private",
+                          ).length;
 
-                      if (!withinLimit) {
-                        return {
-                          repository: null,
-                          error:
-                            "Maximum number of repositories reached for your plan",
-                        };
+                        const withinLimit = await isWithinLimit(
+                          { organizationId },
+                          FEATURE_KEYS.MAX_PRIVATE_REPOS,
+                          privateRepoCount,
+                          billingBypassOrgIds,
+                        );
+
+                        if (!withinLimit) {
+                          return {
+                            repository: null,
+                            error:
+                              "Maximum number of private repositories reached for your plan",
+                          };
+                        }
                       }
                     }
 

@@ -21,7 +21,7 @@ const APP_ID = "arbor";
  */
 const DEFAULT_LIMITS: Record<string, Record<string, number>> = {
   max_collaborators: { free: 1, pro: 10, team: -1 },
-  max_private_repos: { free: 1 },
+  max_private_repos: { free: 1, pro: 5, team: -1 },
   max_storage_bytes: {
     free: 524_288_000,
     pro: 2_147_483_648,
@@ -58,7 +58,7 @@ async function getOrganizationEntitlements(
  * This is the primary function for authorization plugins.
  *
  * @param entity - Object with organizationId
- * @param limitKey - The limit key to check (e.g., "max_repositories")
+ * @param limitKey - The limit key to check (e.g., "max_private_repos")
  * @param currentCount - Current count of resources
  * @param billingBypassOrgIds - Organization IDs exempt from billing limits
  */

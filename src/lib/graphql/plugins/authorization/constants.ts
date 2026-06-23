@@ -17,7 +17,6 @@ export const billingBypassOrgIds: string[] =
  * Maps to feature keys in Aether.
  */
 export const FEATURE_KEYS = {
-  MAX_REPOSITORIES: "max_repositories",
   MAX_COLLABORATORS: "max_collaborators",
   MAX_MEMBERS: "max_members",
   MAX_ADMINS: "max_admins",
