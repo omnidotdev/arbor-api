@@ -1,0 +1,15 @@
+build/
+node_modules/
+.cache/
+
+data/
+
+# TLS
+*.pem
+
+# environment
+.env
+.env.*
+!.env.*template
+!.env.development
+!.env.production
