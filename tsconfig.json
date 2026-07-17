@@ -16,6 +16,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "types": ["@types/bun"]
   },
   "exclude": ["generated"],
