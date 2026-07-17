@@ -119,9 +119,12 @@ export async function getOrganizationTier(
 export function invalidateCache(pattern: string): void {
   // Extract entity info from pattern for provider cache invalidation
   // Patterns: "organization:orgId:*" or "organization:orgId"
-  const parts = pattern.replace(/:\*$/, "").split(":");
-  if (parts.length >= 2) {
-    billing.invalidateCache?.(parts[0], parts[1]);
+  // Destructured rather than length-checked so the compiler can see both parts
+  // are present. Checking `undefined` rather than truthiness keeps the previous
+  // behaviour for an empty segment, e.g. "organization:"
+  const [entityType, entityId] = pattern.replace(/:\*$/, "").split(":");
+  if (entityType !== undefined && entityId !== undefined) {
+    billing.invalidateCache?.(entityType, entityId);
   } else {
     billing.clearCache?.();
   }

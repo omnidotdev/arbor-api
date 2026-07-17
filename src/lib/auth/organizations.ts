@@ -13,6 +13,8 @@ export function getDefaultOrganization(
   const personalOrg = organizations.find((org) => org.type === "personal");
   if (personalOrg) return personalOrg;
 
-  // Fallback to first org (shouldn't happen since personal org always exists)
-  return organizations[0];
+  // Fallback to first org (shouldn't happen since personal org always exists).
+  // The length check above proves this is present; `?? null` is what says so to
+  // the compiler, and null is already this function's absent value
+  return organizations[0] ?? null;
 }

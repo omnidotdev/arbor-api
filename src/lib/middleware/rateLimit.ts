@@ -57,7 +57,10 @@ const createRateLimiter = (config: Partial<RateLimitConfig> = {}) => {
     // Default: use IP from headers (common patterns)
     const forwarded = request.headers.get("x-forwarded-for");
     if (forwarded) {
-      return forwarded.split(",")[0].trim();
+      // String.split always yields at least one element, so this is present. The
+      // check is what proves it, and never falls through in practice
+      const [firstForwarded] = forwarded.split(",");
+      if (firstForwarded !== undefined) return firstForwarded.trim();
     }
 
     const realIp = request.headers.get("x-real-ip");

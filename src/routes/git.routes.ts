@@ -501,6 +501,8 @@ const gitRoutes = new Elysia({ prefix: "/git" })
 /**
  * Get content type for a file extension.
  */
+const DEFAULT_CONTENT_TYPE = "application/octet-stream";
+
 function getContentType(ext?: string): string {
   const contentTypes: Record<string, string> = {
     // Text
@@ -537,12 +539,12 @@ function getContentType(ext?: string): string {
     zip: "application/zip",
     gz: "application/gzip",
     tar: "application/x-tar",
-
-    // Default
-    default: "application/octet-stream",
   };
 
-  return contentTypes[ext || ""] || contentTypes.default;
+  // The lookup is by an arbitrary extension, so it is genuinely optional. The
+  // default is a constant rather than another entry in the map, so the compiler
+  // can see the function always returns a string
+  return contentTypes[ext || ""] ?? DEFAULT_CONTENT_TYPE;
 }
 
 export default gitRoutes;
