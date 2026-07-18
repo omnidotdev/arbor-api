@@ -23,6 +23,7 @@ import {
   GitMutationsPlugin,
   GitTypesPlugin,
   RepositoryCreatePlugin,
+  RepositoryDefaultBranchPlugin,
   RepositoryDeletePlugin,
   RepositoryRenamePlugin,
 } from "lib/graphql/plugins/git";
@@ -69,6 +70,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryDeletePlugin,
     // Repository rename (moves the on-disk bare repository with the slug)
     RepositoryRenamePlugin,
+    // Sync the on-disk HEAD when a repository's default branch changes
+    RepositoryDefaultBranchPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

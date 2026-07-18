@@ -541,6 +541,41 @@ export const gitService = {
   },
 
   /**
+   * Point the bare repository's HEAD at a branch as a symbolic ref.
+   *
+   * Keeps the on-disk default in sync with repository.defaultBranch so a fresh
+   * clone checks out the intended branch. The branch ref is resolved first, and
+   * HEAD is left untouched (returns false) when the branch does not exist, so
+   * HEAD never points at a nonexistent ref.
+   */
+  async setDefaultBranch(
+    owner: string,
+    repo: string,
+    branch: string,
+  ): Promise<boolean> {
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      // Validate the branch exists before moving HEAD
+      await git.resolveRef({ fs, gitdir, ref: `refs/heads/${branch}` });
+
+      await git.writeRef({
+        fs,
+        gitdir,
+        ref: "HEAD",
+        value: `refs/heads/${branch}`,
+        symbolic: true,
+        force: true,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("[gitService.setDefaultBranch] failed:", error);
+      return false;
+    }
+  },
+
+  /**
    * Merge source branch into target branch.
    * Returns the merge commit SHA on success, null on failure.
    *

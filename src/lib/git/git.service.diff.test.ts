@@ -184,6 +184,36 @@ describe("gitService.getChangedFiles", () => {
   });
 });
 
+describe("gitService.setDefaultBranch", () => {
+  test("points HEAD at an existing branch", async () => {
+    const ok = await gitService.setDefaultBranch(OWNER, REPO, "master");
+    expect(ok).toBe(true);
+
+    const current = await git.currentBranch({
+      fs,
+      gitdir: join(REPOS, OWNER, REPO, ".git"),
+    });
+    expect(current).toBe("master");
+
+    const head = await gitService.getHead(OWNER, REPO);
+    expect(head).toBe(shas.c2);
+  });
+
+  test("refuses a nonexistent branch and leaves HEAD unchanged", async () => {
+    // Anchor HEAD to a known branch first
+    await gitService.setDefaultBranch(OWNER, REPO, "master");
+
+    const ok = await gitService.setDefaultBranch(OWNER, REPO, "does-not-exist");
+    expect(ok).toBe(false);
+
+    const current = await git.currentBranch({
+      fs,
+      gitdir: join(REPOS, OWNER, REPO, ".git"),
+    });
+    expect(current).toBe("master");
+  });
+});
+
 describe("gitService.getFileDiffContent", () => {
   test("returns old and new text for a modified file", async () => {
     const diff = await gitService.getFileDiffContent(
