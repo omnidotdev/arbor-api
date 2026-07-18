@@ -3253,6 +3253,15 @@ type PullRequest implements Node {
     """The method to use when ordering `PullRequestReview`."""
     orderBy: [PullRequestReviewOrderBy!] = [PRIMARY_KEY_ASC]
   ): PullRequestReviewConnection!
+
+  """
+  The files changed by this pull request (merge-base of target and source
+  to the source tip).
+  """
+  changedFiles: [ChangedFile!]!
+
+  """The old and new content for a single changed file."""
+  fileDiff(path: String!): FileDiffContent
 }
 
 """
@@ -7911,6 +7920,12 @@ type Commit implements GitObject {
     """Filter to commits affecting this path."""
     path: String
   ): [Commit!]!
+
+  """The files changed by this commit relative to its first parent."""
+  changedFiles: [ChangedFile!]!
+
+  """The old and new content for a single changed file."""
+  fileDiff(path: String!): FileDiffContent
 }
 
 """A Git tree (directory)."""
@@ -8045,6 +8060,66 @@ type MergePullRequestPayload {
 
   """Error message if merge failed."""
   error: String
+}
+
+"""The change status of a file within a diff."""
+enum DiffStatus {
+  ADDED
+  DELETED
+  MODIFIED
+  RENAMED
+  COPIED
+  TYPE_CHANGED
+}
+
+"""
+A single file that changed between two refs (the cheap file-list entry).
+"""
+type ChangedFile {
+  """The file path at the head ref (or the base ref for deletions)."""
+  path: String!
+
+  """The previous path when the file was renamed, otherwise null."""
+  oldPath: String
+
+  """How the file changed."""
+  status: DiffStatus!
+
+  """The blob oid at the base ref, or null when the file was added."""
+  oldOid: String
+
+  """The blob oid at the head ref, or null when the file was deleted."""
+  newOid: String
+
+  """Whether the file is binary (line counts are skipped for binary files)."""
+  isBinary: Boolean!
+
+  """Whether the file is an image, derived from its extension."""
+  isImage: Boolean!
+
+  """Number of lines added."""
+  additions: Int!
+
+  """Number of lines removed."""
+  deletions: Int!
+}
+
+"""The old and new content of a single file, fetched lazily per file."""
+type FileDiffContent {
+  """The file path."""
+  path: String!
+
+  """How the file changed."""
+  status: DiffStatus!
+
+  """Whether the file is binary."""
+  isBinary: Boolean!
+
+  """UTF-8 content at the base ref, or null when added or binary."""
+  oldText: String
+
+  """UTF-8 content at the head ref, or null when deleted or binary."""
+  newText: String
 }
 
 """The root query type which gives access points into the data universe."""
