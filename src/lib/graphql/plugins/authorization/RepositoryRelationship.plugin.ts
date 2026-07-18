@@ -2,7 +2,10 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
-import type { InsertRepositoryRelationship } from "lib/db/schema";
+import type {
+  InsertRepositoryRelationship,
+  InsertRepositoryRelationshipMetadata,
+} from "lib/db/schema";
 import type { PlanWrapperFn } from "postgraphile/utils";
 import type { MutationScope } from "./types";
 
@@ -94,12 +97,13 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
  * access to the relationship's source repository that editing the relationship
  * itself requires.
  *
+ * - Create: Requires write access to the parent relationship's source repository
  * - Update: Requires write access to the parent relationship's source repository
  * - Delete: Requires write access to the parent relationship's source repository
  */
-const validateMetadataPermissions = (propName: string) =>
+const validateMetadataPermissions = (propName: string, scope: MutationScope) =>
   EXPORTABLE(
-    (context, sideEffect, propName, hasWriteAccess): PlanWrapperFn =>
+    (context, sideEffect, propName, scope, hasWriteAccess): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
         const $observer = context().get("observer");
@@ -108,18 +112,39 @@ const validateMetadataPermissions = (propName: string) =>
         sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
           if (!observer) throw new Error("Unauthorized");
 
-          // Update or delete - resolve the parent relationship from the metadatum
-          const metadatum =
-            await db.query.repositoryRelationshipMetadataTable.findFirst({
-              where: (table, { eq }) => eq(table.id, input),
-              with: { relationship: true },
-            });
+          // Resolve the parent relationship: from the create input's
+          // relationshipId, or from the existing metadatum on update/delete
+          let sourceRepositoryId: string | undefined;
 
-          if (!metadatum?.relationship) throw new Error("Unauthorized");
+          if (scope === "create") {
+            const { relationshipId } =
+              input as InsertRepositoryRelationshipMetadata;
+
+            if (!relationshipId) throw new Error("Unauthorized");
+
+            const relationship =
+              await db.query.repositoryRelationshipTable.findFirst({
+                where: (table, { eq }) => eq(table.id, relationshipId),
+              });
+
+            if (!relationship) throw new Error("Unauthorized");
+
+            sourceRepositoryId = relationship.sourceRepositoryId;
+          } else {
+            const metadatum =
+              await db.query.repositoryRelationshipMetadataTable.findFirst({
+                where: (table, { eq }) => eq(table.id, input),
+                with: { relationship: true },
+              });
+
+            if (!metadatum?.relationship) throw new Error("Unauthorized");
+
+            sourceRepositoryId = metadatum.relationship.sourceRepositoryId;
+          }
 
           const canWrite = await hasWriteAccess(
             db,
-            metadatum.relationship.sourceRepositoryId,
+            sourceRepositoryId,
             observer.id,
           );
           if (!canWrite) throw new Error("Unauthorized");
@@ -127,7 +152,7 @@ const validateMetadataPermissions = (propName: string) =>
 
         return plan();
       },
-    [context, sideEffect, propName, hasWriteAccess],
+    [context, sideEffect, propName, scope, hasWriteAccess],
   );
 
 /**
@@ -285,8 +310,18 @@ const RepositoryRelationshipPlugin = wrapPlans({
     deleteRepositoryRelationship: validatePermissions("rowId", "delete"),
 
     // Relationship metadata
-    updateRepositoryRelationshipMetadatum: validateMetadataPermissions("rowId"),
-    deleteRepositoryRelationshipMetadatum: validateMetadataPermissions("rowId"),
+    createRepositoryRelationshipMetadatum: validateMetadataPermissions(
+      "repositoryRelationshipMetadatum",
+      "create",
+    ),
+    updateRepositoryRelationshipMetadatum: validateMetadataPermissions(
+      "rowId",
+      "update",
+    ),
+    deleteRepositoryRelationshipMetadatum: validateMetadataPermissions(
+      "rowId",
+      "delete",
+    ),
 
     // Relationship types
     createRepositoryRelationshipType: validateTypePermissions(
