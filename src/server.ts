@@ -8,8 +8,8 @@ import { useValidationCache } from "@envelop/validation-cache";
 import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection";
 import { registerSchemas } from "@omnidotdev/providers/events";
 import { Elysia } from "elysia";
-import { schema } from "generated/graphql/schema.executable";
 import { useGrafast } from "grafast/envelop";
+import { makeSchema } from "postgraphile";
 import webhooks from "webhooks";
 
 import appConfig from "lib/config/app.config";
@@ -21,6 +21,7 @@ import {
   isDevEnv,
   isProdEnv,
 } from "lib/config/env.config";
+import graphilePreset from "lib/config/graphile.config";
 import { ensureReposDirectory } from "lib/git";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
 import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
@@ -63,6 +64,11 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
     console.warn("[Events] Schema registration failed:", err);
   });
 }
+
+// Build the schema at runtime from database introspection. arbor-api has custom Grafast
+// plans that close over runtime singletons (gitService, repositoryService), so it uses
+// makeSchema at boot rather than a pre-compiled executable schema
+const { schema } = await makeSchema(graphilePreset);
 
 /**
  * Elysia server.
