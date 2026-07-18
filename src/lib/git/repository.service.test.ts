@@ -10,9 +10,17 @@ import { join } from "node:path";
  */
 
 type RmCall = { path: string; options: unknown };
+type RenameCall = { oldPath: string; newPath: string };
 
 const rmCalls: RmCall[] = [];
 let rmImpl: (path: string, options: unknown) => Promise<void> = async () => {};
+
+const renameCalls: RenameCall[] = [];
+let renameImpl: (oldPath: string, newPath: string) => Promise<void> =
+  async () => {};
+
+// Paths that access() should report as existing (target-collision checks)
+const existingPaths = new Set<string>();
 
 const REPOS_PATH = "/var/lib/arbor/repos";
 const getRepositoryPath = (owner: string, repo: string): string =>
@@ -22,6 +30,13 @@ mock.module("node:fs/promises", () => ({
   rm: (path: string, options: unknown) => {
     rmCalls.push({ path, options });
     return rmImpl(path, options);
+  },
+  rename: (oldPath: string, newPath: string) => {
+    renameCalls.push({ oldPath, newPath });
+    return renameImpl(oldPath, newPath);
+  },
+  access: async (path: string) => {
+    if (!existingPaths.has(path)) throw new Error("ENOENT");
   },
   // storage.config imports these; they are unused by these tests
   mkdir: async () => {},
@@ -68,6 +83,9 @@ const makeDb = (repo: RepoRow) =>
 const reset = () => {
   rmCalls.length = 0;
   rmImpl = async () => {};
+  renameCalls.length = 0;
+  renameImpl = async () => {};
+  existingPaths.clear();
 };
 
 beforeEach(reset);
@@ -93,6 +111,44 @@ describe("repositoryService.delete", () => {
 
     expect(ok).toBe(false);
     expect(rmCalls).toHaveLength(1);
+  });
+});
+
+describe("repositoryService.rename", () => {
+  test("moves the bare directory from the old slug to the new slug", async () => {
+    const ok = await repositoryService.rename("alice", "old", "new");
+
+    expect(ok).toBe(true);
+    expect(renameCalls).toHaveLength(1);
+    expect(renameCalls[0]?.oldPath).toBe(getRepositoryPath("alice", "old"));
+    expect(renameCalls[0]?.newPath).toBe(getRepositoryPath("alice", "new"));
+  });
+
+  test("is a no-op that succeeds when the slug is unchanged", async () => {
+    const ok = await repositoryService.rename("alice", "same", "same");
+
+    expect(ok).toBe(true);
+    expect(renameCalls).toHaveLength(0);
+  });
+
+  test("refuses to move onto an existing target and does not rename", async () => {
+    existingPaths.add(getRepositoryPath("alice", "taken"));
+
+    const ok = await repositoryService.rename("alice", "old", "taken");
+
+    expect(ok).toBe(false);
+    expect(renameCalls).toHaveLength(0);
+  });
+
+  test("reports failure when the source storage is missing", async () => {
+    renameImpl = async () => {
+      throw new Error("ENOENT");
+    };
+
+    const ok = await repositoryService.rename("alice", "missing", "new");
+
+    expect(ok).toBe(false);
+    expect(renameCalls).toHaveLength(1);
   });
 });
 

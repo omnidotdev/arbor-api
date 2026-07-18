@@ -1,5 +1,5 @@
 import * as fs from "node:fs";
-import { rm } from "node:fs/promises";
+import { access, rename, rm } from "node:fs/promises";
 
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
@@ -68,6 +68,53 @@ export const repositoryService = {
     } catch (error) {
       console.error(
         `[Git] Failed to delete repository ${owner}/${repo}:`,
+        error,
+      );
+      return false;
+    }
+  },
+
+  /**
+   * Rename a repository's on-disk storage by moving its bare directory.
+   *
+   * A rename only changes the slug, so the owner directory is unchanged and the
+   * move is {owner}/{oldSlug}.git to {owner}/{newSlug}.git. The move is guarded
+   * so it can never clobber another repository: if the target path already
+   * exists the rename is refused. A missing source surfaces as a failure too, so
+   * a caller never assumes the storage moved when it did not. Consistent with
+   * the other methods, failures are logged server-side and returned as false
+   * rather than thrown, so no internal detail leaks to the client.
+   */
+  async rename(
+    owner: string,
+    oldSlug: string,
+    newSlug: string,
+  ): Promise<boolean> {
+    // Nothing to move when the slug is unchanged
+    if (oldSlug === newSlug) return true;
+
+    const oldPath = getRepositoryPath(owner, oldSlug);
+    const newPath = getRepositoryPath(owner, newSlug);
+
+    try {
+      // Refuse to move onto an existing target so a rename never clobbers
+      // another repository's storage
+      const targetExists = await access(newPath)
+        .then(() => true)
+        .catch(() => false);
+
+      if (targetExists) {
+        console.error(
+          `[Git] Failed to rename repository ${owner}/${oldSlug}: target ${owner}/${newSlug} already exists`,
+        );
+        return false;
+      }
+
+      await rename(oldPath, newPath);
+      return true;
+    } catch (error) {
+      console.error(
+        `[Git] Failed to rename repository ${owner}/${oldSlug} to ${owner}/${newSlug}:`,
         error,
       );
       return false;

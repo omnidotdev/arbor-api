@@ -149,12 +149,14 @@ const createRepositoryWrapper = EXPORTABLE(
  * - Create: Any authenticated user (with tier limits for org repos)
  *   + Auto-initializes git repository on disk after creation
  * - Update: Owner or admin collaborator
+ * - Rename: Owner or admin collaborator (update-level permission)
  * - Delete: Owner only
  */
 const RepositoryPlugin = wrapPlans({
   Mutation: {
     createRepository: createRepositoryWrapper,
     updateRepository: validatePermissions("rowId", "update"),
+    renameRepository: validatePermissions("rowId", "update"),
     deleteRepository: validatePermissions("rowId", "delete"),
   },
 });

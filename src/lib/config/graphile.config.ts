@@ -21,6 +21,7 @@ import {
   GitTypesPlugin,
   RepositoryCreatePlugin,
   RepositoryDeletePlugin,
+  RepositoryRenamePlugin,
 } from "lib/graphql/plugins/git";
 import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
 import {
@@ -60,6 +61,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryCreatePlugin,
     // Git storage cleanup on delete (removes the on-disk bare repository)
     RepositoryDeletePlugin,
+    // Repository rename (moves the on-disk bare repository with the slug)
+    RepositoryRenamePlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

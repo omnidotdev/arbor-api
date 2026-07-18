@@ -8122,6 +8122,45 @@ type FileDiffContent {
   newText: String
 }
 
+"""Input for creating a repository."""
+input CreateRepositoryWithGitInput {
+  """The repository name."""
+  name: String!
+
+  """The repository slug (URL-friendly name)."""
+  slug: String!
+
+  """Optional description."""
+  description: String
+
+  """Visibility (public or private). Defaults to public."""
+  visibility: Visibility
+
+  """Default branch name. Defaults to master."""
+  defaultBranch: String
+
+  """Organization ID if this is an organization repository."""
+  organizationId: UUID
+}
+
+"""Payload for createRepositoryWithGit mutation."""
+type CreateRepositoryWithGitPayload {
+  """The created repository row ID."""
+  rowId: UUID
+
+  """The repository slug."""
+  slug: String
+
+  """The owner username (for personal repos)."""
+  ownerUsername: String
+
+  """The organization slug (for org repos)."""
+  organizationSlug: String
+
+  """Error message if creation failed."""
+  error: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -9198,43 +9237,37 @@ type Mutation {
     """
     input: CreateRepositoryWithGitInput!
   ): CreateRepositoryWithGitPayload
+
+  """
+  Rename a repository, moving its on-disk git storage to match the new
+  slug so the database row and storage never diverge. Requires the
+  repository owner or an admin collaborator.
+  """
+  renameRepository(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: RenameRepositoryInput!
+  ): RenameRepositoryPayload
 }
 
-"""Input for creating a repository."""
-input CreateRepositoryWithGitInput {
-  """The repository name."""
-  name: String!
+"""Input for renaming a repository."""
+input RenameRepositoryInput {
+  """The repository row ID."""
+  rowId: UUID!
 
-  """The repository slug (URL-friendly name)."""
-  slug: String!
+  """The new slug (URL-friendly name). Moves the on-disk storage."""
+  newSlug: String!
 
-  """Optional description."""
-  description: String
-
-  """Visibility (public or private). Defaults to public."""
-  visibility: Visibility
-
-  """Default branch name. Defaults to master."""
-  defaultBranch: String
-
-  """Organization ID if this is an organization repository."""
-  organizationId: UUID
+  """Optional new display name. The name is left unchanged when omitted."""
+  newName: String
 }
 
-"""Payload for createRepositoryWithGit mutation."""
-type CreateRepositoryWithGitPayload {
-  """The created repository row ID."""
-  rowId: UUID
+"""Payload for renameRepository mutation."""
+type RenameRepositoryPayload {
+  """The renamed repository."""
+  repository: Repository
 
-  """The repository slug."""
-  slug: String
-
-  """The owner username (for personal repos)."""
-  ownerUsername: String
-
-  """The organization slug (for org repos)."""
-  organizationSlug: String
-
-  """Error message if creation failed."""
+  """Error message if the rename failed."""
   error: String
 }
