@@ -31,10 +31,8 @@
     "tls:generate": "bun src/scripts/generateTlsCert.ts"
   },
   "dependencies": {
-    "@omnidotdev/providers": "github:omnidotdev/providers#49f2fc4",
     "@elysiajs/cors": "^1.4.2",
     "@elysiajs/graphql-yoga": "^1.4.1",
-    "@omnidotdev/search": "github:omnidotdev/search",
     "@envelop/generic-auth": "^11.1.1",
     "@envelop/opentelemetry": "^9.1.1",
     "@envelop/parser-cache": "^10.1.1",
@@ -43,7 +41,10 @@
     "@graphile/pg-aggregates": "^0.2.0-rc.2",
     "@graphile/simplify-inflection": "^8.0.0",
     "@graphql-yoga/plugin-disable-introspection": "^2.22.2",
+    "@omnidotdev/providers": "github:omnidotdev/providers#49f2fc4",
+    "@omnidotdev/search": "github:omnidotdev/search",
     "@tanstack/query-core": "^5.101.1",
+    "diff": "^9.0.0",
     "drizzle-orm": "^0.45.2",
     "elysia": "^1.4.29",
     "grafast": "^1.0.2",
@@ -65,7 +66,6 @@
     "drizzle-kit": "^0.31.10",
     "husky": "^9.1.7",
     "knip": "^6.18.0",
-    "replace-in-file": "^8.4.0",
     "typescript": "^6.0.3"
   },
   "trustedDependencies": [

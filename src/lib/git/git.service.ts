@@ -1,10 +1,11 @@
 import * as fs from "node:fs";
 
-import git from "isomorphic-git";
+import { diffLines } from "diff";
+import git, { TREE } from "isomorphic-git";
 
 import { getRepositoryPath } from "./storage.config";
 
-import type { ReadCommitResult } from "isomorphic-git";
+import type { ReadCommitResult, WalkerEntry } from "isomorphic-git";
 
 export interface CommitInfo {
   sha: string;
@@ -40,6 +41,106 @@ export interface TagInfo {
   sha: string;
   message?: string;
 }
+
+/**
+ * Change status for a file between two trees.
+ * Rename and copy detection is out of scope for the initial diff surface, so
+ * only ADDED / DELETED / MODIFIED / TYPE_CHANGED are currently produced.
+ */
+export type DiffStatus =
+  | "ADDED"
+  | "DELETED"
+  | "MODIFIED"
+  | "RENAMED"
+  | "COPIED"
+  | "TYPE_CHANGED";
+
+export interface ChangedFile {
+  path: string;
+  oldPath: string | null;
+  status: DiffStatus;
+  oldOid: string | null;
+  newOid: string | null;
+  isBinary: boolean;
+  isImage: boolean;
+  additions: number;
+  deletions: number;
+}
+
+export interface FileDiffContent {
+  path: string;
+  status: DiffStatus;
+  isBinary: boolean;
+  oldText: string | null;
+  newText: string | null;
+}
+
+/** File extensions rendered as images in the diff viewer */
+const IMAGE_EXTENSIONS = new Set([
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "webp",
+  "avif",
+  "bmp",
+  "ico",
+  "svg",
+]);
+
+/**
+ * Whether a path is an image, derived from its extension.
+ */
+function isImagePath(path: string): boolean {
+  const dot = path.lastIndexOf(".");
+  if (dot < 0) return false;
+  return IMAGE_EXTENSIONS.has(path.slice(dot + 1).toLowerCase());
+}
+
+/**
+ * Whether a blob is binary, using git's heuristic of a NUL byte in the first
+ * 8000 bytes (mirrors the isBinary notion already surfaced on Blob).
+ */
+function isBinaryContent(bytes: Uint8Array): boolean {
+  const limit = Math.min(bytes.length, 8000);
+  for (let i = 0; i < limit; i++) {
+    if (bytes[i] === 0) return true;
+  }
+  return false;
+}
+
+/**
+ * Count added and removed lines between two texts.
+ */
+function countLineChanges(
+  oldText: string,
+  newText: string,
+): { additions: number; deletions: number } {
+  let additions = 0;
+  let deletions = 0;
+  for (const part of diffLines(oldText, newText)) {
+    if (part.added) additions += part.count ?? 0;
+    else if (part.removed) deletions += part.count ?? 0;
+  }
+  return { additions, deletions };
+}
+
+/**
+ * Read a blob's bytes by oid, or null if it cannot be read.
+ */
+async function readBlobBytes(
+  gitdir: string,
+  oid: string,
+): Promise<Uint8Array | null> {
+  try {
+    const { blob } = await git.readBlob({ fs, gitdir, oid });
+    return blob;
+  } catch {
+    return null;
+  }
+}
+
+const decoder = new TextDecoder();
 
 /**
  * Core git operations service using isomorphic-git.
@@ -536,6 +637,185 @@ export const gitService = {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       return { sha: null, error: errorMessage };
+    }
+  },
+
+  /**
+   * Find the merge base (most recent common ancestor) of two refs.
+   * Returns null when either ref is unresolvable or no common ancestor exists.
+   */
+  async getMergeBase(
+    owner: string,
+    repo: string,
+    refA: string,
+    refB: string,
+  ): Promise<string | null> {
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      const [oidA, oidB] = await Promise.all([
+        git.resolveRef({ fs, gitdir, ref: refA }),
+        git.resolveRef({ fs, gitdir, ref: refB }),
+      ]);
+
+      const bases = await git.findMergeBase({
+        fs,
+        gitdir,
+        oids: [oidA, oidB],
+      });
+
+      return bases[0] ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * List the files that changed between a base and head ref.
+   *
+   * Walks both trees with isomorphic-git and derives per-file status, blob
+   * oids, binary/image flags and line counts. A null baseRef is treated as an
+   * empty tree, so every file resolves to ADDED (root-commit / initial diff).
+   */
+  async getChangedFiles(
+    owner: string,
+    repo: string,
+    baseRef: string | null,
+    headRef: string,
+  ): Promise<ChangedFile[]> {
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      const trees =
+        baseRef === null
+          ? [TREE({ ref: headRef })]
+          : [TREE({ ref: baseRef }), TREE({ ref: headRef })];
+
+      const entries = (await git.walk({
+        fs,
+        gitdir,
+        trees,
+        map: async (filepath, walkerEntries) => {
+          if (filepath === ".") return;
+
+          const [first, second] = walkerEntries as [
+            WalkerEntry | null,
+            WalkerEntry | null,
+          ];
+          const baseEntry = baseRef === null ? null : first;
+          const headEntry = baseRef === null ? first : second;
+
+          const baseType = baseEntry ? await baseEntry.type() : null;
+          const headType = headEntry ? await headEntry.type() : null;
+
+          // Only blobs are reported; walk still descends into trees
+          if (baseType === "tree" || headType === "tree") return;
+
+          const oldOid = baseEntry ? await baseEntry.oid() : null;
+          const newOid = headEntry ? await headEntry.oid() : null;
+
+          // Unchanged, or a non-blob on both sides
+          if (oldOid === newOid) return;
+
+          let status: DiffStatus;
+          if (!oldOid) {
+            status = "ADDED";
+          } else if (!newOid) {
+            status = "DELETED";
+          } else {
+            const oldMode = await baseEntry?.mode();
+            const newMode = await headEntry?.mode();
+            status = oldMode !== newMode ? "TYPE_CHANGED" : "MODIFIED";
+          }
+
+          return { filepath, status, oldOid, newOid };
+        },
+      })) as Array<{
+        filepath: string;
+        status: DiffStatus;
+        oldOid: string | null;
+        newOid: string | null;
+      }>;
+
+      const files: ChangedFile[] = [];
+
+      for (const entry of entries) {
+        const { filepath, status, oldOid, newOid } = entry;
+
+        const newBytes = newOid ? await readBlobBytes(gitdir, newOid) : null;
+        const oldBytes = oldOid ? await readBlobBytes(gitdir, oldOid) : null;
+
+        const sample = newBytes ?? oldBytes;
+        const isBinary = sample ? isBinaryContent(sample) : false;
+
+        let additions = 0;
+        let deletions = 0;
+        if (!isBinary) {
+          const oldText = oldBytes ? decoder.decode(oldBytes) : "";
+          const newText = newBytes ? decoder.decode(newBytes) : "";
+          ({ additions, deletions } = countLineChanges(oldText, newText));
+        }
+
+        files.push({
+          path: filepath,
+          oldPath: null,
+          status,
+          oldOid,
+          newOid,
+          isBinary,
+          isImage: isImagePath(filepath),
+          additions,
+          deletions,
+        });
+      }
+
+      return files;
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Read the old and new content for a single file between two refs.
+   *
+   * Text is returned for both sides of a modification; the missing side of an
+   * add/delete is null, and binary files return null on both sides (their bytes
+   * are served separately over the raw HTTP endpoint). A null baseRef is treated
+   * as an empty tree. Returns null when the path exists on neither side.
+   */
+  async getFileDiffContent(
+    owner: string,
+    repo: string,
+    baseRef: string | null,
+    headRef: string,
+    path: string,
+  ): Promise<FileDiffContent | null> {
+    try {
+      const newBytes = await this.getFileRaw(owner, repo, headRef, path);
+      const oldBytes =
+        baseRef === null
+          ? null
+          : await this.getFileRaw(owner, repo, baseRef, path);
+
+      if (!newBytes && !oldBytes) return null;
+
+      let status: DiffStatus;
+      if (!oldBytes) status = "ADDED";
+      else if (!newBytes) status = "DELETED";
+      else status = "MODIFIED";
+
+      const sample = newBytes ?? oldBytes;
+      const isBinary = sample ? isBinaryContent(sample) : false;
+
+      return {
+        path,
+        status,
+        isBinary,
+        oldText: isBinary || !oldBytes ? null : decoder.decode(oldBytes),
+        newText: isBinary || !newBytes ? null : decoder.decode(newBytes),
+      };
+    } catch {
+      return null;
     }
   },
 };

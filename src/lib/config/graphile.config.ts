@@ -14,9 +14,11 @@ import {
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
 import {
+  GitDiffPlugin,
   GitMutationsPlugin,
   GitTypesPlugin,
   RepositoryCreatePlugin,
+  RepositoryDeletePlugin,
 } from "lib/graphql/plugins/git";
 import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
 import {
@@ -49,7 +51,11 @@ const graphilePreset: GraphileConfig.Preset = {
     // Git GraphQL types and mutations
     GitTypesPlugin,
     GitMutationsPlugin,
+    // Git diff exposure (PullRequest / Commit changedFiles + fileDiff)
+    GitDiffPlugin,
     RepositoryCreatePlugin,
+    // Git storage cleanup on delete (removes the on-disk bare repository)
+    RepositoryDeletePlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,
