@@ -10,6 +10,8 @@ import {
   gitStorageConfig,
 } from "./storage.config";
 
+import type { dbPool } from "lib/db/db";
+
 /**
  * Repository lifecycle management.
  */
@@ -177,4 +179,43 @@ export const repositoryService = {
   getCloneUrl(owner: string, repo: string, baseUrl: string): string {
     return `${baseUrl}/git/${owner}/${repo}.git`;
   },
+};
+
+/**
+ * Remove a repository's on-disk git storage given its row id.
+ *
+ * The on-disk owner directory is the owning user's username, for personal and
+ * organization repositories alike: organization identity (name, slug) lives in
+ * the IDP rather than the database, and the Smart-HTTP routes resolve a
+ * repository from its owner username (see resolveRepositorySummary), so bare
+ * repositories are always stored under {username}/{slug}.git. The row is
+ * resolved while it is still present, then the storage is deleted from disk.
+ *
+ * Any failure (repository already gone, storage missing, filesystem error) is
+ * logged server-side and swallowed so that repository deletion never fails, and
+ * no internal detail leaks to the client, because of a storage-cleanup problem.
+ */
+export const deleteRepositoryStorageById = async (
+  rowId: string,
+  db: typeof dbPool,
+): Promise<void> => {
+  if (!rowId) return;
+
+  try {
+    const repository = await db.query.repositoryTable.findFirst({
+      where: (table, { eq }) => eq(table.id, rowId),
+      with: { owner: { columns: { username: true } } },
+    });
+
+    const ownerUsername = repository?.owner?.username;
+
+    if (!ownerUsername) return;
+
+    await repositoryService.delete(ownerUsername, repository.slug);
+  } catch (error) {
+    console.error(
+      "[Git] Failed to remove repository storage on delete:",
+      error,
+    );
+  }
 };

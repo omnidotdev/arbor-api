@@ -56,7 +56,21 @@ mock.module("lib/git", () => ({
   canWriteRepository: async () => state.canWrite,
 }));
 
+// NB: mock.module registrations are global and the first registration for a
+// module wins for the whole suite run, so this stub must expose every
+// storage.config export any module links against (e.g. repository.service),
+// not only the two this file uses
 mock.module("lib/git/storage.config", () => ({
+  gitStorageConfig: {
+    repositoriesPath: "/var/lib/arbor/repos",
+    maxRepoSize: 0,
+    defaultBranch: "master",
+  },
+  getRepositoryPath: (owner: string, repo: string) =>
+    `/var/lib/arbor/repos/${owner}/${repo}.git`,
+  ensureReposDirectory: async () => {},
+  ensureOwnerDirectory: async () => {},
+  getRepositorySize: async () => 0,
   getOrganizationStorageBytes: async () => 0,
   invalidateRepositorySizeCache: () => {},
 }));
