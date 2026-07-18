@@ -311,7 +311,12 @@ const gitRoutes = new Elysia({ prefix: "/git" })
       const gate = await gateRead(owner, repo, request, set);
       if (!gate.authorized) return gate.body;
 
-      const content = await gitService.getFileRaw(owner, repo, ref, path);
+      // Resolve `ref` as a commit ref plus path first; fall back to treating it
+      // as a blob oid directly (diff image bytes are addressed by blob oid, and
+      // the path segment is only carried for content-type detection)
+      const content =
+        (await gitService.getFileRaw(owner, repo, ref, path)) ??
+        (await gitService.getBlobRawByOid(owner, repo, ref));
 
       if (content === null) {
         set.status = 404;

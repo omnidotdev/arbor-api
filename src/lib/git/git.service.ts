@@ -411,6 +411,20 @@ export const gitService = {
   },
 
   /**
+   * Get a blob's raw bytes directly by its oid, or null if it cannot be read.
+   * Used to serve content-addressed blobs (e.g. diff image bytes) where the
+   * caller holds a blob oid rather than a commit ref plus path.
+   */
+  async getBlobRawByOid(
+    owner: string,
+    repo: string,
+    oid: string,
+  ): Promise<Uint8Array | null> {
+    const gitdir = getRepositoryPath(owner, repo);
+    return readBlobBytes(gitdir, oid);
+  },
+
+  /**
    * List all branches.
    */
   async listBranches(owner: string, repo: string): Promise<BranchInfo[]> {
