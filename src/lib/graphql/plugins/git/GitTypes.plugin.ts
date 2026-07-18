@@ -783,13 +783,17 @@ const GitTypesPlugin = extendSchema((_build) => {
 
                 return lambda(
                   object({
-                    repository: $repository,
+                    slug: $repository.get("slug"),
+                    ownerId: $repository.get("owner_id"),
+                    organizationId: $repository.get("organization_id"),
                     qualifiedName: $qualifiedName,
                     db: $db,
                   }),
                   async (args) => {
-                    const { repository, qualifiedName, db } = args as any;
-                    if (!repository || !qualifiedName) return null;
+                    const { slug, ownerId, organizationId, qualifiedName, db } =
+                      args as any;
+                    if (!slug || !qualifiedName) return null;
+                    const repository = { slug, ownerId, organizationId };
 
                     const owner = await getOwnerSlug(repository, db);
                     if (!owner) return null;
@@ -848,16 +852,26 @@ const GitTypesPlugin = extendSchema((_build) => {
 
                 return lambda(
                   object({
-                    repository: $repository,
+                    slug: $repository.get("slug"),
+                    ownerId: $repository.get("owner_id"),
+                    organizationId: $repository.get("organization_id"),
                     refPrefix: $refPrefix,
                     first: $first,
                     db: $db,
                   }),
                   async (args) => {
-                    const { repository, refPrefix, first, db } = args as any;
-                    if (!repository) {
+                    const {
+                      slug,
+                      ownerId,
+                      organizationId,
+                      refPrefix,
+                      first,
+                      db,
+                    } = args as any;
+                    if (!slug) {
                       return { nodes: [], totalCount: 0 };
                     }
+                    const repository = { slug, ownerId, organizationId };
 
                     const owner = await getOwnerSlug(repository, db);
                     if (!owner) {
@@ -930,16 +944,28 @@ const GitTypesPlugin = extendSchema((_build) => {
                 const $db = context().get("db");
 
                 return lambda(
-                  object({ repository: $repository, db: $db }),
+                  object({
+                    slug: $repository.get("slug"),
+                    ownerId: $repository.get("owner_id"),
+                    organizationId: $repository.get("organization_id"),
+                    defaultBranch: $repository.get("default_branch"),
+                    db: $db,
+                  }),
                   async (args) => {
-                    const { repository, db } = args as any;
-                    const r = repository as any;
-                    if (!r) return null;
+                    const {
+                      slug,
+                      ownerId,
+                      organizationId,
+                      defaultBranch: defaultBranchCol,
+                      db,
+                    } = args as any;
+                    const r = { slug, ownerId, organizationId };
+                    if (!slug) return null;
 
                     const owner = await getOwnerSlug(r, db);
                     if (!owner) return null;
                     const repo = r.slug;
-                    const defaultBranch = r.defaultBranch || "master";
+                    const defaultBranch = defaultBranchCol || "master";
 
                     const exists = await repositoryService.exists(owner, repo);
                     if (!exists) return null;
@@ -985,10 +1011,18 @@ const GitTypesPlugin = extendSchema((_build) => {
                 const $db = context().get("db");
 
                 return lambda(
-                  object({ repository: $repository, sha: $sha, db: $db }),
+                  object({
+                    slug: $repository.get("slug"),
+                    ownerId: $repository.get("owner_id"),
+                    organizationId: $repository.get("organization_id"),
+                    sha: $sha,
+                    db: $db,
+                  }),
                   async (args) => {
-                    const { repository, sha, db } = args as any;
-                    if (!repository || !sha) return null;
+                    const { slug, ownerId, organizationId, sha, db } =
+                      args as any;
+                    if (!slug || !sha) return null;
+                    const repository = { slug, ownerId, organizationId };
 
                     const owner = await getOwnerSlug(repository, db);
                     if (!owner) return null;
