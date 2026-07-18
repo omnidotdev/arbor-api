@@ -7794,6 +7794,27 @@ type CreateRepositoryWithGitPayload {
   error: String
 }
 
+"""Input for renaming a repository."""
+input RenameRepositoryInput {
+  """The repository row ID."""
+  rowId: UUID!
+
+  """The new slug (URL-friendly name). Moves the on-disk storage."""
+  newSlug: String!
+
+  """Optional new display name. The name is left unchanged when omitted."""
+  newName: String
+}
+
+"""Payload for renameRepository mutation."""
+type RenameRepositoryPayload {
+  """The renamed repository."""
+  repository: Repository
+
+  """Error message if the rename failed."""
+  error: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -8680,23 +8701,31 @@ type Mutation {
   ): RenameRepositoryPayload
 }
 
-"""Input for renaming a repository."""
-input RenameRepositoryInput {
-  """The repository row ID."""
-  rowId: UUID!
-
-  """The new slug (URL-friendly name). Moves the on-disk storage."""
-  newSlug: String!
-
-  """Optional new display name. The name is left unchanged when omitted."""
-  newName: String
+"""
+The root subscription type: contains realtime events you can subscribe to with the `subscription` operation.
+"""
+type Subscription {
+  """
+  Fires when a comment on the given pull request is created, updated, or deleted.
+  """
+  pullRequestCommentChanged(pullRequestId: UUID!): PullRequestCommentChangePayload
 }
 
-"""Payload for renameRepository mutation."""
-type RenameRepositoryPayload {
-  """The renamed repository."""
-  repository: Repository
+"""The kind of change delivered on a pullRequestCommentChanged event."""
+enum PullRequestCommentChangeAction {
+  CREATED
+  UPDATED
+  DELETED
+}
 
-  """Error message if the rename failed."""
-  error: String
+"""A single change to a comment on a pull request's conversation."""
+type PullRequestCommentChangePayload {
+  """Whether the comment was created, updated, or deleted."""
+  action: PullRequestCommentChangeAction
+
+  """The affected comment's id (always present, including on delete)."""
+  commentId: UUID
+
+  """The affected comment, or null if it was deleted."""
+  comment: PullRequestComment
 }

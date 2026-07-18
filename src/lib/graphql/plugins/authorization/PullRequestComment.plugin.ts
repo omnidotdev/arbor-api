@@ -1,15 +1,19 @@
+import { sql } from "drizzle-orm";
 import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
+import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
+
 import type { InsertPullRequestComment } from "lib/db/schema";
+import type { PullRequestCommentAction } from "lib/graphql/plugins/subscriptions/topic";
 import type { PlanWrapperFn } from "postgraphile/utils";
 import type { MutationScope } from "./types";
 
 /**
  * Check if user has read access to a repository.
  */
-const hasReadAccess = async (
+export const hasReadAccess = async (
   db: typeof import("lib/db/db").dbPool,
   repositoryId: string,
   userId: string,
@@ -36,17 +40,39 @@ const hasReadAccess = async (
 };
 
 /**
- * Validate pull request comment permissions.
+ * Validate pull request comment permissions, then publish the change so the
+ * pullRequestCommentChanged subscription can push it in real time.
  *
  * - Create: User must be able to see the target pull request (public repo, or
  *   owner/collaborator). The author is pinned to the authenticated user; a
  *   client-supplied authorId that is not the authenticated user is rejected
  * - Update: Author only
  * - Delete: Author only
+ *
+ * After the mutation runs, `pg_notify` is fired application-side onto the pull
+ * request's comment channel (org rule: no NOTIFY trigger, all DDL flows through
+ * Drizzle). The publish is best-effort and never fails the mutation. It runs on
+ * a pooled connection before the mutation's own transaction commits, so on a
+ * create a subscriber may momentarily re-select a null `comment`; the payload
+ * always carries the id + action, so the client learns of the change and can
+ * refetch.
  */
-const validatePermissions = (propName: string, scope: MutationScope) =>
+const validateAndPublish = (
+  propName: string,
+  scope: MutationScope,
+  action: PullRequestCommentAction,
+) =>
   EXPORTABLE(
-    (context, sideEffect, propName, scope, hasReadAccess): PlanWrapperFn =>
+    (
+      context,
+      sideEffect,
+      sql,
+      propName,
+      scope,
+      action,
+      hasReadAccess,
+      pullRequestCommentTopic,
+    ): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
         const $observer = context().get("observer");
@@ -88,9 +114,55 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
           }
         });
 
-        return plan();
+        const $result = plan();
+
+        // Post-mutation realtime publish
+        sideEffect([$result, $input, $db], async ([result, input, db]) => {
+          let commentId: string | undefined;
+          let pullRequestId: string | undefined;
+
+          if (scope === "create") {
+            // the id is db-generated, so read it off the affected row; the pull
+            // request comes from the input
+            commentId = (result as { id?: string } | null)?.id;
+            pullRequestId = (input as InsertPullRequestComment).pullRequestId;
+          } else {
+            // update/delete: the input is the comment rowId. Read the pull
+            // request back by comment id. On a pooled connection this still
+            // sees the pre-commit row, so it resolves for delete too
+            commentId = input as string;
+            const comment = await db.query.pullRequestCommentTable.findFirst({
+              where: (table, { eq }) => eq(table.id, commentId as string),
+              columns: { pullRequestId: true },
+            });
+            pullRequestId = comment?.pullRequestId;
+          }
+
+          if (!commentId || !pullRequestId) return;
+
+          await db
+            .execute(
+              sql`select pg_notify(${pullRequestCommentTopic(pullRequestId)}, ${JSON.stringify(
+                { id: commentId, action },
+              )})`,
+            )
+            .catch((error) =>
+              console.error("[PullRequestComment] pg_notify failed:", error),
+            );
+        });
+
+        return $result;
       },
-    [context, sideEffect, propName, scope, hasReadAccess],
+    [
+      context,
+      sideEffect,
+      sql,
+      propName,
+      scope,
+      action,
+      hasReadAccess,
+      pullRequestCommentTopic,
+    ],
   );
 
 /**
@@ -100,15 +172,18 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
  *   authenticated user
  * - Update: Author only
  * - Delete: Author only
+ *
+ * Each mutation also publishes a realtime change event (see validateAndPublish).
  */
 const PullRequestCommentPlugin = wrapPlans({
   Mutation: {
-    createPullRequestComment: validatePermissions(
+    createPullRequestComment: validateAndPublish(
       "pullRequestComment",
       "create",
+      "CREATED",
     ),
-    updatePullRequestComment: validatePermissions("rowId", "update"),
-    deletePullRequestComment: validatePermissions("rowId", "delete"),
+    updatePullRequestComment: validateAndPublish("rowId", "update", "UPDATED"),
+    deletePullRequestComment: validateAndPublish("rowId", "delete", "DELETED"),
   },
 });
 

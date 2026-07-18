@@ -22,6 +22,7 @@ import {
   isProdEnv,
 } from "lib/config/env.config";
 import graphilePreset from "lib/config/graphile.config";
+import { pgSubscriber } from "lib/db/pubsub";
 import { ensureReposDirectory } from "lib/git";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
 import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
@@ -159,3 +160,15 @@ console.info(
 );
 
 console.info(`🌳 ${appConfig.name} Git API running at ${app.server?.url}git`);
+
+// Release the LISTEN/NOTIFY subscriber's held connection on shutdown so it does
+// not linger after the process is asked to stop
+const shutdown = (signal: string) => {
+  console.info(`[Server] Received ${signal}, shutting down...`);
+  pgSubscriber.release();
+  app.stop();
+  process.exit(0);
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

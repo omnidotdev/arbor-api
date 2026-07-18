@@ -4,6 +4,7 @@ import { makePgService } from "postgraphile/adaptors/pg";
 import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
 import { PostGraphileConnectionFilterPreset } from "postgraphile-plugin-connection-filter";
 
+import { pgSubscriber } from "lib/db/pubsub";
 import {
   NoNodeIdMutationsPlugin,
   OrganizationPlugin,
@@ -30,6 +31,7 @@ import {
   PullRequestSearchPlugin,
   RepositorySearchPlugin,
 } from "lib/graphql/plugins/search";
+import { PullRequestCommentSubscriptionPlugin } from "lib/graphql/plugins/subscriptions";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
 /**
@@ -70,6 +72,8 @@ const graphilePreset: GraphileConfig.Preset = {
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,
+    // Realtime: push pull request comment changes via Postgres LISTEN/NOTIFY
+    PullRequestCommentSubscriptionPlugin,
   ],
   disablePlugins: ["PgIndexBehaviorsPlugin"],
   schema: {
@@ -81,7 +85,15 @@ const graphilePreset: GraphileConfig.Preset = {
     connectionFilterAllowNullInput: true,
     connectionFilterAllowEmptyObjectInput: true,
   },
-  pgServices: [makePgService({ connectionString: DATABASE_URL })],
+  pgServices: [
+    makePgService({
+      connectionString: DATABASE_URL,
+      // LISTEN/NOTIFY subscriber for GraphQL subscriptions. This app supplies
+      // its own context function, so the subscriber is also injected onto the
+      // context in createGraphqlContext (that is what the `listen` step reads)
+      pgSubscriber,
+    }),
+  ],
   grafast: { explain: isDevEnv },
 };
 

@@ -1,6 +1,7 @@
 import { createWithPgClient } from "postgraphile/adaptors/pg";
 
 import { dbPool, pgPool } from "lib/db/db";
+import { pgSubscriber } from "lib/db/pubsub";
 
 import type { YogaInitialContext } from "graphql-yoga";
 import type { SelectUser } from "lib/db/schema";
@@ -31,6 +32,8 @@ declare global {
       organizations: OrganizationClaim[];
       /** Request-scoped authz permission cache to avoid duplicate PDP calls */
       authzCache: Map<string, boolean>;
+      /** Postgres subscription client, read by the grafast `listen` step */
+      pgSubscriber: PgSubscriber | null;
     }
   }
 }
@@ -61,15 +64,15 @@ export interface GraphQLContext {
 const createGraphqlContext = async ({
   request,
 }: Omit<YogaInitialContext, "waitUntil">): Promise<
-  Omit<
-    GraphQLContext,
-    "observer" | "organizations" | "pgSettings" | "pgSubscriber"
-  >
+  Omit<GraphQLContext, "observer" | "organizations" | "pgSettings">
 > => ({
   request,
   db: dbPool,
   withPgClient,
   authzCache: new Map(),
+  // injected here (not by Postgraphile) because this app supplies its own
+  // context function; the grafast `listen` step reads it for subscriptions
+  pgSubscriber,
 });
 
 export default createGraphqlContext;
