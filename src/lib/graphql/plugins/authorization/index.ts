@@ -1,6 +1,8 @@
 export { default as OrganizationPlugin } from "./Organization.plugin";
 export { default as PrimaryKeyMutationsOnlyPlugin } from "./PrimaryKeyMutationsOnly.plugin";
 export { default as PullRequestPlugin } from "./PullRequest.plugin";
+export { default as PullRequestCommentPlugin } from "./PullRequestComment.plugin";
+export { default as PullRequestReviewPlugin } from "./PullRequestReview.plugin";
 export { default as RepositoryPlugin } from "./Repository.plugin";
 export { default as RepositoryCollaboratorPlugin } from "./RepositoryCollaborator.plugin";
 export { default as RepositoryRelationshipPlugin } from "./RepositoryRelationship.plugin";

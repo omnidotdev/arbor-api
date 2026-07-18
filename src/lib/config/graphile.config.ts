@@ -7,7 +7,9 @@ import { PostGraphileConnectionFilterPreset } from "postgraphile-plugin-connecti
 import {
   OrganizationPlugin,
   PrimaryKeyMutationsOnlyPlugin,
+  PullRequestCommentPlugin,
   PullRequestPlugin,
+  PullRequestReviewPlugin,
   RepositoryCollaboratorPlugin,
   RepositoryPlugin,
   SmartTagPlugin,
@@ -44,6 +46,8 @@ const graphilePreset: GraphileConfig.Preset = {
     OrganizationPlugin,
     PrimaryKeyMutationsOnlyPlugin,
     PullRequestPlugin,
+    PullRequestCommentPlugin,
+    PullRequestReviewPlugin,
     RepositoryPlugin,
     RepositoryCollaboratorPlugin,
     SmartTagPlugin,
