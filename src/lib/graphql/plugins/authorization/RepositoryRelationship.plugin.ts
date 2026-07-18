@@ -88,6 +88,49 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
   );
 
 /**
+ * Validate repository relationship metadata permissions.
+ *
+ * Metadata rows hang off a relationship, so the caller must have the same write
+ * access to the relationship's source repository that editing the relationship
+ * itself requires.
+ *
+ * - Update: Requires write access to the parent relationship's source repository
+ * - Delete: Requires write access to the parent relationship's source repository
+ */
+const validateMetadataPermissions = (propName: string) =>
+  EXPORTABLE(
+    (context, sideEffect, propName, hasWriteAccess): PlanWrapperFn =>
+      (plan, _, fieldArgs) => {
+        const $input = fieldArgs.getRaw(["input", propName]);
+        const $observer = context().get("observer");
+        const $db = context().get("db");
+
+        sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
+          if (!observer) throw new Error("Unauthorized");
+
+          // Update or delete - resolve the parent relationship from the metadatum
+          const metadatum =
+            await db.query.repositoryRelationshipMetadataTable.findFirst({
+              where: (table, { eq }) => eq(table.id, input),
+              with: { relationship: true },
+            });
+
+          if (!metadatum?.relationship) throw new Error("Unauthorized");
+
+          const canWrite = await hasWriteAccess(
+            db,
+            metadatum.relationship.sourceRepositoryId,
+            observer.id,
+          );
+          if (!canWrite) throw new Error("Unauthorized");
+        });
+
+        return plan();
+      },
+    [context, sideEffect, propName, hasWriteAccess],
+  );
+
+/**
  * Check if user has admin+ role in organization via IDP claims.
  */
 const hasOrgAdminRole = (
@@ -240,6 +283,10 @@ const RepositoryRelationshipPlugin = wrapPlans({
     ),
     updateRepositoryRelationship: validatePermissions("rowId", "update"),
     deleteRepositoryRelationship: validatePermissions("rowId", "delete"),
+
+    // Relationship metadata
+    updateRepositoryRelationshipMetadatum: validateMetadataPermissions("rowId"),
+    deleteRepositoryRelationshipMetadatum: validateMetadataPermissions("rowId"),
 
     // Relationship types
     createRepositoryRelationshipType: validateTypePermissions(

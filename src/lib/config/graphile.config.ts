@@ -13,6 +13,7 @@ import {
   PullRequestReviewPlugin,
   RepositoryCollaboratorPlugin,
   RepositoryPlugin,
+  RepositoryRelationshipPlugin,
   SmartTagPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
@@ -53,6 +54,7 @@ const graphilePreset: GraphileConfig.Preset = {
     PullRequestReviewPlugin,
     RepositoryPlugin,
     RepositoryCollaboratorPlugin,
+    RepositoryRelationshipPlugin,
     SmartTagPlugin,
     UserPlugin,
     // Git GraphQL types and mutations
