@@ -6537,20 +6537,14 @@ type UpdateRepositoryRelationshipMetadatumPayload {
   ): RepositoryRelationshipMetadatumEdge
 }
 
-"""
-All input for the `updateRepositoryRelationshipMetadatumById` mutation.
-"""
-input UpdateRepositoryRelationshipMetadatumByIdInput {
+"""All input for the `updateRepositoryRelationshipMetadatum` mutation."""
+input UpdateRepositoryRelationshipMetadatumInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryRelationshipMetadatum` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `RepositoryRelationshipMetadatum` being updated.
@@ -6567,21 +6561,6 @@ input RepositoryRelationshipMetadatumPatch {
   key: String
   value: String
   createdAt: Datetime
-}
-
-"""All input for the `updateRepositoryRelationshipMetadatum` mutation."""
-input UpdateRepositoryRelationshipMetadatumInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `RepositoryRelationshipMetadatum` being updated.
-  """
-  patch: RepositoryRelationshipMetadatumPatch!
 }
 
 """The output of our update `ExternalDependency` mutation."""
@@ -6607,18 +6586,14 @@ type UpdateExternalDependencyPayload {
   ): ExternalDependencyEdge
 }
 
-"""All input for the `updateExternalDependencyById` mutation."""
-input UpdateExternalDependencyByIdInput {
+"""All input for the `updateExternalDependency` mutation."""
+input UpdateExternalDependencyInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `ExternalDependency` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `ExternalDependency` being updated.
@@ -6637,21 +6612,6 @@ input ExternalDependencyPatch {
   versionConstraint: String
   detectionSource: String
   createdAt: Datetime
-}
-
-"""All input for the `updateExternalDependency` mutation."""
-input UpdateExternalDependencyInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `ExternalDependency` being updated.
-  """
-  patch: ExternalDependencyPatch!
 }
 
 """The output of our update `RepositoryCollaborator` mutation."""
@@ -6677,18 +6637,15 @@ type UpdateRepositoryCollaboratorPayload {
   ): RepositoryCollaboratorEdge
 }
 
-"""All input for the `updateRepositoryCollaboratorById` mutation."""
-input UpdateRepositoryCollaboratorByIdInput {
+"""All input for the `updateRepositoryCollaborator` mutation."""
+input UpdateRepositoryCollaboratorInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryCollaborator` to be updated.
-  """
-  id: ID!
+  repositoryId: UUID!
+  userId: UUID!
 
   """
   An object where the defined keys will be set on the `RepositoryCollaborator` being updated.
@@ -6705,22 +6662,6 @@ input RepositoryCollaboratorPatch {
   permission: Permission
   createdAt: Datetime
   updatedAt: Datetime
-}
-
-"""All input for the `updateRepositoryCollaborator` mutation."""
-input UpdateRepositoryCollaboratorInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  repositoryId: UUID!
-  userId: UUID!
-
-  """
-  An object where the defined keys will be set on the `RepositoryCollaborator` being updated.
-  """
-  patch: RepositoryCollaboratorPatch!
 }
 
 """The output of our update `RepositoryRelationshipType` mutation."""
@@ -6746,18 +6687,14 @@ type UpdateRepositoryRelationshipTypePayload {
   ): RepositoryRelationshipTypeEdge
 }
 
-"""All input for the `updateRepositoryRelationshipTypeById` mutation."""
-input UpdateRepositoryRelationshipTypeByIdInput {
+"""All input for the `updateRepositoryRelationshipType` mutation."""
+input UpdateRepositoryRelationshipTypeInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryRelationshipType` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `RepositoryRelationshipType` being updated.
@@ -6775,21 +6712,6 @@ input RepositoryRelationshipTypePatch {
   isDirected: Boolean
   organizationId: UUID
   createdAt: Datetime
-}
-
-"""All input for the `updateRepositoryRelationshipType` mutation."""
-input UpdateRepositoryRelationshipTypeInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `RepositoryRelationshipType` being updated.
-  """
-  patch: RepositoryRelationshipTypePatch!
 }
 
 """The output of our update `PullRequestReview` mutation."""
@@ -6815,18 +6737,14 @@ type UpdatePullRequestReviewPayload {
   ): PullRequestReviewEdge
 }
 
-"""All input for the `updatePullRequestReviewById` mutation."""
-input UpdatePullRequestReviewByIdInput {
+"""All input for the `updatePullRequestReview` mutation."""
+input UpdatePullRequestReviewInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `PullRequestReview` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `PullRequestReview` being updated.
@@ -6846,21 +6764,6 @@ input PullRequestReviewPatch {
   submittedAt: Datetime
   createdAt: Datetime
   updatedAt: Datetime
-}
-
-"""All input for the `updatePullRequestReview` mutation."""
-input UpdatePullRequestReviewInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `PullRequestReview` being updated.
-  """
-  patch: PullRequestReviewPatch!
 }
 
 """The output of our update `User` mutation."""
@@ -6886,18 +6789,14 @@ type UpdateUserPayload {
   ): UserEdge
 }
 
-"""All input for the `updateUserById` mutation."""
-input UpdateUserByIdInput {
+"""All input for the `updateUser` mutation."""
+input UpdateUserInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `User` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `User` being updated.
@@ -6916,21 +6815,6 @@ input UserPatch {
   updatedAt: Datetime
   username: String
   bio: String
-}
-
-"""All input for the `updateUser` mutation."""
-input UpdateUserInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `User` being updated.
-  """
-  patch: UserPatch!
 }
 
 """The output of our update `PullRequestComment` mutation."""
@@ -6956,18 +6840,14 @@ type UpdatePullRequestCommentPayload {
   ): PullRequestCommentEdge
 }
 
-"""All input for the `updatePullRequestCommentById` mutation."""
-input UpdatePullRequestCommentByIdInput {
+"""All input for the `updatePullRequestComment` mutation."""
+input UpdatePullRequestCommentInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `PullRequestComment` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `PullRequestComment` being updated.
@@ -6990,21 +6870,6 @@ input PullRequestCommentPatch {
   replyToId: UUID
   createdAt: Datetime
   updatedAt: Datetime
-}
-
-"""All input for the `updatePullRequestComment` mutation."""
-input UpdatePullRequestCommentInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `PullRequestComment` being updated.
-  """
-  patch: PullRequestCommentPatch!
 }
 
 """The output of our update `RepositoryRelationship` mutation."""
@@ -7030,18 +6895,14 @@ type UpdateRepositoryRelationshipPayload {
   ): RepositoryRelationshipEdge
 }
 
-"""All input for the `updateRepositoryRelationshipById` mutation."""
-input UpdateRepositoryRelationshipByIdInput {
+"""All input for the `updateRepositoryRelationship` mutation."""
+input UpdateRepositoryRelationshipInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryRelationship` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `RepositoryRelationship` being updated.
@@ -7063,21 +6924,6 @@ input RepositoryRelationshipPatch {
   branch: String
   createdAt: Datetime
   updatedAt: Datetime
-}
-
-"""All input for the `updateRepositoryRelationship` mutation."""
-input UpdateRepositoryRelationshipInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `RepositoryRelationship` being updated.
-  """
-  patch: RepositoryRelationshipPatch!
 }
 
 """The output of our update `Organization` mutation."""
@@ -7103,18 +6949,14 @@ type UpdateOrganizationPayload {
   ): OrganizationEdge
 }
 
-"""All input for the `updateOrganizationById` mutation."""
-input UpdateOrganizationByIdInput {
+"""All input for the `updateOrganization` mutation."""
+input UpdateOrganizationInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Organization` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `Organization` being updated.
@@ -7136,21 +6978,6 @@ input OrganizationPatch {
   billingAccountId: String
   deletedAt: Datetime
   deletionReason: String
-}
-
-"""All input for the `updateOrganization` mutation."""
-input UpdateOrganizationInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `Organization` being updated.
-  """
-  patch: OrganizationPatch!
 }
 
 """The output of our update `Repository` mutation."""
@@ -7176,18 +7003,14 @@ type UpdateRepositoryPayload {
   ): RepositoryEdge
 }
 
-"""All input for the `updateRepositoryById` mutation."""
-input UpdateRepositoryByIdInput {
+"""All input for the `updateRepository` mutation."""
+input UpdateRepositoryInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Repository` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `Repository` being updated.
@@ -7209,21 +7032,6 @@ input RepositoryPatch {
   defaultBranch: String
   createdAt: Datetime
   updatedAt: Datetime
-}
-
-"""All input for the `updateRepository` mutation."""
-input UpdateRepositoryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `Repository` being updated.
-  """
-  patch: RepositoryPatch!
 }
 
 """The output of our update `PullRequest` mutation."""
@@ -7249,18 +7057,14 @@ type UpdatePullRequestPayload {
   ): PullRequestEdge
 }
 
-"""All input for the `updatePullRequestById` mutation."""
-input UpdatePullRequestByIdInput {
+"""All input for the `updatePullRequest` mutation."""
+input UpdatePullRequestInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `PullRequest` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `PullRequest` being updated.
@@ -7289,21 +7093,6 @@ input PullRequestPatch {
   updatedAt: Datetime
 }
 
-"""All input for the `updatePullRequest` mutation."""
-input UpdatePullRequestInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `PullRequest` being updated.
-  """
-  patch: PullRequestPatch!
-}
-
 """The output of our delete `RepositoryRelationshipMetadatum` mutation."""
 type DeleteRepositoryRelationshipMetadatumPayload {
   """
@@ -7330,22 +7119,6 @@ type DeleteRepositoryRelationshipMetadatumPayload {
     """The method to use when ordering `RepositoryRelationshipMetadatum`."""
     orderBy: [RepositoryRelationshipMetadatumOrderBy!]! = [PRIMARY_KEY_ASC]
   ): RepositoryRelationshipMetadatumEdge
-}
-
-"""
-All input for the `deleteRepositoryRelationshipMetadatumById` mutation.
-"""
-input DeleteRepositoryRelationshipMetadatumByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryRelationshipMetadatum` to be deleted.
-  """
-  id: ID!
 }
 
 """All input for the `deleteRepositoryRelationshipMetadatum` mutation."""
@@ -7382,20 +7155,6 @@ type DeleteExternalDependencyPayload {
   ): ExternalDependencyEdge
 }
 
-"""All input for the `deleteExternalDependencyById` mutation."""
-input DeleteExternalDependencyByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `ExternalDependency` to be deleted.
-  """
-  id: ID!
-}
-
 """All input for the `deleteExternalDependency` mutation."""
 input DeleteExternalDependencyInput {
   """
@@ -7428,20 +7187,6 @@ type DeleteRepositoryCollaboratorPayload {
     """The method to use when ordering `RepositoryCollaborator`."""
     orderBy: [RepositoryCollaboratorOrderBy!]! = [PRIMARY_KEY_ASC]
   ): RepositoryCollaboratorEdge
-}
-
-"""All input for the `deleteRepositoryCollaboratorById` mutation."""
-input DeleteRepositoryCollaboratorByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryCollaborator` to be deleted.
-  """
-  id: ID!
 }
 
 """All input for the `deleteRepositoryCollaborator` mutation."""
@@ -7479,20 +7224,6 @@ type DeleteRepositoryRelationshipTypePayload {
   ): RepositoryRelationshipTypeEdge
 }
 
-"""All input for the `deleteRepositoryRelationshipTypeById` mutation."""
-input DeleteRepositoryRelationshipTypeByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryRelationshipType` to be deleted.
-  """
-  id: ID!
-}
-
 """All input for the `deleteRepositoryRelationshipType` mutation."""
 input DeleteRepositoryRelationshipTypeInput {
   """
@@ -7525,20 +7256,6 @@ type DeletePullRequestReviewPayload {
     """The method to use when ordering `PullRequestReview`."""
     orderBy: [PullRequestReviewOrderBy!]! = [PRIMARY_KEY_ASC]
   ): PullRequestReviewEdge
-}
-
-"""All input for the `deletePullRequestReviewById` mutation."""
-input DeletePullRequestReviewByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `PullRequestReview` to be deleted.
-  """
-  id: ID!
 }
 
 """All input for the `deletePullRequestReview` mutation."""
@@ -7575,20 +7292,6 @@ type DeleteUserPayload {
   ): UserEdge
 }
 
-"""All input for the `deleteUserById` mutation."""
-input DeleteUserByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `User` to be deleted.
-  """
-  id: ID!
-}
-
 """All input for the `deleteUser` mutation."""
 input DeleteUserInput {
   """
@@ -7621,20 +7324,6 @@ type DeletePullRequestCommentPayload {
     """The method to use when ordering `PullRequestComment`."""
     orderBy: [PullRequestCommentOrderBy!]! = [PRIMARY_KEY_ASC]
   ): PullRequestCommentEdge
-}
-
-"""All input for the `deletePullRequestCommentById` mutation."""
-input DeletePullRequestCommentByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `PullRequestComment` to be deleted.
-  """
-  id: ID!
 }
 
 """All input for the `deletePullRequestComment` mutation."""
@@ -7671,20 +7360,6 @@ type DeleteRepositoryRelationshipPayload {
   ): RepositoryRelationshipEdge
 }
 
-"""All input for the `deleteRepositoryRelationshipById` mutation."""
-input DeleteRepositoryRelationshipByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `RepositoryRelationship` to be deleted.
-  """
-  id: ID!
-}
-
 """All input for the `deleteRepositoryRelationship` mutation."""
 input DeleteRepositoryRelationshipInput {
   """
@@ -7717,20 +7392,6 @@ type DeleteOrganizationPayload {
     """The method to use when ordering `Organization`."""
     orderBy: [OrganizationOrderBy!]! = [PRIMARY_KEY_ASC]
   ): OrganizationEdge
-}
-
-"""All input for the `deleteOrganizationById` mutation."""
-input DeleteOrganizationByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Organization` to be deleted.
-  """
-  id: ID!
 }
 
 """All input for the `deleteOrganization` mutation."""
@@ -7767,20 +7428,6 @@ type DeleteRepositoryPayload {
   ): RepositoryEdge
 }
 
-"""All input for the `deleteRepositoryById` mutation."""
-input DeleteRepositoryByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Repository` to be deleted.
-  """
-  id: ID!
-}
-
 """All input for the `deleteRepository` mutation."""
 input DeleteRepositoryInput {
   """
@@ -7813,20 +7460,6 @@ type DeletePullRequestPayload {
     """The method to use when ordering `PullRequest`."""
     orderBy: [PullRequestOrderBy!]! = [PRIMARY_KEY_ASC]
   ): PullRequestEdge
-}
-
-"""All input for the `deletePullRequestById` mutation."""
-input DeletePullRequestByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `PullRequest` to be deleted.
-  """
-  id: ID!
 }
 
 """All input for the `deletePullRequest` mutation."""
@@ -8801,16 +8434,6 @@ type Mutation {
   ): CreatePullRequestPayload
 
   """
-  Updates a single `RepositoryRelationshipMetadatum` using its globally unique id and a patch.
-  """
-  updateRepositoryRelationshipMetadatumById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateRepositoryRelationshipMetadatumByIdInput!
-  ): UpdateRepositoryRelationshipMetadatumPayload
-
-  """
   Updates a single `RepositoryRelationshipMetadatum` using a unique key and a patch.
   """
   updateRepositoryRelationshipMetadatum(
@@ -8820,16 +8443,6 @@ type Mutation {
     input: UpdateRepositoryRelationshipMetadatumInput!
   ): UpdateRepositoryRelationshipMetadatumPayload
 
-  """
-  Updates a single `ExternalDependency` using its globally unique id and a patch.
-  """
-  updateExternalDependencyById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateExternalDependencyByIdInput!
-  ): UpdateExternalDependencyPayload
-
   """Updates a single `ExternalDependency` using a unique key and a patch."""
   updateExternalDependency(
     """
@@ -8837,16 +8450,6 @@ type Mutation {
     """
     input: UpdateExternalDependencyInput!
   ): UpdateExternalDependencyPayload
-
-  """
-  Updates a single `RepositoryCollaborator` using its globally unique id and a patch.
-  """
-  updateRepositoryCollaboratorById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateRepositoryCollaboratorByIdInput!
-  ): UpdateRepositoryCollaboratorPayload
 
   """
   Updates a single `RepositoryCollaborator` using a unique key and a patch.
@@ -8859,16 +8462,6 @@ type Mutation {
   ): UpdateRepositoryCollaboratorPayload
 
   """
-  Updates a single `RepositoryRelationshipType` using its globally unique id and a patch.
-  """
-  updateRepositoryRelationshipTypeById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateRepositoryRelationshipTypeByIdInput!
-  ): UpdateRepositoryRelationshipTypePayload
-
-  """
   Updates a single `RepositoryRelationshipType` using a unique key and a patch.
   """
   updateRepositoryRelationshipType(
@@ -8878,16 +8471,6 @@ type Mutation {
     input: UpdateRepositoryRelationshipTypeInput!
   ): UpdateRepositoryRelationshipTypePayload
 
-  """
-  Updates a single `PullRequestReview` using its globally unique id and a patch.
-  """
-  updatePullRequestReviewById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdatePullRequestReviewByIdInput!
-  ): UpdatePullRequestReviewPayload
-
   """Updates a single `PullRequestReview` using a unique key and a patch."""
   updatePullRequestReview(
     """
@@ -8895,14 +8478,6 @@ type Mutation {
     """
     input: UpdatePullRequestReviewInput!
   ): UpdatePullRequestReviewPayload
-
-  """Updates a single `User` using its globally unique id and a patch."""
-  updateUserById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateUserByIdInput!
-  ): UpdateUserPayload
 
   """Updates a single `User` using a unique key and a patch."""
   updateUser(
@@ -8912,16 +8487,6 @@ type Mutation {
     input: UpdateUserInput!
   ): UpdateUserPayload
 
-  """
-  Updates a single `PullRequestComment` using its globally unique id and a patch.
-  """
-  updatePullRequestCommentById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdatePullRequestCommentByIdInput!
-  ): UpdatePullRequestCommentPayload
-
   """Updates a single `PullRequestComment` using a unique key and a patch."""
   updatePullRequestComment(
     """
@@ -8929,16 +8494,6 @@ type Mutation {
     """
     input: UpdatePullRequestCommentInput!
   ): UpdatePullRequestCommentPayload
-
-  """
-  Updates a single `RepositoryRelationship` using its globally unique id and a patch.
-  """
-  updateRepositoryRelationshipById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateRepositoryRelationshipByIdInput!
-  ): UpdateRepositoryRelationshipPayload
 
   """
   Updates a single `RepositoryRelationship` using a unique key and a patch.
@@ -8950,16 +8505,6 @@ type Mutation {
     input: UpdateRepositoryRelationshipInput!
   ): UpdateRepositoryRelationshipPayload
 
-  """
-  Updates a single `Organization` using its globally unique id and a patch.
-  """
-  updateOrganizationById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateOrganizationByIdInput!
-  ): UpdateOrganizationPayload
-
   """Updates a single `Organization` using a unique key and a patch."""
   updateOrganization(
     """
@@ -8967,16 +8512,6 @@ type Mutation {
     """
     input: UpdateOrganizationInput!
   ): UpdateOrganizationPayload
-
-  """
-  Updates a single `Repository` using its globally unique id and a patch.
-  """
-  updateRepositoryById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateRepositoryByIdInput!
-  ): UpdateRepositoryPayload
 
   """Updates a single `Repository` using a unique key and a patch."""
   updateRepository(
@@ -8986,16 +8521,6 @@ type Mutation {
     input: UpdateRepositoryInput!
   ): UpdateRepositoryPayload
 
-  """
-  Updates a single `PullRequest` using its globally unique id and a patch.
-  """
-  updatePullRequestById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdatePullRequestByIdInput!
-  ): UpdatePullRequestPayload
-
   """Updates a single `PullRequest` using a unique key and a patch."""
   updatePullRequest(
     """
@@ -9003,16 +8528,6 @@ type Mutation {
     """
     input: UpdatePullRequestInput!
   ): UpdatePullRequestPayload
-
-  """
-  Deletes a single `RepositoryRelationshipMetadatum` using its globally unique id.
-  """
-  deleteRepositoryRelationshipMetadatumById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteRepositoryRelationshipMetadatumByIdInput!
-  ): DeleteRepositoryRelationshipMetadatumPayload
 
   """Deletes a single `RepositoryRelationshipMetadatum` using a unique key."""
   deleteRepositoryRelationshipMetadatum(
@@ -9022,14 +8537,6 @@ type Mutation {
     input: DeleteRepositoryRelationshipMetadatumInput!
   ): DeleteRepositoryRelationshipMetadatumPayload
 
-  """Deletes a single `ExternalDependency` using its globally unique id."""
-  deleteExternalDependencyById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteExternalDependencyByIdInput!
-  ): DeleteExternalDependencyPayload
-
   """Deletes a single `ExternalDependency` using a unique key."""
   deleteExternalDependency(
     """
@@ -9037,16 +8544,6 @@ type Mutation {
     """
     input: DeleteExternalDependencyInput!
   ): DeleteExternalDependencyPayload
-
-  """
-  Deletes a single `RepositoryCollaborator` using its globally unique id.
-  """
-  deleteRepositoryCollaboratorById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteRepositoryCollaboratorByIdInput!
-  ): DeleteRepositoryCollaboratorPayload
 
   """Deletes a single `RepositoryCollaborator` using a unique key."""
   deleteRepositoryCollaborator(
@@ -9056,16 +8553,6 @@ type Mutation {
     input: DeleteRepositoryCollaboratorInput!
   ): DeleteRepositoryCollaboratorPayload
 
-  """
-  Deletes a single `RepositoryRelationshipType` using its globally unique id.
-  """
-  deleteRepositoryRelationshipTypeById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteRepositoryRelationshipTypeByIdInput!
-  ): DeleteRepositoryRelationshipTypePayload
-
   """Deletes a single `RepositoryRelationshipType` using a unique key."""
   deleteRepositoryRelationshipType(
     """
@@ -9073,14 +8560,6 @@ type Mutation {
     """
     input: DeleteRepositoryRelationshipTypeInput!
   ): DeleteRepositoryRelationshipTypePayload
-
-  """Deletes a single `PullRequestReview` using its globally unique id."""
-  deletePullRequestReviewById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeletePullRequestReviewByIdInput!
-  ): DeletePullRequestReviewPayload
 
   """Deletes a single `PullRequestReview` using a unique key."""
   deletePullRequestReview(
@@ -9090,14 +8569,6 @@ type Mutation {
     input: DeletePullRequestReviewInput!
   ): DeletePullRequestReviewPayload
 
-  """Deletes a single `User` using its globally unique id."""
-  deleteUserById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteUserByIdInput!
-  ): DeleteUserPayload
-
   """Deletes a single `User` using a unique key."""
   deleteUser(
     """
@@ -9105,14 +8576,6 @@ type Mutation {
     """
     input: DeleteUserInput!
   ): DeleteUserPayload
-
-  """Deletes a single `PullRequestComment` using its globally unique id."""
-  deletePullRequestCommentById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeletePullRequestCommentByIdInput!
-  ): DeletePullRequestCommentPayload
 
   """Deletes a single `PullRequestComment` using a unique key."""
   deletePullRequestComment(
@@ -9122,16 +8585,6 @@ type Mutation {
     input: DeletePullRequestCommentInput!
   ): DeletePullRequestCommentPayload
 
-  """
-  Deletes a single `RepositoryRelationship` using its globally unique id.
-  """
-  deleteRepositoryRelationshipById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteRepositoryRelationshipByIdInput!
-  ): DeleteRepositoryRelationshipPayload
-
   """Deletes a single `RepositoryRelationship` using a unique key."""
   deleteRepositoryRelationship(
     """
@@ -9139,14 +8592,6 @@ type Mutation {
     """
     input: DeleteRepositoryRelationshipInput!
   ): DeleteRepositoryRelationshipPayload
-
-  """Deletes a single `Organization` using its globally unique id."""
-  deleteOrganizationById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteOrganizationByIdInput!
-  ): DeleteOrganizationPayload
 
   """Deletes a single `Organization` using a unique key."""
   deleteOrganization(
@@ -9156,14 +8601,6 @@ type Mutation {
     input: DeleteOrganizationInput!
   ): DeleteOrganizationPayload
 
-  """Deletes a single `Repository` using its globally unique id."""
-  deleteRepositoryById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteRepositoryByIdInput!
-  ): DeleteRepositoryPayload
-
   """Deletes a single `Repository` using a unique key."""
   deleteRepository(
     """
@@ -9171,14 +8608,6 @@ type Mutation {
     """
     input: DeleteRepositoryInput!
   ): DeleteRepositoryPayload
-
-  """Deletes a single `PullRequest` using its globally unique id."""
-  deletePullRequestById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeletePullRequestByIdInput!
-  ): DeletePullRequestPayload
 
   """Deletes a single `PullRequest` using a unique key."""
   deletePullRequest(

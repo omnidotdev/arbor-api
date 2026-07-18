@@ -5,6 +5,7 @@ import { PostGraphileAmberPreset } from "postgraphile/presets/amber";
 import { PostGraphileConnectionFilterPreset } from "postgraphile-plugin-connection-filter";
 
 import {
+  NoNodeIdMutationsPlugin,
   OrganizationPlugin,
   PrimaryKeyMutationsOnlyPlugin,
   PullRequestCommentPlugin,
@@ -44,6 +45,7 @@ const graphilePreset: GraphileConfig.Preset = {
     // Observer plugin (exposes current authenticated user)
     ObserverPlugin,
     // Authorization plugins (pre-mutation validation)
+    NoNodeIdMutationsPlugin,
     OrganizationPlugin,
     PrimaryKeyMutationsOnlyPlugin,
     PullRequestPlugin,
