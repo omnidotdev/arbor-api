@@ -10,6 +10,7 @@ import {
   pullRequestTable,
   repositoryCollaboratorTable,
   stackTable,
+  verificationCheckTable,
 } from "lib/db/schema";
 import {
   canReadRepository,
@@ -808,7 +809,7 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
     {
       title: "Merge change",
       description:
-        "Land the bottom mergeable change of a stack onto its base branch. Requires write access to the repository. Only the bottom unmerged change merges, and only when every required check has passed; the base-branch advance is recorded as merge intent and deferred to the merge queue (never a destructive git operation)",
+        "Land the bottom mergeable change of a stack onto its base branch. Requires write access to the repository. Only the bottom unmerged change merges, and only when every required check has passed; the base branch is advanced forward (fast-forward or a merge commit), never rewriting history",
       inputSchema: {
         changeId: z.string().uuid().describe("The change to merge"),
       },
@@ -826,10 +827,106 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       if (!gate) return errorResult("Change not found or not writable");
 
       // stackService.mergeChange enforces the verification gate, bottom-of-stack
-      // ordering, and safe deferred merge intent; it never throws
+      // ordering, and safe forward-only branch advance; it never throws
       const outcome = await stackService.mergeChange(changeId, caller.user.id);
 
       return jsonResult(outcome);
+    },
+  );
+
+  server.registerTool(
+    "report_verification_check",
+    {
+      title: "Report verification check",
+      description:
+        "Report a verification check result on a change (create or update by name). A required check is a blocking merge gate: the change merges only when every required check has passed. Requires write access to the change's repository",
+      inputSchema: {
+        changeId: z.string().uuid().describe("The change the check runs on"),
+        name: z
+          .string()
+          .min(1)
+          .describe("Check name, e.g. unit-tests, lint, security-scan"),
+        status: z
+          .enum([
+            "pending",
+            "running",
+            "passed",
+            "failed",
+            "errored",
+            "skipped",
+          ])
+          .describe("Check status"),
+        category: z
+          .enum(["test", "lint", "build", "security", "other"])
+          .optional()
+          .describe("Check category (defaults to other)"),
+        required: z
+          .boolean()
+          .optional()
+          .describe("Whether the check blocks merge (defaults to true)"),
+        summary: z
+          .string()
+          .optional()
+          .describe("Machine-readable result summary"),
+        detailsUrl: z.string().optional().describe("Link to full results"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({
+      changeId,
+      name,
+      status,
+      category,
+      required,
+      summary,
+      detailsUrl,
+    }) => {
+      const change = await dbPool.query.changeTable.findFirst({
+        where: (table, { eq: eqOp }) => eqOp(table.id, changeId),
+        columns: { id: true, repositoryId: true },
+      });
+
+      if (!change) return errorResult("Change not found or not writable");
+
+      const gate = await gateWriteByRepositoryId(caller, change.repositoryId);
+      if (!gate) return errorResult("Change not found or not writable");
+
+      try {
+        // Upsert by (changeId, name) so re-reporting a check updates it in place
+        const [row] = await dbPool
+          .insert(verificationCheckTable)
+          .values({
+            changeId,
+            name,
+            status,
+            ...(category ? { category } : {}),
+            ...(required !== undefined ? { required } : {}),
+            summary: summary ?? null,
+            detailsUrl: detailsUrl ?? null,
+          })
+          .onConflictDoUpdate({
+            target: [
+              verificationCheckTable.changeId,
+              verificationCheckTable.name,
+            ],
+            set: {
+              status,
+              ...(category ? { category } : {}),
+              ...(required !== undefined ? { required } : {}),
+              summary: summary ?? null,
+              detailsUrl: detailsUrl ?? null,
+              updatedAt: new Date().toISOString(),
+            },
+          })
+          .returning({ id: verificationCheckTable.id });
+
+        if (!row) return errorResult("Failed to report verification check");
+
+        return jsonResult({ id: row.id });
+      } catch (err) {
+        console.error("[MCP] report_verification_check failed:", err);
+        return errorResult("Failed to report verification check");
+      }
     },
   );
 
