@@ -4,7 +4,7 @@ import { context, lambda, sideEffect } from "postgraphile/grafast";
 import { sql } from "postgraphile/pg-sql2";
 import { wrapPlans } from "postgraphile/utils";
 
-import type { PgSelectRowsStep } from "postgraphile/@dataplan/pg";
+import type { PgSelectStep } from "postgraphile/@dataplan/pg";
 import type { PlanWrapperFn } from "postgraphile/utils";
 
 /**
@@ -18,13 +18,11 @@ const scopeToObserver = EXPORTABLE(
   (context, lambda, sql, TYPES): PlanWrapperFn =>
     (plan) => {
       const $connection = plan();
-      // The connection field plans a ConnectionStep wrapping a PgSelectRowsStep;
-      // reach through to the underlying select to add a mandatory predicate
+      // The connection field plans a ConnectionStep whose subplan is the
+      // underlying PgSelectStep; add a mandatory predicate to it
       const $select = (
-        $connection as unknown as { getSubplan(): PgSelectRowsStep }
-      )
-        .getSubplan()
-        .getClassStep();
+        $connection as unknown as { getSubplan(): PgSelectStep }
+      ).getSubplan();
       const $observer = context().get("observer");
       const $userId = lambda($observer, (observer) => observer?.id ?? null);
 
