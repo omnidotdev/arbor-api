@@ -15,6 +15,13 @@
       "when": 1784419577608,
       "tag": "0001_overrated_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784477082224,
+      "tag": "0002_sour_blindfold",
+      "breakpoints": true
     }
   ]
 }
