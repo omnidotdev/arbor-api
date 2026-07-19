@@ -14000,6 +14000,68 @@ type MergeChangePayload {
   error: String
 }
 
+"""Input for enqueuing a stack onto its repository's merge queue."""
+input EnqueueStackInput {
+  """The stack ID to enqueue."""
+  stackId: UUID!
+}
+
+"""Payload for the enqueueStack mutation."""
+type EnqueueStackPayload {
+  """Whether the stack was enqueued (or already had an active entry)."""
+  success: Boolean!
+
+  """The merge queue entry for the stack."""
+  entryId: UUID
+
+  """
+  True when an active entry already existed, so no new entry was inserted.
+  """
+  alreadyQueued: Boolean
+
+  """Error message if the stack could not be enqueued."""
+  error: String
+}
+
+"""Input for processing a repository's merge queue."""
+input ProcessMergeQueueInput {
+  """The repository ID whose queue to process."""
+  repositoryId: UUID!
+}
+
+"""Result of processing a single merge queue entry."""
+type MergeQueueEntryResult {
+  """The merge queue entry that was processed."""
+  entryId: UUID!
+
+  """The stack the entry references, when it is a stack entry."""
+  stackId: UUID
+
+  """The entry's status after this pass: "merged", "blocked" or "skipped"."""
+  status: String!
+
+  """The changes that landed during this pass, bottom-up."""
+  mergedChangeIds: [UUID!]!
+
+  """A generic explanation when the entry was blocked or skipped."""
+  detail: String
+
+  """Names of required checks blocking the entry, when it was gated."""
+  blockingChecks: [String!]
+}
+
+"""Payload for the processMergeQueue mutation."""
+type ProcessMergeQueuePayload {
+  """Whether the queue pass ran."""
+  success: Boolean!
+
+  """Per-entry results of the pass, in queue order."""
+  results: [MergeQueueEntryResult!]
+
+  """Error message if the pass did not run."""
+  error: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -15497,6 +15559,30 @@ type Mutation {
     """
     input: MergeChangeInput!
   ): MergeChangePayload
+
+  """
+  Enqueue a stack onto its repository's merge queue.
+  Idempotent: an already-queued stack returns its existing entry. Requires
+  write access to the repository.
+  """
+  enqueueStack(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: EnqueueStackInput!
+  ): EnqueueStackPayload
+
+  """
+  Process a repository's merge queue with one serial pass, landing the
+  changes it safely can through the existing merge path. Requires write
+  access to the repository.
+  """
+  processMergeQueue(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ProcessMergeQueueInput!
+  ): ProcessMergeQueuePayload
 }
 
 """

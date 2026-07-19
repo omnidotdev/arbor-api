@@ -940,7 +940,13 @@ export const gitService = {
         author,
         committer: author,
       });
-      await git.writeRef({ fs, gitdir, ref, value: mergeCommitSha, force: true });
+      await git.writeRef({
+        fs,
+        gitdir,
+        ref,
+        value: mergeCommitSha,
+        force: true,
+      });
       return { sha: mergeCommitSha, mode: "merge-commit" };
     } catch (error) {
       console.error(

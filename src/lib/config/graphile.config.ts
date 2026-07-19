@@ -27,6 +27,7 @@ import {
   RepositoryDeletePlugin,
   RepositoryRenamePlugin,
 } from "lib/graphql/plugins/git";
+import { MergeQueueMutationsPlugin } from "lib/graphql/plugins/mergeQueue";
 import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
 import {
   PersonalAccessTokenCreatePlugin,
@@ -82,6 +83,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryDefaultBranchPlugin,
     // Stacked-change mergeability + merge (records intent, defers base advance)
     StackMutationsPlugin,
+    // Merge queue: enqueue stacks and run a serial processing pass
+    MergeQueueMutationsPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,
