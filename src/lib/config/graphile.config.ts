@@ -29,6 +29,10 @@ import {
 } from "lib/graphql/plugins/git";
 import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
 import {
+  PersonalAccessTokenCreatePlugin,
+  PersonalAccessTokenPlugin,
+} from "lib/graphql/plugins/personalAccessToken";
+import {
   PullRequestSearchPlugin,
   RepositorySearchPlugin,
 } from "lib/graphql/plugins/search";
@@ -60,6 +64,9 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryRelationshipPlugin,
     SmartTagPlugin,
     UserPlugin,
+    // Personal access tokens (git HTTPS credentials)
+    PersonalAccessTokenPlugin,
+    PersonalAccessTokenCreatePlugin,
     // Git GraphQL types and mutations
     GitTypesPlugin,
     GitMutationsPlugin,

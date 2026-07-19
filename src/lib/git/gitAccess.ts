@@ -1,5 +1,9 @@
 import { and, eq } from "drizzle-orm";
 
+import {
+  isPersonalAccessToken,
+  resolveUserFromPat,
+} from "lib/auth/personalAccessToken";
 import { resolveUserFromToken } from "lib/auth/resolveUserFromToken";
 import { dbPool } from "lib/db/db";
 import { repositoryTable, userTable } from "lib/db/schema";
@@ -53,6 +57,8 @@ type TokenResolver = (token: string) => Promise<ResolvedUser | null>;
 
 let tokenResolver: TokenResolver = (token) => resolveUserFromToken(token);
 
+let patResolver: TokenResolver = (token) => resolveUserFromPat(token, dbPool);
+
 /**
  * Test-only override for the token resolver. Pass null to restore the default.
  * @internal
@@ -61,6 +67,16 @@ export const __setResolveUserFromTokenForTests = (
   resolver: TokenResolver | null,
 ): void => {
   tokenResolver = resolver ?? ((token) => resolveUserFromToken(token));
+};
+
+/**
+ * Test-only override for the PAT resolver. Pass null to restore the default.
+ * @internal
+ */
+export const __setResolveUserFromPatForTests = (
+  resolver: TokenResolver | null,
+): void => {
+  patResolver = resolver ?? ((token) => resolveUserFromPat(token, dbPool));
 };
 
 /**
@@ -122,7 +138,11 @@ export const authenticateGitRequest = async (
   const token = extractToken(request);
   if (!token) return null;
 
-  const resolved = await tokenResolver(token);
+  // A personal access token authenticates as its owning user; anything else is
+  // treated as an IDP session access token (JWT via the userinfo endpoint)
+  const resolved = isPersonalAccessToken(token)
+    ? await patResolver(token)
+    : await tokenResolver(token);
   if (!resolved) return null;
 
   userOrganizationsCache.set(resolved.user, resolved.organizations);

@@ -5314,6 +5314,267 @@ enum RepositoryRelationshipMetadatumOrderBy {
   CREATED_AT_DESC
 }
 
+"""A connection to a list of `PersonalAccessToken` values."""
+type PersonalAccessTokenConnection {
+  """A list of `PersonalAccessToken` objects."""
+  nodes: [PersonalAccessToken!]!
+
+  """
+  A list of edges which contains the `PersonalAccessToken` and cursor to aid in pagination.
+  """
+  edges: [PersonalAccessTokenEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `PersonalAccessToken` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: PersonalAccessTokenAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `PersonalAccessToken` for these aggregates.
+    """
+    groupBy: [PersonalAccessTokenGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: PersonalAccessTokenHavingInput
+  ): [PersonalAccessTokenAggregates!]
+}
+
+type PersonalAccessToken {
+  rowId: UUID!
+  userId: UUID!
+  name: String!
+  tokenPrefix: String!
+  lastUsedAt: Datetime
+  expiresAt: Datetime
+  createdAt: Datetime!
+}
+
+"""A `PersonalAccessToken` edge in the connection."""
+type PersonalAccessTokenEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `PersonalAccessToken` at the end of the edge."""
+  node: PersonalAccessToken!
+}
+
+type PersonalAccessTokenAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: PersonalAccessTokenDistinctCountAggregates
+}
+
+type PersonalAccessTokenDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of userId across the matching connection"""
+  userId: BigInt
+
+  """Distinct count of name across the matching connection"""
+  name: BigInt
+
+  """Distinct count of tokenPrefix across the matching connection"""
+  tokenPrefix: BigInt
+
+  """Distinct count of lastUsedAt across the matching connection"""
+  lastUsedAt: BigInt
+
+  """Distinct count of expiresAt across the matching connection"""
+  expiresAt: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+Grouping methods for `PersonalAccessToken` for usage during aggregation.
+"""
+enum PersonalAccessTokenGroupBy {
+  USER_ID
+  NAME
+  TOKEN_PREFIX
+  LAST_USED_AT
+  LAST_USED_AT_TRUNCATED_TO_HOUR
+  LAST_USED_AT_TRUNCATED_TO_DAY
+  EXPIRES_AT
+  EXPIRES_AT_TRUNCATED_TO_HOUR
+  EXPIRES_AT_TRUNCATED_TO_DAY
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `PersonalAccessToken` aggregates."""
+input PersonalAccessTokenHavingInput {
+  AND: [PersonalAccessTokenHavingInput!]
+  OR: [PersonalAccessTokenHavingInput!]
+  sum: PersonalAccessTokenHavingSumInput
+  distinctCount: PersonalAccessTokenHavingDistinctCountInput
+  min: PersonalAccessTokenHavingMinInput
+  max: PersonalAccessTokenHavingMaxInput
+  average: PersonalAccessTokenHavingAverageInput
+  stddevSample: PersonalAccessTokenHavingStddevSampleInput
+  stddevPopulation: PersonalAccessTokenHavingStddevPopulationInput
+  varianceSample: PersonalAccessTokenHavingVarianceSampleInput
+  variancePopulation: PersonalAccessTokenHavingVariancePopulationInput
+}
+
+input PersonalAccessTokenHavingSumInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingDistinctCountInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingMinInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingMaxInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingAverageInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingStddevSampleInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingStddevPopulationInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingVarianceSampleInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenHavingVariancePopulationInput {
+  lastUsedAt: HavingDatetimeFilter
+  expiresAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `PersonalAccessToken` object types. All fields
+are tested for equality and combined with a logical ‘and.’
+"""
+input PersonalAccessTokenCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `userId` field."""
+  userId: UUID
+
+  """Checks for equality with the object’s `name` field."""
+  name: String
+
+  """Checks for equality with the object’s `tokenPrefix` field."""
+  tokenPrefix: String
+
+  """Checks for equality with the object’s `lastUsedAt` field."""
+  lastUsedAt: Datetime
+
+  """Checks for equality with the object’s `expiresAt` field."""
+  expiresAt: Datetime
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+"""
+A filter to be used against `PersonalAccessToken` object types. All fields are combined with a logical ‘and.’
+"""
+input PersonalAccessTokenFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `userId` field."""
+  userId: UUIDFilter
+
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Filter by the object’s `tokenPrefix` field."""
+  tokenPrefix: StringFilter
+
+  """Filter by the object’s `lastUsedAt` field."""
+  lastUsedAt: DatetimeFilter
+
+  """Filter by the object’s `expiresAt` field."""
+  expiresAt: DatetimeFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `user` relation."""
+  user: UserFilter
+
+  """Checks for all expressions in this list."""
+  and: [PersonalAccessTokenFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [PersonalAccessTokenFilter!]
+
+  """Negates the expression."""
+  not: PersonalAccessTokenFilter
+}
+
+"""Methods to use when ordering `PersonalAccessToken`."""
+enum PersonalAccessTokenOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  NAME_ASC
+  NAME_DESC
+  TOKEN_PREFIX_ASC
+  TOKEN_PREFIX_DESC
+  LAST_USED_AT_ASC
+  LAST_USED_AT_DESC
+  EXPIRES_AT_ASC
+  EXPIRES_AT_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+}
+
 """A connection to a list of `User` values."""
 type UserConnection {
   """A list of `User` objects."""
@@ -5710,6 +5971,22 @@ enum UserOrderBy {
   PULL_REQUESTS_BY_MERGED_BY_ID_VARIANCE_SAMPLE_NUMBER_DESC
   PULL_REQUESTS_BY_MERGED_BY_ID_VARIANCE_POPULATION_NUMBER_ASC
   PULL_REQUESTS_BY_MERGED_BY_ID_VARIANCE_POPULATION_NUMBER_DESC
+  PERSONAL_ACCESS_TOKENS_COUNT_ASC
+  PERSONAL_ACCESS_TOKENS_COUNT_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_ROW_ID_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_ROW_ID_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_USER_ID_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_USER_ID_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_NAME_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_NAME_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_TOKEN_PREFIX_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_TOKEN_PREFIX_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_LAST_USED_AT_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_LAST_USED_AT_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_EXPIRES_AT_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_EXPIRES_AT_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_CREATED_AT_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """A connection to a list of `Organization` values."""
@@ -7200,6 +7477,39 @@ input DeleteRepositoryCollaboratorInput {
   userId: UUID!
 }
 
+"""The output of our delete `PersonalAccessToken` mutation."""
+type DeletePersonalAccessTokenPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `PersonalAccessToken` that was deleted by this mutation."""
+  personalAccessToken: PersonalAccessToken
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `PersonalAccessToken`. May be used by Relay 1."""
+  personalAccessTokenEdge(
+    """The method to use when ordering `PersonalAccessToken`."""
+    orderBy: [PersonalAccessTokenOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): PersonalAccessTokenEdge
+}
+
+"""All input for the `deletePersonalAccessToken` mutation."""
+input DeletePersonalAccessTokenInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
 """The output of our delete `RepositoryRelationshipType` mutation."""
 type DeleteRepositoryRelationshipTypePayload {
   """
@@ -7478,6 +7788,30 @@ type Observer {
   identityProviderId: UUID!
   name: String!
   email: String!
+}
+
+"""Payload for the createPersonalAccessToken mutation."""
+type CreatePersonalAccessTokenPayload {
+  """The created token row ID."""
+  rowId: UUID!
+
+  """The user-facing token label."""
+  name: String!
+
+  """Short non-secret prefix for display in the UI."""
+  tokenPrefix: String!
+
+  """When the token expires, or null if it never expires."""
+  expiresAt: Datetime
+
+  """When the token was created."""
+  createdAt: Datetime!
+
+  """
+  The plaintext token. Returned exactly once, at creation, and never
+  retrievable again. Store it securely.
+  """
+  token: String!
 }
 
 """An actor in a Git commit (author or committer)."""
@@ -8079,6 +8413,40 @@ type Query implements Node {
     orderBy: [RepositoryCollaboratorOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryCollaboratorConnection
 
+  """Reads and enables pagination through a set of `PersonalAccessToken`."""
+  personalAccessTokens(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PersonalAccessTokenCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PersonalAccessTokenFilter
+
+    """The method to use when ordering `PersonalAccessToken`."""
+    orderBy: [PersonalAccessTokenOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PersonalAccessTokenConnection
+
   """
   Reads and enables pagination through a set of `RepositoryRelationshipType`.
   """
@@ -8574,6 +8942,14 @@ type Mutation {
     input: DeleteRepositoryCollaboratorInput!
   ): DeleteRepositoryCollaboratorPayload
 
+  """Deletes a single `PersonalAccessToken` using a unique key."""
+  deletePersonalAccessToken(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeletePersonalAccessTokenInput!
+  ): DeletePersonalAccessTokenPayload
+
   """Deletes a single `RepositoryRelationshipType` using a unique key."""
   deleteRepositoryRelationshipType(
     """
@@ -8637,6 +9013,18 @@ type Mutation {
     """
     input: DeletePullRequestInput!
   ): DeletePullRequestPayload
+
+  """
+  Create a personal access token for the authenticated user.
+  The plaintext token is returned once in the payload and never again.
+  """
+  createPersonalAccessToken(
+    """A label to identify the token."""
+    name: String!
+
+    """Optional lifetime in days. Omit for a token that never expires."""
+    expiresInDays: Int
+  ): CreatePersonalAccessTokenPayload
 
   """
   Initialize git storage for a repository.

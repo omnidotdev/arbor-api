@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import {
   __setOrganizationsForUser,
+  __setResolveUserFromPatForTests,
   __setResolveUserFromTokenForTests,
   authenticateGitRequest,
   canReadRepository,
@@ -132,6 +133,73 @@ describe("authenticateGitRequest", () => {
     expect(result).toBeNull();
 
     __setResolveUserFromTokenForTests(null);
+  });
+
+  test("routes an arbor_pat_ token to the PAT resolver, not the JWT resolver", async () => {
+    const patUser = makeUser({ id: "pat-user" });
+    let patToken: string | null = null;
+    let jwtCalled = false;
+    __setResolveUserFromPatForTests(async (token) => {
+      patToken = token;
+      return { user: patUser, organizations: [] };
+    });
+    __setResolveUserFromTokenForTests(async () => {
+      jwtCalled = true;
+      return null;
+    });
+
+    // git sends the PAT as the Basic-auth password
+    const basic = Buffer.from("test:arbor_pat_secret").toString("base64");
+    const req = new Request("http://localhost/git/foo/bar/info/refs", {
+      headers: { authorization: `Basic ${basic}` },
+    });
+    const result = await authenticateGitRequest(req);
+
+    expect(patToken as string | null).toBe("arbor_pat_secret");
+    expect(jwtCalled).toBe(false);
+    expect(result?.id).toBe(patUser.id);
+
+    __setResolveUserFromPatForTests(null);
+    __setResolveUserFromTokenForTests(null);
+  });
+
+  test("routes a non-PAT token to the JWT resolver, not the PAT resolver", async () => {
+    let patCalled = false;
+    let jwtToken: string | null = null;
+    const jwtUser = makeUser({ id: "jwt-user" });
+    __setResolveUserFromPatForTests(async () => {
+      patCalled = true;
+      return null;
+    });
+    __setResolveUserFromTokenForTests(async (token) => {
+      jwtToken = token;
+      return { user: jwtUser, organizations: [] };
+    });
+
+    const req = new Request("http://localhost/git/foo/bar/info/refs", {
+      headers: { authorization: "Bearer session-jwt" },
+    });
+    const result = await authenticateGitRequest(req);
+
+    expect(jwtToken as string | null).toBe("session-jwt");
+    expect(patCalled).toBe(false);
+    expect(result?.id).toBe(jwtUser.id);
+
+    __setResolveUserFromPatForTests(null);
+    __setResolveUserFromTokenForTests(null);
+  });
+
+  test("returns null when a PAT does not resolve", async () => {
+    __setResolveUserFromPatForTests(async () => null);
+
+    const basic = Buffer.from("test:arbor_pat_bad").toString("base64");
+    const req = new Request("http://localhost/git/foo/bar/info/refs", {
+      headers: { authorization: `Basic ${basic}` },
+    });
+    const result = await authenticateGitRequest(req);
+    expect(result).toBeNull();
+
+    __setResolveUserFromPatForTests(null);
   });
 });
 
