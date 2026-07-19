@@ -515,6 +515,57 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
     },
   );
 
+  server.registerTool(
+    "list_dependent_repositories",
+    {
+      title: "List dependent repositories",
+      description:
+        "List the repositories that depend on this one (its reverse dependencies, the blast radius of a change). Use this to scope a cross-repo change: a change to a shared library affects every repository returned here. Results are limited to repositories the caller can read",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ owner, repo }) => {
+      const gate = await gateRead(caller, owner, repo);
+      if (!gate) return errorResult(NOT_FOUND_MESSAGE);
+
+      // Incoming relationship edges point at this repository, so their source
+      // repositories are the ones that depend on it
+      const edges = await dbPool.query.repositoryRelationshipTable.findMany({
+        where: (table, { eq: eqOp }) => eqOp(table.targetRepositoryId, gate.id),
+        columns: { sourceRepositoryId: true, versionConstraint: true },
+        with: { relationshipType: { columns: { name: true } } },
+      });
+
+      if (edges.length === 0) return jsonResult({ dependents: [] });
+
+      const sourceIds = [...new Set(edges.map((e) => e.sourceRepositoryId))];
+      const sources = await dbPool.query.repositoryTable.findMany({
+        where: (table, { inArray: inArrayOp }) =>
+          inArrayOp(table.id, sourceIds),
+        with: { owner: { columns: { username: true } } },
+      });
+
+      // Only surface dependents the caller may read, so private dependents never
+      // leak, and pair each with the relationship type and version constraint
+      const byId = new Map(edges.map((e) => [e.sourceRepositoryId, e]));
+      const dependents = [];
+      for (const source of sources) {
+        if (!(await canReadRepository(caller.user, source))) continue;
+        const edge = byId.get(source.id);
+        dependents.push({
+          ...shapeRepository(source),
+          relationship: edge?.relationshipType?.name ?? null,
+          versionConstraint: edge?.versionConstraint ?? null,
+        });
+      }
+
+      return jsonResult({ dependents });
+    },
+  );
+
   // ============================================================
   // Write tools
   //
