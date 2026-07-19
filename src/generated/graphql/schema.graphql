@@ -13955,6 +13955,51 @@ type RenameRepositoryPayload {
   error: String
 }
 
+"""
+Whether a change can merge, derived from its required verification checks.
+"""
+type StackMergeabilityResult {
+  """True when every required check has passed."""
+  mergeable: Boolean!
+
+  """Names of the required checks that are not yet passed."""
+  blockingChecks: [String!]!
+}
+
+"""Input for merging a change onto its stack base branch."""
+input MergeChangeInput {
+  """The change ID to merge."""
+  changeId: UUID!
+}
+
+"""Payload for the mergeChange mutation."""
+type MergeChangePayload {
+  """Whether the merge intent was recorded successfully."""
+  success: Boolean!
+
+  """The change that was merged."""
+  changeId: UUID
+
+  """The landing shape: "fast-forward" or "merge-commit"."""
+  mode: String
+
+  """The commit the merge intent was recorded against."""
+  recordedTargetOid: String
+
+  """
+  Always true: the base-branch ref advance is deferred to the merge queue.
+  """
+  deferred: Boolean!
+
+  """
+  Names of required checks blocking the merge, when it was not mergeable.
+  """
+  blockingChecks: [String!]
+
+  """Error message if the merge did not proceed."""
+  error: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -14886,6 +14931,9 @@ type Query implements Node {
   Returns null if not authenticated.
   """
   observer: Observer
+
+  """Whether a change can merge, from its required verification checks."""
+  stackMergeability(changeId: UUID!): StackMergeabilityResult
 }
 
 """
@@ -15437,6 +15485,18 @@ type Mutation {
     """
     input: RenameRepositoryInput!
   ): RenameRepositoryPayload
+
+  """
+  Merge a change onto its stack base branch.
+  Only the bottom mergeable change of a stack can be merged, and only when
+  every required check has passed. Requires write access to the repository.
+  """
+  mergeChange(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: MergeChangeInput!
+  ): MergeChangePayload
 }
 
 """

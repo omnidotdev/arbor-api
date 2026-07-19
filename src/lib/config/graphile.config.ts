@@ -36,6 +36,7 @@ import {
   PullRequestSearchPlugin,
   RepositorySearchPlugin,
 } from "lib/graphql/plugins/search";
+import { StackMutationsPlugin } from "lib/graphql/plugins/stack";
 import { PullRequestCommentSubscriptionPlugin } from "lib/graphql/plugins/subscriptions";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
@@ -79,6 +80,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryRenamePlugin,
     // Sync the on-disk HEAD when a repository's default branch changes
     RepositoryDefaultBranchPlugin,
+    // Stacked-change mergeability + merge (records intent, defers base advance)
+    StackMutationsPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

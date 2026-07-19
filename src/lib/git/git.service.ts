@@ -840,6 +840,46 @@ export const gitService = {
   },
 
   /**
+   * Record a stacked-change merge intent as a new ref under the arbor namespace,
+   * without ever touching a user branch or rewriting history.
+   *
+   * Writes refs/arbor/merge-intent/{changeId} pointing at oid. The write is
+   * non-forced and refuses to overwrite: if an intent ref already exists it must
+   * already point at the same oid (idempotent re-record), otherwise the write is
+   * refused and false is returned. A user's existing branches, tags and history
+   * are never modified, so this is safe on a live repository that auto-deploys on
+   * branch updates. Failures are logged server-side and returned as false so no
+   * internal detail leaks to the caller.
+   */
+  async recordMergeIntent(
+    owner: string,
+    repo: string,
+    changeId: string,
+    oid: string,
+  ): Promise<boolean> {
+    const gitdir = getRepositoryPath(owner, repo);
+    const ref = `refs/arbor/merge-intent/${changeId}`;
+
+    try {
+      // Never clobber: an existing intent ref must already match the target oid
+      const existing = await git
+        .resolveRef({ fs, gitdir, ref })
+        .catch(() => null);
+
+      if (existing) return existing === oid;
+
+      await git.writeRef({ fs, gitdir, ref, value: oid, force: false });
+      return true;
+    } catch (error) {
+      console.error(
+        `[Git] Failed to record merge intent for ${owner}/${repo} change ${changeId}:`,
+        error,
+      );
+      return false;
+    }
+  },
+
+  /**
    * Find the merge base (most recent common ancestor) of two refs.
    * Returns null when either ref is unresolvable or no common ancestor exists.
    */
