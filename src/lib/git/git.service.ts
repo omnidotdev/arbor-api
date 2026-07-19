@@ -30,6 +30,19 @@ export interface TreeEntry {
   oid: string;
 }
 
+/**
+ * Last commit that touched a tree entry, used for the GitHub-style per-file
+ * last-commit column in the file browser.
+ */
+export interface TreeEntryCommit {
+  /** Entry basename, matching the `path` returned by getTree */
+  path: string;
+  commitOid: string;
+  messageHeadline: string;
+  committedDate: string;
+  authorName: string;
+}
+
 export interface BranchInfo {
   name: string;
   sha: string;
@@ -141,6 +154,56 @@ async function readBlobBytes(
 }
 
 const decoder = new TextDecoder();
+
+/**
+ * Collect the set of blob paths that changed between a base and head tree.
+ *
+ * A null baseOid is treated as an empty tree, so every blob path is returned
+ * (root-commit case). Only paths are produced (no blob content is read), keeping
+ * the per-commit comparison cheap for the tree last-commit walk.
+ */
+async function collectChangedPaths(
+  gitdir: string,
+  baseOid: string | null,
+  headOid: string,
+): Promise<string[]> {
+  const trees =
+    baseOid === null
+      ? [TREE({ ref: headOid })]
+      : [TREE({ ref: baseOid }), TREE({ ref: headOid })];
+
+  const paths = (await git.walk({
+    fs,
+    gitdir,
+    trees,
+    map: async (filepath, walkerEntries) => {
+      if (filepath === ".") return;
+
+      const [first, second] = walkerEntries as [
+        WalkerEntry | null,
+        WalkerEntry | null,
+      ];
+      const baseEntry = baseOid === null ? null : first;
+      const headEntry = baseOid === null ? first : second;
+
+      const baseType = baseEntry ? await baseEntry.type() : null;
+      const headType = headEntry ? await headEntry.type() : null;
+
+      // Only blobs are reported; walk still descends into trees
+      if (baseType === "tree" || headType === "tree") return;
+
+      const oldOid = baseEntry ? await baseEntry.oid() : null;
+      const newOid = headEntry ? await headEntry.oid() : null;
+
+      // Unchanged, or a non-blob on both sides
+      if (oldOid === newOid) return;
+
+      return filepath;
+    },
+  })) as string[];
+
+  return paths;
+}
 
 /**
  * Core git operations service using isomorphic-git.
@@ -308,6 +371,93 @@ export const gitService = {
         type: entry.type as "blob" | "tree" | "commit",
         oid: entry.oid,
       }));
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Get the last commit that touched each entry of the tree at `path` and `ref`.
+   *
+   * Lists the entries at that tree path, then walks commit history from `ref`
+   * newest-first. For each commit it compares the commit tree against its first
+   * parent and assigns, to each still-unassigned entry, the first (most recent)
+   * commit whose change set touches that entry: a file entry matches an exact
+   * changed path, a directory entry matches any changed path under `dir/`. The
+   * walk stops early once every entry is assigned or history is exhausted, so
+   * the expensive per-commit tree comparison is skipped as soon as possible.
+   *
+   * The root commit (no parent) is diffed against the empty tree. Entries never
+   * touched in the walked history are simply omitted from the result. Wrapped in
+   * try/catch to return a partial/empty result rather than throwing, matching
+   * the other read methods.
+   */
+  async getTreeLastCommits(
+    owner: string,
+    repo: string,
+    ref: string,
+    path = "",
+  ): Promise<TreeEntryCommit[]> {
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      const entries = await this.getTree(owner, repo, ref, path);
+      if (entries.length === 0) return [];
+
+      const prefix = path ? `${path.replace(/\/+$/, "")}/` : "";
+
+      // Track each unassigned entry by its basename, carrying its full
+      // repo-relative path and whether it is a directory
+      const pending = new Map<
+        string,
+        { basename: string; fullPath: string; isDir: boolean }
+      >();
+      for (const entry of entries) {
+        pending.set(entry.path, {
+          basename: entry.path,
+          fullPath: `${prefix}${entry.path}`,
+          isDir: entry.type === "tree",
+        });
+      }
+
+      const assigned: TreeEntryCommit[] = [];
+
+      // Single history walk, newest-first, with early exit once all assigned
+      const commits = await git.log({ fs, gitdir, ref });
+
+      for (const { oid, commit } of commits) {
+        if (pending.size === 0) break;
+
+        const parentOid = commit.parent[0] ?? null;
+        const changedPaths = await collectChangedPaths(gitdir, parentOid, oid);
+        if (changedPaths.length === 0) continue;
+
+        const changedSet = new Set(changedPaths);
+        const headline = commit.message.split("\n")[0]?.trim() ?? "";
+        const committedDate = new Date(
+          commit.committer.timestamp * 1000,
+        ).toISOString();
+
+        // Safe to delete the current key from a Map during for..of iteration
+        for (const [key, meta] of pending) {
+          const touched = meta.isDir
+            ? changedPaths.some((p) => p.startsWith(`${meta.fullPath}/`))
+            : changedSet.has(meta.fullPath);
+
+          if (!touched) continue;
+
+          assigned.push({
+            path: meta.basename,
+            commitOid: oid,
+            messageHeadline: headline,
+            committedDate,
+            authorName: commit.author.name,
+          });
+          pending.delete(key);
+        }
+      }
+
+      return assigned;
     } catch {
       return [];
     }

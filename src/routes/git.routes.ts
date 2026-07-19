@@ -250,6 +250,58 @@ const gitRoutes = new Elysia({ prefix: "/git" })
   )
 
   /**
+   * Get the last commit that touched each tree entry at a ref and optional path.
+   * GET /:owner/:repo/tree-commits/:ref
+   * GET /:owner/:repo/tree-commits/:ref/*
+   */
+  .get(
+    "/:owner/:repo/tree-commits/:ref",
+    async ({ params, request, set }) => {
+      const { owner, repo, ref } = params;
+
+      const gate = await gateRead(owner, repo, request, set);
+      if (!gate.authorized) return gate.body;
+
+      const commits = await gitService.getTreeLastCommits(owner, repo, ref, "");
+      return commits;
+    },
+    {
+      params: t.Object({
+        owner: t.String(),
+        repo: t.String(),
+        ref: t.String(),
+      }),
+    },
+  )
+
+  .get(
+    "/:owner/:repo/tree-commits/:ref/*",
+    async ({ params, request, set }) => {
+      const { owner, repo, ref } = params;
+      const path = params["*"] || "";
+
+      const gate = await gateRead(owner, repo, request, set);
+      if (!gate.authorized) return gate.body;
+
+      const commits = await gitService.getTreeLastCommits(
+        owner,
+        repo,
+        ref,
+        path,
+      );
+      return commits;
+    },
+    {
+      params: t.Object({
+        owner: t.String(),
+        repo: t.String(),
+        ref: t.String(),
+        "*": t.String(),
+      }),
+    },
+  )
+
+  /**
    * Get blob (file content) at a ref and path.
    * GET /:owner/:repo/blob/:ref/*
    */
