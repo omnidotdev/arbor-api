@@ -1,15 +1,24 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import appConfig from "lib/config/app.config";
 import { dbPool } from "lib/db/db";
-import { pullRequestTable, repositoryCollaboratorTable } from "lib/db/schema";
+import {
+  changeTable,
+  pullRequestCommentTable,
+  pullRequestTable,
+  repositoryCollaboratorTable,
+  stackTable,
+} from "lib/db/schema";
 import {
   canReadRepository,
+  canWriteRepository,
   gitService,
   resolveRepositorySummary,
 } from "lib/git";
+import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
+import { stackService } from "lib/stack";
 
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { RepositorySummary } from "lib/git";
@@ -67,6 +76,69 @@ const gateRead = async (
   if (!(await canReadRepository(caller.user, repository))) return null;
 
   return repository;
+};
+
+/**
+ * Generic "not writable" message.
+ *
+ * A repository the caller may not write is reported identically to one that does
+ * not exist, so a write tool never reveals the existence of a private repository
+ * or the caller's exact permission level.
+ */
+const NOT_WRITABLE_MESSAGE = "Repository not found or not writable";
+
+/**
+ * Resolve a repository and enforce write access for the caller.
+ *
+ * Returns the repository summary when the caller may write to it, or null (with
+ * no distinction between missing and forbidden) otherwise. Reuses the same
+ * write gate as the Smart-HTTP git routes and the GraphQL mutations.
+ */
+const gateWrite = async (
+  caller: McpCaller,
+  owner: string,
+  repo: string,
+): Promise<RepositorySummary | null> => {
+  const repository = await resolveRepositorySummary(owner, repo);
+  if (!repository) return null;
+
+  if (!(await canWriteRepository(caller.user, repository))) return null;
+
+  return repository;
+};
+
+/**
+ * Enforce write access for the caller against a repository resolved by id.
+ *
+ * Used by the stack and change tools, which reach the repository through a stack
+ * or change row rather than an owner/slug pair. Returns the summary when the
+ * caller may write, or null otherwise (missing and forbidden are indistinguishable).
+ */
+const gateWriteByRepositoryId = async (
+  caller: McpCaller,
+  repositoryId: string,
+): Promise<RepositorySummary | null> => {
+  const row = await dbPool.query.repositoryTable.findFirst({
+    where: (table, { eq: eqOp }) => eqOp(table.id, repositoryId),
+    columns: {
+      id: true,
+      visibility: true,
+      ownerId: true,
+      organizationId: true,
+    },
+  });
+  if (!row) return null;
+
+  const summary: RepositorySummary = {
+    id: row.id,
+    visibility: row.visibility,
+    ownerId: row.ownerId,
+    organizationId: row.organizationId,
+  };
+
+  if (!(await canWriteRepository(caller.user, summary))) return null;
+
+  return summary;
 };
 
 /** Clamp a caller-requested limit into the supported range */
@@ -439,6 +511,325 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       if (!pullRequest) return errorResult("Pull request not found");
 
       return jsonResult(pullRequest);
+    },
+  );
+
+  // ============================================================
+  // Write tools
+  //
+  // Every tool below mutates and is gated on WRITE access to the target
+  // repository (gateWrite / gateWriteByRepositoryId), reusing the same access
+  // rules as the Smart-HTTP git routes and the GraphQL mutations. Actions are
+  // authored by caller.user and, when the credential is an agent access token,
+  // attributed to caller.agent on the columns that carry agent attribution
+  // (pull requests and stacks). No tool performs destructive git.
+  // ============================================================
+
+  server.registerTool(
+    "create_pull_request",
+    {
+      title: "Create pull request",
+      description:
+        "Open a pull request from a source branch into a target branch. Requires write access to the repository. Both branches must already exist",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+        title: z.string().min(1).describe("Pull request title"),
+        sourceBranch: z
+          .string()
+          .min(1)
+          .describe("Branch the changes come from"),
+        targetBranch: z
+          .string()
+          .min(1)
+          .describe("Branch the changes merge into"),
+        description: z
+          .string()
+          .optional()
+          .describe("Pull request description (Markdown)"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ owner, repo, title, sourceBranch, targetBranch, description }) => {
+      const gate = await gateWrite(caller, owner, repo);
+      if (!gate) return errorResult(NOT_WRITABLE_MESSAGE);
+
+      if (sourceBranch === targetBranch) {
+        return errorResult("Source and target branches must differ");
+      }
+
+      // Validate both branches exist before creating the record, so a pull
+      // request never references a branch that is not there
+      const branches = await gitService.listBranches(owner, repo);
+      const branchNames = new Set(branches.map((branch) => branch.name));
+      if (!branchNames.has(sourceBranch)) {
+        return errorResult("Source branch not found");
+      }
+      if (!branchNames.has(targetBranch)) {
+        return errorResult("Target branch not found");
+      }
+
+      try {
+        // Per-repository pull request number, mirroring the number the GraphQL
+        // create path expects the client to supply
+        const [row] = await dbPool
+          .select({
+            max: sql<number>`coalesce(max(${pullRequestTable.number}), 0)`,
+          })
+          .from(pullRequestTable)
+          .where(eq(pullRequestTable.repositoryId, gate.id));
+
+        const number = (row?.max ?? 0) + 1;
+
+        const [created] = await dbPool
+          .insert(pullRequestTable)
+          .values({
+            number,
+            repositoryId: gate.id,
+            authorId: caller.user.id,
+            authoredByAgentId: caller.agent?.id ?? null,
+            title,
+            description: description ?? null,
+            sourceBranch,
+            targetBranch,
+          })
+          .returning({
+            id: pullRequestTable.id,
+            number: pullRequestTable.number,
+          });
+
+        if (!created) return errorResult("Failed to create pull request");
+
+        return jsonResult({ id: created.id, number: created.number });
+      } catch (err) {
+        console.error("[MCP] create_pull_request failed:", err);
+        return errorResult("Failed to create pull request");
+      }
+    },
+  );
+
+  server.registerTool(
+    "comment_on_pull_request",
+    {
+      title: "Comment on pull request",
+      description:
+        "Add a comment to a pull request as the authenticated caller. Requires write access to the repository",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+        number: z.number().int().min(1).describe("Pull request number"),
+        body: z.string().min(1).describe("Comment body (Markdown)"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ owner, repo, number, body }) => {
+      const gate = await gateWrite(caller, owner, repo);
+      if (!gate) return errorResult(NOT_WRITABLE_MESSAGE);
+
+      const pullRequest = await dbPool.query.pullRequestTable.findFirst({
+        where: (table, { eq: eqOp, and: andOp }) =>
+          andOp(eqOp(table.repositoryId, gate.id), eqOp(table.number, number)),
+        columns: { id: true },
+      });
+
+      if (!pullRequest) return errorResult("Pull request not found");
+
+      try {
+        const [created] = await dbPool
+          .insert(pullRequestCommentTable)
+          .values({
+            pullRequestId: pullRequest.id,
+            authorId: caller.user.id,
+            body,
+          })
+          .returning({ id: pullRequestCommentTable.id });
+
+        if (!created) return errorResult("Failed to add comment");
+
+        // Best-effort realtime publish onto the pull request's comment channel,
+        // matching the GraphQL comment mutation so subscribers see MCP-authored
+        // comments too. Never fails the tool
+        await dbPool
+          .execute(
+            sql`select pg_notify(${pullRequestCommentTopic(
+              pullRequest.id,
+            )}, ${JSON.stringify({ id: created.id, action: "CREATED" })})`,
+          )
+          .catch((error) =>
+            console.error("[MCP] comment notify failed:", error),
+          );
+
+        return jsonResult({ id: created.id });
+      } catch (err) {
+        console.error("[MCP] comment_on_pull_request failed:", err);
+        return errorResult("Failed to add comment");
+      }
+    },
+  );
+
+  server.registerTool(
+    "create_stack",
+    {
+      title: "Create stack",
+      description:
+        "Create a stack (an ordered series of dependent changes) on a base branch. Requires write access to the repository",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+        title: z.string().min(1).describe("Stack title"),
+        baseBranch: z
+          .string()
+          .min(1)
+          .optional()
+          .describe("Base branch the stack lands on (defaults to master)"),
+        description: z.string().optional().describe("Stack description"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ owner, repo, title, baseBranch, description }) => {
+      const gate = await gateWrite(caller, owner, repo);
+      if (!gate) return errorResult(NOT_WRITABLE_MESSAGE);
+
+      try {
+        const [created] = await dbPool
+          .insert(stackTable)
+          .values({
+            repositoryId: gate.id,
+            authorId: caller.user.id,
+            authoredByAgentId: caller.agent?.id ?? null,
+            title,
+            description: description ?? null,
+            // Omit baseBranch when not supplied so the column default applies
+            ...(baseBranch ? { baseBranch } : {}),
+          })
+          .returning({ id: stackTable.id });
+
+        if (!created) return errorResult("Failed to create stack");
+
+        return jsonResult({ id: created.id });
+      } catch (err) {
+        console.error("[MCP] create_stack failed:", err);
+        return errorResult("Failed to create stack");
+      }
+    },
+  );
+
+  server.registerTool(
+    "create_change",
+    {
+      title: "Create change",
+      description:
+        "Create a change in a stack. Requires write access to the stack's repository",
+      inputSchema: {
+        stackId: z.string().uuid().describe("The stack to add the change to"),
+        title: z.string().min(1).describe("Change title"),
+        commitSha: z
+          .string()
+          .optional()
+          .describe("The commit this change carries"),
+        headBranch: z
+          .string()
+          .optional()
+          .describe("The head ref that carries this change"),
+        description: z.string().optional().describe("Change description"),
+        parentChangeId: z
+          .string()
+          .uuid()
+          .optional()
+          .describe("The change this one builds on (same stack)"),
+        position: z
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe("Bottom-up order within the stack (defaults to 0)"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({
+      stackId,
+      title,
+      commitSha,
+      headBranch,
+      description,
+      parentChangeId,
+      position,
+    }) => {
+      const stack = await dbPool.query.stackTable.findFirst({
+        where: (table, { eq: eqOp }) => eqOp(table.id, stackId),
+        columns: { id: true, repositoryId: true },
+      });
+
+      if (!stack) return errorResult("Stack not found or not writable");
+
+      const gate = await gateWriteByRepositoryId(caller, stack.repositoryId);
+      if (!gate) return errorResult("Stack not found or not writable");
+
+      // A parent change, when given, must belong to the same stack so the
+      // dependency graph stays within one stack
+      if (parentChangeId) {
+        const parent = await dbPool.query.changeTable.findFirst({
+          where: (table, { eq: eqOp }) => eqOp(table.id, parentChangeId),
+          columns: { stackId: true },
+        });
+        if (!parent || parent.stackId !== stackId) {
+          return errorResult("Parent change not found in this stack");
+        }
+      }
+
+      try {
+        const [created] = await dbPool
+          .insert(changeTable)
+          .values({
+            stackId,
+            repositoryId: stack.repositoryId,
+            title,
+            commitSha: commitSha ?? null,
+            headBranch: headBranch ?? null,
+            description: description ?? null,
+            parentChangeId: parentChangeId ?? null,
+            // Omit position when not supplied so the column default applies
+            ...(position !== undefined ? { position } : {}),
+          })
+          .returning({ id: changeTable.id });
+
+        if (!created) return errorResult("Failed to create change");
+
+        return jsonResult({ id: created.id });
+      } catch (err) {
+        console.error("[MCP] create_change failed:", err);
+        return errorResult("Failed to create change");
+      }
+    },
+  );
+
+  server.registerTool(
+    "merge_change",
+    {
+      title: "Merge change",
+      description:
+        "Land the bottom mergeable change of a stack onto its base branch. Requires write access to the repository. Only the bottom unmerged change merges, and only when every required check has passed; the base-branch advance is recorded as merge intent and deferred to the merge queue (never a destructive git operation)",
+      inputSchema: {
+        changeId: z.string().uuid().describe("The change to merge"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ changeId }) => {
+      const change = await dbPool.query.changeTable.findFirst({
+        where: (table, { eq: eqOp }) => eqOp(table.id, changeId),
+        columns: { id: true, repositoryId: true },
+      });
+
+      if (!change) return errorResult("Change not found or not writable");
+
+      const gate = await gateWriteByRepositoryId(caller, change.repositoryId);
+      if (!gate) return errorResult("Change not found or not writable");
+
+      // stackService.mergeChange enforces the verification gate, bottom-of-stack
+      // ordering, and safe deferred merge intent; it never throws
+      const outcome = await stackService.mergeChange(changeId, caller.user.id);
+
+      return jsonResult(outcome);
     },
   );
 
