@@ -41,6 +41,7 @@
     "@graphile/pg-aggregates": "^0.2.0-rc.2",
     "@graphile/simplify-inflection": "^8.0.0",
     "@graphql-yoga/plugin-disable-introspection": "^2.22.2",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@omnidotdev/providers": "github:omnidotdev/providers#49f2fc4",
     "@omnidotdev/search": "github:omnidotdev/search",
     "@tanstack/query-core": "^5.101.1",
@@ -57,7 +58,8 @@
     "pg": "^8.22.0",
     "postgraphile": "^5.0.3",
     "postgraphile-plugin-connection-filter": "^3.0.1",
-    "stripe": "^22.2.3"
+    "stripe": "^22.2.3",
+    "zod": "4.2.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.1",

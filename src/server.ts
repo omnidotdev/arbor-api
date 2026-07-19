@@ -71,6 +71,20 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
 // makeSchema at boot rather than a pre-compiled executable schema
 const { schema } = await makeSchema(graphilePreset);
 
+// Optional MCP (Model Context Protocol) server, mounted at /mcp so AI agents can
+// drive the forge natively. Loaded defensively: any failure to initialize the
+// MCP module degrades to a no-op plugin and logs a warning, so a broken MCP
+// integration can never prevent the server from booting
+const { mcpRoutes, mcpEnabled } = await (async () => {
+  try {
+    const { default: routes } = await import("routes/mcp.routes");
+    return { mcpRoutes: routes, mcpEnabled: true };
+  } catch (err) {
+    console.warn("[MCP] Initialization failed, MCP server disabled:", err);
+    return { mcpRoutes: new Elysia(), mcpEnabled: false };
+  }
+})();
+
 /**
  * Elysia server.
  */
@@ -115,6 +129,7 @@ const app = new Elysia({
   )
   .use(webhooks)
   .use(gitRoutes)
+  .use(mcpRoutes)
   .use(
     yoga({
       schema,
@@ -160,6 +175,12 @@ console.info(
 );
 
 console.info(`🌳 ${appConfig.name} Git API running at ${app.server?.url}git`);
+
+if (mcpEnabled) {
+  console.info(
+    `🤖 ${appConfig.name} MCP server mounted at ${app.server?.url}mcp`,
+  );
+}
 
 // Release the LISTEN/NOTIFY subscriber's held connection on shutdown so it does
 // not linger after the process is asked to stop
