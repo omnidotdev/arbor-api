@@ -13,7 +13,7 @@
         "@envelop/validation-cache": "^10.1.1",
         "@escape.tech/graphql-armor": "^3.2.0",
         "@graphile/pg-aggregates": "^0.2.0-rc.2",
-        "@graphile/simplify-inflection": "^8.0.0",
+        "@graphile/simplify-inflection": "^9.0.0",
         "@graphql-yoga/plugin-disable-introspection": "^2.22.2",
         "@modelcontextprotocol/sdk": "^1.29.0",
         "@omnidotdev/providers": "github:omnidotdev/providers#49f2fc4",
@@ -214,7 +214,7 @@
 
     "@graphile/pg-aggregates": ["@graphile/pg-aggregates@0.2.0-rc.2", "", { "peerDependencies": { "graphile-build": "^5.0.0-rc.5", "graphile-build-pg": "^5.0.0-rc.7", "graphql": "^16.1.0-experimental-stream-defer.6" }, "optionalPeers": ["graphile-build", "graphile-build-pg", "graphql"] }, "sha512-uO+Ja+rVSy7Be5LJbazrSuShkruFKb++6ni1kW6/8Bp9C8f/luhIBtE0H/7Jgw4iUzc/uFlVnG7RIQAnbgnrdQ=="],
 
-    "@graphile/simplify-inflection": ["@graphile/simplify-inflection@8.0.0", "", {}, "sha512-fzC4zz456Km8oZQMiBU03kgSRQxT+aS3sEdEQIcvkfdUhJKlIk81ll8UaxLLkl/WRb7TByNM1VfrY9mEa4w9kw=="],
+    "@graphile/simplify-inflection": ["@graphile/simplify-inflection@9.0.0", "", {}, "sha512-oJmaC7z0JP6UvQ9eNAmu8wvvjHTkTpRIJswPNlVyd1M+Y2/qC2HydYKzz3p9AgiENEiFWctoBqbTMFxun8H7Lg=="],
 
     "@graphiql/plugin-doc-explorer": ["@graphiql/plugin-doc-explorer@0.4.2", "", { "dependencies": { "@headlessui/react": "^2.2", "react-compiler-runtime": "19.1.0-rc.1", "zustand": "^5" }, "peerDependencies": { "@graphiql/react": "^0.37.0", "graphql": "^15.5.0 || ^16.0.0 || ^17.0.0", "react": "^18 || ^19", "react-dom": "^18 || ^19" } }, "sha512-jqRUSaP9pq2JdoovKaiNQoV4ZVcDP5nn+QEa++vEYh0nCn76836SAde2/LkYMc9NnN8/PHMKqeUBnClZ+AUtVQ=="],
 
