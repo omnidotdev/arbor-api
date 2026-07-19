@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
+import { agentTable } from "./agent.table";
 import { repositoryTable } from "./repository.table";
 import { userTable } from "./user.table";
 
@@ -29,6 +30,11 @@ export const pullRequestTable = pgTable(
     authorId: uuid()
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),
+    // Set when the pull request was authored by an agent (attribution). The
+    // human authorId remains the authority; this records the acting agent
+    authoredByAgentId: uuid().references(() => agentTable.id, {
+      onDelete: "set null",
+    }),
     title: text().notNull(),
     description: text(),
     state: text().notNull().default("open"),
@@ -47,6 +53,7 @@ export const pullRequestTable = pgTable(
     uniqueIndex().on(table.repositoryId, table.number),
     index().on(table.repositoryId),
     index().on(table.authorId),
+    index().on(table.authoredByAgentId),
     index().on(table.state),
   ],
 );
@@ -120,6 +127,10 @@ export const pullRequestRelations = relations(
       fields: [pullRequestTable.authorId],
       references: [userTable.id],
       relationName: "pullRequestAuthor",
+    }),
+    authoredByAgent: one(agentTable, {
+      fields: [pullRequestTable.authoredByAgentId],
+      references: [agentTable.id],
     }),
     mergedBy: one(userTable, {
       fields: [pullRequestTable.mergedById],

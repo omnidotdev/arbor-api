@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
+import { agentTable } from "./agent.table";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -29,6 +30,10 @@ export const personalAccessTokenTable = pgTable(
     userId: uuid()
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),
+    // When set, this token belongs to an agent (an agent credential) rather than
+    // a human. The token still authenticates as userId (the agent's authority),
+    // but actions taken with it are attributable to the agent
+    agentId: uuid().references(() => agentTable.id, { onDelete: "cascade" }),
     // User-facing label for the token
     name: text().notNull(),
     // SHA-256 hex digest of the plaintext token (never the plaintext itself)
@@ -47,7 +52,11 @@ export const personalAccessTokenTable = pgTable(
     }),
     createdAt: generateDefaultDate(),
   },
-  (table) => [uniqueIndex().on(table.tokenHash), index().on(table.userId)],
+  (table) => [
+    uniqueIndex().on(table.tokenHash),
+    index().on(table.userId),
+    index().on(table.agentId),
+  ],
 );
 
 export const personalAccessTokenRelations = relations(
@@ -56,6 +65,10 @@ export const personalAccessTokenRelations = relations(
     user: one(userTable, {
       fields: [personalAccessTokenTable.userId],
       references: [userTable.id],
+    }),
+    agent: one(agentTable, {
+      fields: [personalAccessTokenTable.agentId],
+      references: [agentTable.id],
     }),
   }),
 );

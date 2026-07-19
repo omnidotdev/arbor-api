@@ -1,3 +1,4 @@
+export * from "./agent.table";
 export * from "./organization.table";
 export * from "./personalAccessToken.table";
 export * from "./project.table";
