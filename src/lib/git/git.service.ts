@@ -880,6 +880,78 @@ export const gitService = {
   },
 
   /**
+   * Land a change commit onto its base branch and return the resulting tip.
+   *
+   * Advances refs/heads/{targetBranch} forward to the change: a fast-forward
+   * when the base is an ancestor of the change, otherwise a merge commit whose
+   * parents are the base tip and the change commit. Both only move the branch
+   * forward, so no history is rewritten and no commits are lost; this is the
+   * same operation a pull request merge performs. Conflict resolution takes the
+   * change tree (the same simplification the pull request merge uses). Returns
+   * the new tip and the mode, or a typed error with details logged server-side.
+   */
+  async mergeChangeIntoBranch(
+    owner: string,
+    repo: string,
+    commitOid: string,
+    targetBranch: string,
+    author: { name: string; email: string },
+    message: string,
+  ): Promise<{
+    sha: string | null;
+    mode: "fast-forward" | "merge-commit" | "already-merged" | null;
+    error?: string;
+  }> {
+    const gitdir = getRepositoryPath(owner, repo);
+    const ref = `refs/heads/${targetBranch}`;
+
+    try {
+      const targetSha = await git.resolveRef({ fs, gitdir, ref });
+
+      // Already contained in the base, nothing to advance
+      const alreadyMerged = await git.isDescendent({
+        fs,
+        gitdir,
+        oid: targetSha,
+        ancestor: commitOid,
+      });
+      if (alreadyMerged) return { sha: targetSha, mode: "already-merged" };
+
+      // Fast-forward when the change already builds on the base tip
+      const isFastForward = await git.isDescendent({
+        fs,
+        gitdir,
+        oid: commitOid,
+        ancestor: targetSha,
+      });
+      if (isFastForward) {
+        await git.writeRef({ fs, gitdir, ref, value: commitOid, force: true });
+        return { sha: commitOid, mode: "fast-forward" };
+      }
+
+      // Diverged, create a merge commit taking the change tree, parented on both
+      const changeCommit = await git.readCommit({ fs, gitdir, oid: commitOid });
+      const mergeCommitSha = await git.commit({
+        fs,
+        gitdir,
+        message,
+        tree: changeCommit.commit.tree,
+        parent: [targetSha, commitOid],
+        author,
+        committer: author,
+      });
+      await git.writeRef({ fs, gitdir, ref, value: mergeCommitSha, force: true });
+      return { sha: mergeCommitSha, mode: "merge-commit" };
+    } catch (error) {
+      console.error(
+        `[Git] Failed to merge change ${commitOid} into ${owner}/${repo} ${targetBranch}:`,
+        error,
+      );
+      return { sha: null, mode: null, error: "merge failed" };
+    }
+  },
+
+  /**
    * Find the merge base (most recent common ancestor) of two refs.
    * Returns null when either ref is unresolvable or no common ancestor exists.
    */

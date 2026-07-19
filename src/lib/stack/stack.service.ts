@@ -43,9 +43,10 @@ type MergeMode = "fast-forward" | "merge-commit";
 /**
  * Outcome of attempting to merge a change.
  *
- * On success the merge intent is recorded (a namespaced ref plus the change
- * status transition) and deferred is always true: the actual base-branch ref
- * advance is intentionally NOT performed here (see mergeChange).
+ * On success the change is landed on its base branch (a fast-forward or a merge
+ * commit); recordedTargetOid is the resulting base tip. deferred is false when
+ * the branch was advanced, and reserved as true for a future queue path that
+ * only records intent.
  */
 export type MergeChangeOutcome =
   | {
@@ -53,7 +54,7 @@ export type MergeChangeOutcome =
       changeId: string;
       mode: MergeMode;
       recordedTargetOid: string;
-      deferred: true;
+      deferred: boolean;
     }
   | {
       ok: false;
@@ -152,7 +153,7 @@ export const stackService = {
    */
   async mergeChange(
     changeId: string,
-    _actorUserId: string,
+    actorUserId: string,
   ): Promise<MergeChangeOutcome> {
     const change = await dbPool.query.changeTable.findFirst({
       where: (table, { eq }) => eq(table.id, changeId),
@@ -209,9 +210,7 @@ export const stackService = {
       return { ok: false, reason: "repository-unavailable" };
     }
 
-    // Classify the landing without mutating anything. A merge-base equal to the
-    // base tip (or a change already contained in the base) is a fast-forward;
-    // otherwise the histories have diverged and landing needs a merge commit
+    // Verify the base branch resolves before attempting the landing
     const baseBranch = change.stack.baseBranch;
     const baseTip = await gitService.resolveRef(
       ownerSlug,
@@ -222,29 +221,32 @@ export const stackService = {
       return { ok: false, reason: "repository-unavailable" };
     }
 
-    const mergeBase = await gitService.getMergeBase(
+    // Attribute the merge to the acting user
+    const actor = await dbPool.query.userTable.findFirst({
+      where: (table, { eq }) => eq(table.id, actorUserId),
+      columns: { name: true, email: true, username: true },
+    });
+    const author = {
+      name: actor?.name ?? actor?.username ?? "Arbor",
+      email: actor?.email ?? "merge@arbor.omni.dev",
+    };
+
+    // Land the change onto the base branch. This only advances the branch
+    // forward (fast-forward or a merge commit) and never rewrites history
+    const merged = await gitService.mergeChangeIntoBranch(
       ownerSlug,
       repoSlug,
-      `refs/heads/${baseBranch}`,
       headOid,
+      baseBranch,
+      author,
+      `Merge change: ${change.title}`,
     );
-
-    const mode: MergeMode =
-      mergeBase === baseTip || mergeBase === headOid
-        ? "fast-forward"
-        : "merge-commit";
-
-    // Record the merge intent as a new namespaced ref (never touching the base
-    // branch). The actual base-branch advance is deferred to the merge queue
-    const recorded = await gitService.recordMergeIntent(
-      ownerSlug,
-      repoSlug,
-      changeId,
-      headOid,
-    );
-    if (!recorded) {
+    if (!merged.sha) {
       return { ok: false, reason: "git-error" };
     }
+
+    const mode: MergeMode =
+      merged.mode === "merge-commit" ? "merge-commit" : "fast-forward";
 
     // Transition the change to merged, and the stack too when this was its last
     // open change
@@ -280,8 +282,8 @@ export const stackService = {
       ok: true,
       changeId,
       mode,
-      recordedTargetOid: headOid,
-      deferred: true,
+      recordedTargetOid: merged.sha,
+      deferred: false,
     };
   },
 };
