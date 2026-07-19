@@ -588,6 +588,74 @@ type Repository implements Node {
     orderBy: [StackOrderBy!] = [PRIMARY_KEY_ASC]
   ): StackConnection!
 
+  """Reads and enables pagination through a set of `MergeBatch`."""
+  mergeBatches(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeBatchCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeBatchFilter
+
+    """The method to use when ordering `MergeBatch`."""
+    orderBy: [MergeBatchOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeBatchConnection!
+
+  """Reads and enables pagination through a set of `MergeQueueEntry`."""
+  mergeQueueEntries(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeQueueEntryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeQueueEntryFilter
+
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryConnection!
+
   """Fetch a ref by its fully qualified name (e.g., "refs/heads/main")."""
   ref(qualifiedName: String!): Ref
 
@@ -1058,6 +1126,18 @@ input RepositoryFilter {
 
   """Some related `stacks` exist."""
   stacksExist: Boolean
+
+  """Filter by the object’s `mergeBatches` relation."""
+  mergeBatches: RepositoryToManyMergeBatchFilter
+
+  """Some related `mergeBatches` exist."""
+  mergeBatchesExist: Boolean
+
+  """Filter by the object’s `mergeQueueEntries` relation."""
+  mergeQueueEntries: RepositoryToManyMergeQueueEntryFilter
+
+  """Some related `mergeQueueEntries` exist."""
+  mergeQueueEntriesExist: Boolean
 
   """Filter by the object’s `organization` relation."""
   organization: OrganizationFilter
@@ -1873,6 +1953,12 @@ input PullRequestFilter {
   """Some related `changes` exist."""
   changesExist: Boolean
 
+  """Filter by the object’s `mergeQueueEntries` relation."""
+  mergeQueueEntries: PullRequestToManyMergeQueueEntryFilter
+
+  """Some related `mergeQueueEntries` exist."""
+  mergeQueueEntriesExist: Boolean
+
   """Filter by the object’s `author` relation."""
   author: UserFilter
 
@@ -2429,6 +2515,12 @@ input StackFilter {
   """Some related `changes` exist."""
   changesExist: Boolean
 
+  """Filter by the object’s `mergeQueueEntries` relation."""
+  mergeQueueEntries: StackToManyMergeQueueEntryFilter
+
+  """Some related `mergeQueueEntries` exist."""
+  mergeQueueEntriesExist: Boolean
+
   """Filter by the object’s `author` relation."""
   author: UserFilter
 
@@ -2556,6 +2648,248 @@ input ChangeVarianceSampleAggregateFilter {
 }
 
 input ChangeVariancePopulationAggregateFilter {
+  position: BigFloatFilter
+}
+
+"""
+A filter to be used against many `MergeQueueEntry` object types. All fields are combined with a logical ‘and.’
+"""
+input StackToManyMergeQueueEntryFilter {
+  """
+  Every related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: MergeQueueEntryFilter
+
+  """
+  Some related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: MergeQueueEntryFilter
+
+  """
+  No related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: MergeQueueEntryFilter
+
+  """Aggregates across related `MergeQueueEntry` match the filter criteria."""
+  aggregates: MergeQueueEntryAggregatesFilter
+}
+
+"""
+A filter to be used against `MergeQueueEntry` object types. All fields are combined with a logical ‘and.’
+"""
+input MergeQueueEntryFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `repositoryId` field."""
+  repositoryId: UUIDFilter
+
+  """Filter by the object’s `stackId` field."""
+  stackId: UUIDFilter
+
+  """Filter by the object’s `pullRequestId` field."""
+  pullRequestId: UUIDFilter
+
+  """Filter by the object’s `batchId` field."""
+  batchId: UUIDFilter
+
+  """Filter by the object’s `state` field."""
+  state: StringFilter
+
+  """Filter by the object’s `position` field."""
+  position: IntFilter
+
+  """Filter by the object’s `targetBranch` field."""
+  targetBranch: StringFilter
+
+  """Filter by the object’s `enqueuedAt` field."""
+  enqueuedAt: DatetimeFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `batch` relation."""
+  batch: MergeBatchFilter
+
+  """A related `batch` exists."""
+  batchExists: Boolean
+
+  """Filter by the object’s `pullRequest` relation."""
+  pullRequest: PullRequestFilter
+
+  """A related `pullRequest` exists."""
+  pullRequestExists: Boolean
+
+  """Filter by the object’s `repository` relation."""
+  repository: RepositoryFilter
+
+  """Filter by the object’s `stack` relation."""
+  stack: StackFilter
+
+  """A related `stack` exists."""
+  stackExists: Boolean
+
+  """Checks for all expressions in this list."""
+  and: [MergeQueueEntryFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [MergeQueueEntryFilter!]
+
+  """Negates the expression."""
+  not: MergeQueueEntryFilter
+}
+
+"""
+A filter to be used against `MergeBatch` object types. All fields are combined with a logical ‘and.’
+"""
+input MergeBatchFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `repositoryId` field."""
+  repositoryId: UUIDFilter
+
+  """Filter by the object’s `speculativeBranch` field."""
+  speculativeBranch: StringFilter
+
+  """Filter by the object’s `ciStatus` field."""
+  ciStatus: StringFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `mergeQueueEntriesByBatchId` relation."""
+  mergeQueueEntriesByBatchId: MergeBatchToManyMergeQueueEntryFilter
+
+  """Some related `mergeQueueEntriesByBatchId` exist."""
+  mergeQueueEntriesByBatchIdExist: Boolean
+
+  """Filter by the object’s `repository` relation."""
+  repository: RepositoryFilter
+
+  """Checks for all expressions in this list."""
+  and: [MergeBatchFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [MergeBatchFilter!]
+
+  """Negates the expression."""
+  not: MergeBatchFilter
+}
+
+"""
+A filter to be used against many `MergeQueueEntry` object types. All fields are combined with a logical ‘and.’
+"""
+input MergeBatchToManyMergeQueueEntryFilter {
+  """
+  Every related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: MergeQueueEntryFilter
+
+  """
+  Some related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: MergeQueueEntryFilter
+
+  """
+  No related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: MergeQueueEntryFilter
+
+  """Aggregates across related `MergeQueueEntry` match the filter criteria."""
+  aggregates: MergeQueueEntryAggregatesFilter
+}
+
+"""
+A filter to be used against aggregates of `MergeQueueEntry` object types.
+"""
+input MergeQueueEntryAggregatesFilter {
+  """
+  A filter that must pass for the relevant `MergeQueueEntry` object to be included within the aggregate.
+  """
+  filter: MergeQueueEntryFilter
+
+  """Sum aggregate over matching `MergeQueueEntry` objects."""
+  sum: MergeQueueEntrySumAggregateFilter
+
+  """Distinct count aggregate over matching `MergeQueueEntry` objects."""
+  distinctCount: MergeQueueEntryDistinctCountAggregateFilter
+
+  """Minimum aggregate over matching `MergeQueueEntry` objects."""
+  min: MergeQueueEntryMinAggregateFilter
+
+  """Maximum aggregate over matching `MergeQueueEntry` objects."""
+  max: MergeQueueEntryMaxAggregateFilter
+
+  """Mean average aggregate over matching `MergeQueueEntry` objects."""
+  average: MergeQueueEntryAverageAggregateFilter
+
+  """
+  Sample standard deviation aggregate over matching `MergeQueueEntry` objects.
+  """
+  stddevSample: MergeQueueEntryStddevSampleAggregateFilter
+
+  """
+  Population standard deviation aggregate over matching `MergeQueueEntry` objects.
+  """
+  stddevPopulation: MergeQueueEntryStddevPopulationAggregateFilter
+
+  """Sample variance aggregate over matching `MergeQueueEntry` objects."""
+  varianceSample: MergeQueueEntryVarianceSampleAggregateFilter
+
+  """Population variance aggregate over matching `MergeQueueEntry` objects."""
+  variancePopulation: MergeQueueEntryVariancePopulationAggregateFilter
+}
+
+input MergeQueueEntrySumAggregateFilter {
+  position: BigIntFilter
+}
+
+input MergeQueueEntryDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  repositoryId: BigIntFilter
+  stackId: BigIntFilter
+  pullRequestId: BigIntFilter
+  batchId: BigIntFilter
+  state: BigIntFilter
+  position: BigIntFilter
+  targetBranch: BigIntFilter
+  enqueuedAt: BigIntFilter
+  createdAt: BigIntFilter
+  updatedAt: BigIntFilter
+}
+
+input MergeQueueEntryMinAggregateFilter {
+  position: IntFilter
+}
+
+input MergeQueueEntryMaxAggregateFilter {
+  position: IntFilter
+}
+
+input MergeQueueEntryAverageAggregateFilter {
+  position: BigFloatFilter
+}
+
+input MergeQueueEntryStddevSampleAggregateFilter {
+  position: BigFloatFilter
+}
+
+input MergeQueueEntryStddevPopulationAggregateFilter {
+  position: BigFloatFilter
+}
+
+input MergeQueueEntryVarianceSampleAggregateFilter {
+  position: BigFloatFilter
+}
+
+input MergeQueueEntryVariancePopulationAggregateFilter {
   position: BigFloatFilter
 }
 
@@ -3599,6 +3933,29 @@ input AgentDistinctCountAggregateFilter {
 }
 
 """
+A filter to be used against many `MergeQueueEntry` object types. All fields are combined with a logical ‘and.’
+"""
+input PullRequestToManyMergeQueueEntryFilter {
+  """
+  Every related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: MergeQueueEntryFilter
+
+  """
+  Some related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: MergeQueueEntryFilter
+
+  """
+  No related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: MergeQueueEntryFilter
+
+  """Aggregates across related `MergeQueueEntry` match the filter criteria."""
+  aggregates: MergeQueueEntryAggregatesFilter
+}
+
+"""
 A filter to be used against many `PullRequestReview` object types. All fields are combined with a logical ‘and.’
 """
 input UserToManyPullRequestReviewFilter {
@@ -3920,6 +4277,72 @@ input RepositoryToManyStackFilter {
   aggregates: StackAggregatesFilter
 }
 
+"""
+A filter to be used against many `MergeBatch` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryToManyMergeBatchFilter {
+  """
+  Every related `MergeBatch` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: MergeBatchFilter
+
+  """
+  Some related `MergeBatch` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: MergeBatchFilter
+
+  """
+  No related `MergeBatch` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: MergeBatchFilter
+
+  """Aggregates across related `MergeBatch` match the filter criteria."""
+  aggregates: MergeBatchAggregatesFilter
+}
+
+"""A filter to be used against aggregates of `MergeBatch` object types."""
+input MergeBatchAggregatesFilter {
+  """
+  A filter that must pass for the relevant `MergeBatch` object to be included within the aggregate.
+  """
+  filter: MergeBatchFilter
+
+  """Distinct count aggregate over matching `MergeBatch` objects."""
+  distinctCount: MergeBatchDistinctCountAggregateFilter
+}
+
+input MergeBatchDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  repositoryId: BigIntFilter
+  speculativeBranch: BigIntFilter
+  ciStatus: BigIntFilter
+  createdAt: BigIntFilter
+  updatedAt: BigIntFilter
+}
+
+"""
+A filter to be used against many `MergeQueueEntry` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryToManyMergeQueueEntryFilter {
+  """
+  Every related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: MergeQueueEntryFilter
+
+  """
+  Some related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: MergeQueueEntryFilter
+
+  """
+  No related `MergeQueueEntry` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: MergeQueueEntryFilter
+
+  """Aggregates across related `MergeQueueEntry` match the filter criteria."""
+  aggregates: MergeQueueEntryAggregatesFilter
+}
+
 """Methods to use when ordering `Repository`."""
 enum RepositoryOrderBy {
   NATURAL
@@ -4175,6 +4598,60 @@ enum RepositoryOrderBy {
   STACKS_DISTINCT_COUNT_CREATED_AT_DESC
   STACKS_DISTINCT_COUNT_UPDATED_AT_ASC
   STACKS_DISTINCT_COUNT_UPDATED_AT_DESC
+  MERGE_BATCHES_COUNT_ASC
+  MERGE_BATCHES_COUNT_DESC
+  MERGE_BATCHES_DISTINCT_COUNT_ROW_ID_ASC
+  MERGE_BATCHES_DISTINCT_COUNT_ROW_ID_DESC
+  MERGE_BATCHES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  MERGE_BATCHES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  MERGE_BATCHES_DISTINCT_COUNT_SPECULATIVE_BRANCH_ASC
+  MERGE_BATCHES_DISTINCT_COUNT_SPECULATIVE_BRANCH_DESC
+  MERGE_BATCHES_DISTINCT_COUNT_CI_STATUS_ASC
+  MERGE_BATCHES_DISTINCT_COUNT_CI_STATUS_DESC
+  MERGE_BATCHES_DISTINCT_COUNT_CREATED_AT_ASC
+  MERGE_BATCHES_DISTINCT_COUNT_CREATED_AT_DESC
+  MERGE_BATCHES_DISTINCT_COUNT_UPDATED_AT_ASC
+  MERGE_BATCHES_DISTINCT_COUNT_UPDATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_COUNT_ASC
+  MERGE_QUEUE_ENTRIES_COUNT_DESC
+  MERGE_QUEUE_ENTRIES_SUM_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_SUM_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ROW_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ROW_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STACK_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STACK_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_PULL_REQUEST_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_PULL_REQUEST_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_BATCH_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_BATCH_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STATE_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STATE_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_TARGET_BRANCH_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_TARGET_BRANCH_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ENQUEUED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ENQUEUED_AT_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_CREATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_CREATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_UPDATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_UPDATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_MIN_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_MIN_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_MAX_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_MAX_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_AVERAGE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_AVERAGE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_STDDEV_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_STDDEV_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_STDDEV_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_STDDEV_POPULATION_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_DESC
 }
 
 """A connection to a list of `RepositoryCollaborator` values."""
@@ -4606,6 +5083,40 @@ type PullRequest implements Node {
     """The method to use when ordering `Change`."""
     orderBy: [ChangeOrderBy!] = [PRIMARY_KEY_ASC]
   ): ChangeConnection!
+
+  """Reads and enables pagination through a set of `MergeQueueEntry`."""
+  mergeQueueEntries(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeQueueEntryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeQueueEntryFilter
+
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryConnection!
 
   """
   The files changed by this pull request (merge-base of target and source
@@ -5239,6 +5750,46 @@ enum PullRequestOrderBy {
   CHANGES_VARIANCE_SAMPLE_POSITION_DESC
   CHANGES_VARIANCE_POPULATION_POSITION_ASC
   CHANGES_VARIANCE_POPULATION_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_COUNT_ASC
+  MERGE_QUEUE_ENTRIES_COUNT_DESC
+  MERGE_QUEUE_ENTRIES_SUM_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_SUM_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ROW_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ROW_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STACK_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STACK_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_PULL_REQUEST_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_PULL_REQUEST_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_BATCH_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_BATCH_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STATE_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STATE_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_TARGET_BRANCH_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_TARGET_BRANCH_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ENQUEUED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ENQUEUED_AT_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_CREATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_CREATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_UPDATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_UPDATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_MIN_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_MIN_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_MAX_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_MAX_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_AVERAGE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_AVERAGE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_STDDEV_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_STDDEV_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_STDDEV_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_STDDEV_POPULATION_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_DESC
 }
 
 """A connection to a list of `PersonalAccessToken` values."""
@@ -5568,6 +6119,40 @@ type Stack implements Node {
     """The method to use when ordering `Change`."""
     orderBy: [ChangeOrderBy!] = [PRIMARY_KEY_ASC]
   ): ChangeConnection!
+
+  """Reads and enables pagination through a set of `MergeQueueEntry`."""
+  mergeQueueEntries(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeQueueEntryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeQueueEntryFilter
+
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryConnection!
 }
 
 """A connection to a list of `Change` values."""
@@ -6242,6 +6827,426 @@ enum ChangeOrderBy {
   VERIFICATION_CHECKS_DISTINCT_COUNT_UPDATED_AT_DESC
 }
 
+"""A connection to a list of `MergeQueueEntry` values."""
+type MergeQueueEntryConnection {
+  """A list of `MergeQueueEntry` objects."""
+  nodes: [MergeQueueEntry!]!
+
+  """
+  A list of edges which contains the `MergeQueueEntry` and cursor to aid in pagination.
+  """
+  edges: [MergeQueueEntryEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `MergeQueueEntry` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: MergeQueueEntryAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `MergeQueueEntry` for these aggregates.
+    """
+    groupBy: [MergeQueueEntryGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: MergeQueueEntryHavingInput
+  ): [MergeQueueEntryAggregates!]
+}
+
+type MergeQueueEntry implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  repositoryId: UUID!
+  stackId: UUID
+  pullRequestId: UUID
+  batchId: UUID
+  state: String!
+  position: Int!
+  targetBranch: String!
+  enqueuedAt: Datetime!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """Reads a single `MergeBatch` that is related to this `MergeQueueEntry`."""
+  batch: MergeBatch
+
+  """
+  Reads a single `PullRequest` that is related to this `MergeQueueEntry`.
+  """
+  pullRequest: PullRequest
+
+  """Reads a single `Repository` that is related to this `MergeQueueEntry`."""
+  repository: Repository
+
+  """Reads a single `Stack` that is related to this `MergeQueueEntry`."""
+  stack: Stack
+}
+
+type MergeBatch implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  repositoryId: UUID!
+  speculativeBranch: String
+  ciStatus: String!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """Reads a single `Repository` that is related to this `MergeBatch`."""
+  repository: Repository
+
+  """Reads and enables pagination through a set of `MergeQueueEntry`."""
+  mergeQueueEntriesByBatchId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeQueueEntryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeQueueEntryFilter
+
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryConnection!
+}
+
+"""
+A condition to be used against `MergeQueueEntry` object types. All fields are
+tested for equality and combined with a logical ‘and.’
+"""
+input MergeQueueEntryCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `repositoryId` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s `stackId` field."""
+  stackId: UUID
+
+  """Checks for equality with the object’s `pullRequestId` field."""
+  pullRequestId: UUID
+
+  """Checks for equality with the object’s `batchId` field."""
+  batchId: UUID
+
+  """Checks for equality with the object’s `state` field."""
+  state: String
+
+  """Checks for equality with the object’s `position` field."""
+  position: Int
+
+  """Checks for equality with the object’s `targetBranch` field."""
+  targetBranch: String
+
+  """Checks for equality with the object’s `enqueuedAt` field."""
+  enqueuedAt: Datetime
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering `MergeQueueEntry`."""
+enum MergeQueueEntryOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  STACK_ID_ASC
+  STACK_ID_DESC
+  PULL_REQUEST_ID_ASC
+  PULL_REQUEST_ID_DESC
+  BATCH_ID_ASC
+  BATCH_ID_DESC
+  STATE_ASC
+  STATE_DESC
+  POSITION_ASC
+  POSITION_DESC
+  TARGET_BRANCH_ASC
+  TARGET_BRANCH_DESC
+  ENQUEUED_AT_ASC
+  ENQUEUED_AT_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
+"""A `MergeQueueEntry` edge in the connection."""
+type MergeQueueEntryEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `MergeQueueEntry` at the end of the edge."""
+  node: MergeQueueEntry!
+}
+
+type MergeQueueEntryAggregates {
+  keys: [String]
+
+  """
+  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  sum: MergeQueueEntrySumAggregates
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: MergeQueueEntryDistinctCountAggregates
+
+  """
+  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  min: MergeQueueEntryMinAggregates
+
+  """
+  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  max: MergeQueueEntryMaxAggregates
+
+  """
+  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  average: MergeQueueEntryAverageAggregates
+
+  """
+  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevSample: MergeQueueEntryStddevSampleAggregates
+
+  """
+  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevPopulation: MergeQueueEntryStddevPopulationAggregates
+
+  """
+  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  varianceSample: MergeQueueEntryVarianceSampleAggregates
+
+  """
+  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  variancePopulation: MergeQueueEntryVariancePopulationAggregates
+}
+
+type MergeQueueEntrySumAggregates {
+  """Sum of position across the matching connection"""
+  position: BigInt!
+}
+
+type MergeQueueEntryDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of stackId across the matching connection"""
+  stackId: BigInt
+
+  """Distinct count of pullRequestId across the matching connection"""
+  pullRequestId: BigInt
+
+  """Distinct count of batchId across the matching connection"""
+  batchId: BigInt
+
+  """Distinct count of state across the matching connection"""
+  state: BigInt
+
+  """Distinct count of position across the matching connection"""
+  position: BigInt
+
+  """Distinct count of targetBranch across the matching connection"""
+  targetBranch: BigInt
+
+  """Distinct count of enqueuedAt across the matching connection"""
+  enqueuedAt: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+type MergeQueueEntryMinAggregates {
+  """Minimum of position across the matching connection"""
+  position: Int
+}
+
+type MergeQueueEntryMaxAggregates {
+  """Maximum of position across the matching connection"""
+  position: Int
+}
+
+type MergeQueueEntryAverageAggregates {
+  """Mean average of position across the matching connection"""
+  position: BigFloat
+}
+
+type MergeQueueEntryStddevSampleAggregates {
+  """Sample standard deviation of position across the matching connection"""
+  position: BigFloat
+}
+
+type MergeQueueEntryStddevPopulationAggregates {
+  """
+  Population standard deviation of position across the matching connection
+  """
+  position: BigFloat
+}
+
+type MergeQueueEntryVarianceSampleAggregates {
+  """Sample variance of position across the matching connection"""
+  position: BigFloat
+}
+
+type MergeQueueEntryVariancePopulationAggregates {
+  """Population variance of position across the matching connection"""
+  position: BigFloat
+}
+
+"""Grouping methods for `MergeQueueEntry` for usage during aggregation."""
+enum MergeQueueEntryGroupBy {
+  REPOSITORY_ID
+  STACK_ID
+  PULL_REQUEST_ID
+  BATCH_ID
+  STATE
+  POSITION
+  TARGET_BRANCH
+  ENQUEUED_AT
+  ENQUEUED_AT_TRUNCATED_TO_HOUR
+  ENQUEUED_AT_TRUNCATED_TO_DAY
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `MergeQueueEntry` aggregates."""
+input MergeQueueEntryHavingInput {
+  AND: [MergeQueueEntryHavingInput!]
+  OR: [MergeQueueEntryHavingInput!]
+  sum: MergeQueueEntryHavingSumInput
+  distinctCount: MergeQueueEntryHavingDistinctCountInput
+  min: MergeQueueEntryHavingMinInput
+  max: MergeQueueEntryHavingMaxInput
+  average: MergeQueueEntryHavingAverageInput
+  stddevSample: MergeQueueEntryHavingStddevSampleInput
+  stddevPopulation: MergeQueueEntryHavingStddevPopulationInput
+  varianceSample: MergeQueueEntryHavingVarianceSampleInput
+  variancePopulation: MergeQueueEntryHavingVariancePopulationInput
+}
+
+input MergeQueueEntryHavingSumInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingDistinctCountInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingMinInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingMaxInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingAverageInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingStddevSampleInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingStddevPopulationInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingVarianceSampleInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeQueueEntryHavingVariancePopulationInput {
+  position: HavingIntFilter
+  enqueuedAt: HavingDatetimeFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
 """A `Stack` edge in the connection."""
 type StackEdge {
   """A cursor for use in pagination."""
@@ -6473,6 +7478,46 @@ enum StackOrderBy {
   CHANGES_VARIANCE_SAMPLE_POSITION_DESC
   CHANGES_VARIANCE_POPULATION_POSITION_ASC
   CHANGES_VARIANCE_POPULATION_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_COUNT_ASC
+  MERGE_QUEUE_ENTRIES_COUNT_DESC
+  MERGE_QUEUE_ENTRIES_SUM_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_SUM_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ROW_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ROW_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STACK_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STACK_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_PULL_REQUEST_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_PULL_REQUEST_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_BATCH_ID_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_BATCH_ID_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STATE_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_STATE_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_TARGET_BRANCH_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_TARGET_BRANCH_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ENQUEUED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_ENQUEUED_AT_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_CREATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_CREATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_UPDATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_DISTINCT_COUNT_UPDATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_MIN_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_MIN_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_MAX_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_MAX_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_AVERAGE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_AVERAGE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_STDDEV_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_STDDEV_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_STDDEV_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_STDDEV_POPULATION_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_DESC
 }
 
 """
@@ -8566,6 +9611,233 @@ enum ProjectRepositoryOrderBy {
   CREATED_AT_DESC
 }
 
+"""A connection to a list of `MergeBatch` values."""
+type MergeBatchConnection {
+  """A list of `MergeBatch` objects."""
+  nodes: [MergeBatch!]!
+
+  """
+  A list of edges which contains the `MergeBatch` and cursor to aid in pagination.
+  """
+  edges: [MergeBatchEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `MergeBatch` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: MergeBatchAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping `MergeBatch` for these aggregates."""
+    groupBy: [MergeBatchGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: MergeBatchHavingInput
+  ): [MergeBatchAggregates!]
+}
+
+"""A `MergeBatch` edge in the connection."""
+type MergeBatchEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `MergeBatch` at the end of the edge."""
+  node: MergeBatch!
+}
+
+type MergeBatchAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: MergeBatchDistinctCountAggregates
+}
+
+type MergeBatchDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of speculativeBranch across the matching connection"""
+  speculativeBranch: BigInt
+
+  """Distinct count of ciStatus across the matching connection"""
+  ciStatus: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+"""Grouping methods for `MergeBatch` for usage during aggregation."""
+enum MergeBatchGroupBy {
+  REPOSITORY_ID
+  SPECULATIVE_BRANCH
+  CI_STATUS
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `MergeBatch` aggregates."""
+input MergeBatchHavingInput {
+  AND: [MergeBatchHavingInput!]
+  OR: [MergeBatchHavingInput!]
+  sum: MergeBatchHavingSumInput
+  distinctCount: MergeBatchHavingDistinctCountInput
+  min: MergeBatchHavingMinInput
+  max: MergeBatchHavingMaxInput
+  average: MergeBatchHavingAverageInput
+  stddevSample: MergeBatchHavingStddevSampleInput
+  stddevPopulation: MergeBatchHavingStddevPopulationInput
+  varianceSample: MergeBatchHavingVarianceSampleInput
+  variancePopulation: MergeBatchHavingVariancePopulationInput
+}
+
+input MergeBatchHavingSumInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingMinInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input MergeBatchHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `MergeBatch` object types. All fields are tested
+for equality and combined with a logical ‘and.’
+"""
+input MergeBatchCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `repositoryId` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s `speculativeBranch` field."""
+  speculativeBranch: String
+
+  """Checks for equality with the object’s `ciStatus` field."""
+  ciStatus: String
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering `MergeBatch`."""
+enum MergeBatchOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  SPECULATIVE_BRANCH_ASC
+  SPECULATIVE_BRANCH_DESC
+  CI_STATUS_ASC
+  CI_STATUS_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_COUNT_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_COUNT_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_SUM_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_SUM_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_ROW_ID_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_ROW_ID_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_STACK_ID_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_STACK_ID_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_PULL_REQUEST_ID_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_PULL_REQUEST_ID_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_BATCH_ID_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_BATCH_ID_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_STATE_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_STATE_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_TARGET_BRANCH_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_TARGET_BRANCH_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_ENQUEUED_AT_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_ENQUEUED_AT_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_CREATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_UPDATED_AT_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_DISTINCT_COUNT_UPDATED_AT_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_MIN_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_MIN_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_MAX_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_MAX_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_AVERAGE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_AVERAGE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_STDDEV_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_STDDEV_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_STDDEV_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_STDDEV_POPULATION_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_VARIANCE_SAMPLE_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_VARIANCE_SAMPLE_POSITION_DESC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_VARIANCE_POPULATION_POSITION_ASC
+  MERGE_QUEUE_ENTRIES_BY_BATCH_ID_VARIANCE_POPULATION_POSITION_DESC
+}
+
 """A `Repository` edge in the connection."""
 type RepositoryEdge {
   """A cursor for use in pagination."""
@@ -9799,6 +11071,51 @@ input RepositoryRelationshipMetadatumInput {
   createdAt: Datetime
 }
 
+"""The output of our create `MergeBatch` mutation."""
+type CreateMergeBatchPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `MergeBatch` that was created by this mutation."""
+  mergeBatch: MergeBatch
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `MergeBatch`. May be used by Relay 1."""
+  mergeBatchEdge(
+    """The method to use when ordering `MergeBatch`."""
+    orderBy: [MergeBatchOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): MergeBatchEdge
+}
+
+"""All input for the create `MergeBatch` mutation."""
+input CreateMergeBatchInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `MergeBatch` to be created by this mutation."""
+  mergeBatch: MergeBatchInput!
+}
+
+"""An input for mutations affecting `MergeBatch`"""
+input MergeBatchInput {
+  rowId: UUID
+  repositoryId: UUID!
+  speculativeBranch: String
+  ciStatus: String
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
 """The output of our create `ExternalDependency` mutation."""
 type CreateExternalDependencyPayload {
   """
@@ -10123,6 +11440,56 @@ input StackInput {
   description: String
   baseBranch: String
   status: String
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
+"""The output of our create `MergeQueueEntry` mutation."""
+type CreateMergeQueueEntryPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `MergeQueueEntry` that was created by this mutation."""
+  mergeQueueEntry: MergeQueueEntry
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `MergeQueueEntry`. May be used by Relay 1."""
+  mergeQueueEntryEdge(
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryEdge
+}
+
+"""All input for the create `MergeQueueEntry` mutation."""
+input CreateMergeQueueEntryInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `MergeQueueEntry` to be created by this mutation."""
+  mergeQueueEntry: MergeQueueEntryInput!
+}
+
+"""An input for mutations affecting `MergeQueueEntry`"""
+input MergeQueueEntryInput {
+  rowId: UUID
+  repositoryId: UUID!
+  stackId: UUID
+  pullRequestId: UUID
+  batchId: UUID
+  state: String
+  position: Int
+  targetBranch: String
+  enqueuedAt: Datetime
   createdAt: Datetime
   updatedAt: Datetime
 }
@@ -10629,6 +11996,56 @@ input RepositoryRelationshipMetadatumPatch {
   createdAt: Datetime
 }
 
+"""The output of our update `MergeBatch` mutation."""
+type UpdateMergeBatchPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `MergeBatch` that was updated by this mutation."""
+  mergeBatch: MergeBatch
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `MergeBatch`. May be used by Relay 1."""
+  mergeBatchEdge(
+    """The method to use when ordering `MergeBatch`."""
+    orderBy: [MergeBatchOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): MergeBatchEdge
+}
+
+"""All input for the `updateMergeBatch` mutation."""
+input UpdateMergeBatchInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `MergeBatch` being updated.
+  """
+  patch: MergeBatchPatch!
+}
+
+"""
+Represents an update to a `MergeBatch`. Fields that are set will be updated.
+"""
+input MergeBatchPatch {
+  rowId: UUID
+  repositoryId: UUID
+  speculativeBranch: String
+  ciStatus: String
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
 """The output of our update `ExternalDependency` mutation."""
 type UpdateExternalDependencyPayload {
   """
@@ -10987,6 +12404,61 @@ input StackPatch {
   description: String
   baseBranch: String
   status: String
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
+"""The output of our update `MergeQueueEntry` mutation."""
+type UpdateMergeQueueEntryPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `MergeQueueEntry` that was updated by this mutation."""
+  mergeQueueEntry: MergeQueueEntry
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `MergeQueueEntry`. May be used by Relay 1."""
+  mergeQueueEntryEdge(
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryEdge
+}
+
+"""All input for the `updateMergeQueueEntry` mutation."""
+input UpdateMergeQueueEntryInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `MergeQueueEntry` being updated.
+  """
+  patch: MergeQueueEntryPatch!
+}
+
+"""
+Represents an update to a `MergeQueueEntry`. Fields that are set will be updated.
+"""
+input MergeQueueEntryPatch {
+  rowId: UUID
+  repositoryId: UUID
+  stackId: UUID
+  pullRequestId: UUID
+  batchId: UUID
+  state: String
+  position: Int
+  targetBranch: String
+  enqueuedAt: Datetime
   createdAt: Datetime
   updatedAt: Datetime
 }
@@ -11504,6 +12976,40 @@ input DeleteRepositoryRelationshipMetadatumInput {
   rowId: UUID!
 }
 
+"""The output of our delete `MergeBatch` mutation."""
+type DeleteMergeBatchPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `MergeBatch` that was deleted by this mutation."""
+  mergeBatch: MergeBatch
+  deletedMergeBatchId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `MergeBatch`. May be used by Relay 1."""
+  mergeBatchEdge(
+    """The method to use when ordering `MergeBatch`."""
+    orderBy: [MergeBatchOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): MergeBatchEdge
+}
+
+"""All input for the `deleteMergeBatch` mutation."""
+input DeleteMergeBatchInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
 """The output of our delete `ExternalDependency` mutation."""
 type DeleteExternalDependencyPayload {
   """
@@ -11768,6 +13274,40 @@ type DeleteStackPayload {
 
 """All input for the `deleteStack` mutation."""
 input DeleteStackInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
+"""The output of our delete `MergeQueueEntry` mutation."""
+type DeleteMergeQueueEntryPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `MergeQueueEntry` that was deleted by this mutation."""
+  mergeQueueEntry: MergeQueueEntry
+  deletedMergeQueueEntryId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `MergeQueueEntry`. May be used by Relay 1."""
+  mergeQueueEntryEdge(
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryEdge
+}
+
+"""All input for the `deleteMergeQueueEntry` mutation."""
+input DeleteMergeQueueEntryInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -12440,6 +13980,9 @@ type Query implements Node {
   """Get a single `RepositoryRelationshipMetadatum`."""
   repositoryRelationshipMetadatum(rowId: UUID!): RepositoryRelationshipMetadatum
 
+  """Get a single `MergeBatch`."""
+  mergeBatch(rowId: UUID!): MergeBatch
+
   """Get a single `ExternalDependency`."""
   externalDependency(rowId: UUID!): ExternalDependency
 
@@ -12469,6 +14012,9 @@ type Query implements Node {
 
   """Get a single `Stack`."""
   stack(rowId: UUID!): Stack
+
+  """Get a single `MergeQueueEntry`."""
+  mergeQueueEntry(rowId: UUID!): MergeQueueEntry
 
   """Get a single `PullRequestComment`."""
   pullRequestComment(rowId: UUID!): PullRequestComment
@@ -12514,6 +14060,14 @@ type Query implements Node {
     """
     id: ID!
   ): RepositoryRelationshipMetadatum
+
+  """Reads a single `MergeBatch` using its globally unique `ID`."""
+  mergeBatchById(
+    """
+    The globally unique `ID` to be used in selecting a single `MergeBatch`.
+    """
+    id: ID!
+  ): MergeBatch
 
   """Reads a single `ExternalDependency` using its globally unique `ID`."""
   externalDependencyById(
@@ -12568,6 +14122,14 @@ type Query implements Node {
     """The globally unique `ID` to be used in selecting a single `Stack`."""
     id: ID!
   ): Stack
+
+  """Reads a single `MergeQueueEntry` using its globally unique `ID`."""
+  mergeQueueEntryById(
+    """
+    The globally unique `ID` to be used in selecting a single `MergeQueueEntry`.
+    """
+    id: ID!
+  ): MergeQueueEntry
 
   """Reads a single `PullRequestComment` using its globally unique `ID`."""
   pullRequestCommentById(
@@ -12700,6 +14262,40 @@ type Query implements Node {
     """The method to use when ordering `RepositoryRelationshipMetadatum`."""
     orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryRelationshipMetadatumConnection
+
+  """Reads and enables pagination through a set of `MergeBatch`."""
+  mergeBatches(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeBatchCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeBatchFilter
+
+    """The method to use when ordering `MergeBatch`."""
+    orderBy: [MergeBatchOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeBatchConnection
 
   """Reads and enables pagination through a set of `ExternalDependency`."""
   externalDependencies(
@@ -12976,6 +14572,40 @@ type Query implements Node {
     """The method to use when ordering `Stack`."""
     orderBy: [StackOrderBy!] = [PRIMARY_KEY_ASC]
   ): StackConnection
+
+  """Reads and enables pagination through a set of `MergeQueueEntry`."""
+  mergeQueueEntries(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeQueueEntryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeQueueEntryFilter
+
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryConnection
 
   """Reads and enables pagination through a set of `PullRequestComment`."""
   pullRequestComments(
@@ -13278,6 +14908,14 @@ type Mutation {
     input: CreateRepositoryRelationshipMetadatumInput!
   ): CreateRepositoryRelationshipMetadatumPayload
 
+  """Creates a single `MergeBatch`."""
+  createMergeBatch(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateMergeBatchInput!
+  ): CreateMergeBatchPayload
+
   """Creates a single `ExternalDependency`."""
   createExternalDependency(
     """
@@ -13333,6 +14971,14 @@ type Mutation {
     """
     input: CreateStackInput!
   ): CreateStackPayload
+
+  """Creates a single `MergeQueueEntry`."""
+  createMergeQueueEntry(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateMergeQueueEntryInput!
+  ): CreateMergeQueueEntryPayload
 
   """Creates a single `PullRequestComment`."""
   createPullRequestComment(
@@ -13416,6 +15062,14 @@ type Mutation {
     input: UpdateRepositoryRelationshipMetadatumInput!
   ): UpdateRepositoryRelationshipMetadatumPayload
 
+  """Updates a single `MergeBatch` using a unique key and a patch."""
+  updateMergeBatch(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateMergeBatchInput!
+  ): UpdateMergeBatchPayload
+
   """Updates a single `ExternalDependency` using a unique key and a patch."""
   updateExternalDependency(
     """
@@ -13475,6 +15129,14 @@ type Mutation {
     """
     input: UpdateStackInput!
   ): UpdateStackPayload
+
+  """Updates a single `MergeQueueEntry` using a unique key and a patch."""
+  updateMergeQueueEntry(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateMergeQueueEntryInput!
+  ): UpdateMergeQueueEntryPayload
 
   """Updates a single `PullRequestComment` using a unique key and a patch."""
   updatePullRequestComment(
@@ -13558,6 +15220,14 @@ type Mutation {
     input: DeleteRepositoryRelationshipMetadatumInput!
   ): DeleteRepositoryRelationshipMetadatumPayload
 
+  """Deletes a single `MergeBatch` using a unique key."""
+  deleteMergeBatch(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteMergeBatchInput!
+  ): DeleteMergeBatchPayload
+
   """Deletes a single `ExternalDependency` using a unique key."""
   deleteExternalDependency(
     """
@@ -13621,6 +15291,14 @@ type Mutation {
     """
     input: DeleteStackInput!
   ): DeleteStackPayload
+
+  """Deletes a single `MergeQueueEntry` using a unique key."""
+  deleteMergeQueueEntry(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteMergeQueueEntryInput!
+  ): DeleteMergeQueueEntryPayload
 
   """Deletes a single `PullRequestComment` using a unique key."""
   deletePullRequestComment(
