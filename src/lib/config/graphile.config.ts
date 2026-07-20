@@ -33,6 +33,7 @@ import {
   PersonalAccessTokenCreatePlugin,
   PersonalAccessTokenPlugin,
 } from "lib/graphql/plugins/personalAccessToken";
+import { OpenPullRequestPlugin } from "lib/graphql/plugins/pullRequest";
 import {
   PullRequestSearchPlugin,
   RepositorySearchPlugin,
@@ -81,6 +82,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryRenamePlugin,
     // Sync the on-disk HEAD when a repository's default branch changes
     RepositoryDefaultBranchPlugin,
+    // Open a pull request (server-assigned number, author from context)
+    OpenPullRequestPlugin,
     // Stacked-change mergeability + merge (records intent, defers base advance)
     StackMutationsPlugin,
     // Merge queue: enqueue stacks and run a serial processing pass

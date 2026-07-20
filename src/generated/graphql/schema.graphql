@@ -13955,6 +13955,36 @@ type RenameRepositoryPayload {
   error: String
 }
 
+"""Input for opening a pull request."""
+input OpenPullRequestInput {
+  """The repository the pull request belongs to."""
+  repositoryId: UUID!
+
+  """Pull request title."""
+  title: String!
+
+  """Optional description (Markdown)."""
+  description: String
+
+  """Branch the changes come from."""
+  sourceBranch: String!
+
+  """Branch the changes merge into."""
+  targetBranch: String!
+}
+
+"""Payload for the openPullRequest mutation."""
+type OpenPullRequestPayload {
+  """The created pull request row ID."""
+  rowId: UUID
+
+  """The per-repository pull request number."""
+  number: Int
+
+  """Error message if opening failed."""
+  error: String
+}
+
 """
 Whether a change can merge, derived from its required verification checks.
 """
@@ -15547,6 +15577,18 @@ type Mutation {
     """
     input: RenameRepositoryInput!
   ): RenameRepositoryPayload
+
+  """
+  Open a pull request from a source branch into a target branch. Assigns
+  the next per-repository number and records the authenticated user as
+  author. Requires write access; both branches must already exist.
+  """
+  openPullRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: OpenPullRequestInput!
+  ): OpenPullRequestPayload
 
   """
   Merge a change onto its stack base branch.

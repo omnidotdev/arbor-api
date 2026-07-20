@@ -19,6 +19,7 @@ import {
   resolveRepositorySummary,
 } from "lib/git";
 import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
+import { pullRequestService } from "lib/pullRequest";
 import { stackService } from "lib/stack";
 
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
@@ -622,33 +623,17 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       }
 
       try {
-        // Per-repository pull request number, mirroring the number the GraphQL
-        // create path expects the client to supply
-        const [row] = await dbPool
-          .select({
-            max: sql<number>`coalesce(max(${pullRequestTable.number}), 0)`,
-          })
-          .from(pullRequestTable)
-          .where(eq(pullRequestTable.repositoryId, gate.id));
-
-        const number = (row?.max ?? 0) + 1;
-
-        const [created] = await dbPool
-          .insert(pullRequestTable)
-          .values({
-            number,
-            repositoryId: gate.id,
-            authorId: caller.user.id,
-            authoredByAgentId: caller.agent?.id ?? null,
-            title,
-            description: description ?? null,
-            sourceBranch,
-            targetBranch,
-          })
-          .returning({
-            id: pullRequestTable.id,
-            number: pullRequestTable.number,
-          });
+        // Shared create path: assigns the per-repository number and attributes
+        // the pull request to the caller (and acting agent, if any)
+        const created = await pullRequestService.createPullRequest({
+          repositoryId: gate.id,
+          authorId: caller.user.id,
+          authoredByAgentId: caller.agent?.id ?? null,
+          title,
+          description: description ?? null,
+          sourceBranch,
+          targetBranch,
+        });
 
         if (!created) return errorResult("Failed to create pull request");
 
