@@ -324,11 +324,7 @@ type RepositoryConnection {
   ): [RepositoryAggregates!]
 }
 
-type Repository implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
+type Repository {
   rowId: UUID!
   ownerId: UUID!
   organizationId: UUID
@@ -13622,18 +13618,14 @@ type UpdateRepositoryPayload {
   ): RepositoryEdge
 }
 
-"""All input for the `updateRepositoryById` mutation."""
-input UpdateRepositoryByIdInput {
+"""All input for the `updateRepository` mutation."""
+input UpdateRepositoryInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Repository` to be updated.
-  """
-  id: ID!
+  rowId: UUID!
 
   """
   An object where the defined keys will be set on the `Repository` being updated.
@@ -13655,21 +13647,6 @@ input RepositoryPatch {
   defaultBranch: String
   createdAt: Datetime
   updatedAt: Datetime
-}
-
-"""All input for the `updateRepository` mutation."""
-input UpdateRepositoryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `Repository` being updated.
-  """
-  patch: RepositoryPatch!
 }
 
 """The output of our update `PullRequest` mutation."""
@@ -14392,7 +14369,6 @@ type DeleteRepositoryPayload {
 
   """The `Repository` that was deleted by this mutation."""
   repository: Repository
-  deletedRepositoryId: ID
 
   """
   Our root query field type. Allows us to run any query from our mutation payload.
@@ -14404,20 +14380,6 @@ type DeleteRepositoryPayload {
     """The method to use when ordering `Repository`."""
     orderBy: [RepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
   ): RepositoryEdge
-}
-
-"""All input for the `deleteRepositoryById` mutation."""
-input DeleteRepositoryByIdInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """
-  The globally unique `ID` which will identify a single `Repository` to be deleted.
-  """
-  id: ID!
 }
 
 """All input for the `deleteRepository` mutation."""
@@ -15062,9 +15024,6 @@ type Query implements Node {
   """Get a single `Organization`."""
   organizationByIdpOrganizationId(idpOrganizationId: String!): Organization
 
-  """Get a single `Repository`."""
-  repository(rowId: UUID!): Repository
-
   """Get a single `PullRequest`."""
   pullRequest(rowId: UUID!): PullRequest
 
@@ -15209,14 +15168,6 @@ type Query implements Node {
     """
     id: ID!
   ): Organization
-
-  """Reads a single `Repository` using its globally unique `ID`."""
-  repositoryById(
-    """
-    The globally unique `ID` to be used in selecting a single `Repository`.
-    """
-    id: ID!
-  ): Repository
 
   """Reads a single `PullRequest` using its globally unique `ID`."""
   pullRequestById(
@@ -16302,16 +16253,6 @@ type Mutation {
     input: UpdateOrganizationInput!
   ): UpdateOrganizationPayload
 
-  """
-  Updates a single `Repository` using its globally unique id and a patch.
-  """
-  updateRepositoryById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateRepositoryByIdInput!
-  ): UpdateRepositoryPayload
-
   """Updates a single `Repository` using a unique key and a patch."""
   updateRepository(
     """
@@ -16479,14 +16420,6 @@ type Mutation {
     """
     input: DeleteOrganizationInput!
   ): DeleteOrganizationPayload
-
-  """Deletes a single `Repository` using its globally unique id."""
-  deleteRepositoryById(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteRepositoryByIdInput!
-  ): DeleteRepositoryPayload
 
   """Deletes a single `Repository` using a unique key."""
   deleteRepository(

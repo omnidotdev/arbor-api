@@ -15,8 +15,23 @@ const SmartTagPlugin = jsonPgSmartTags({
           // be cloned or pushed to. createRepositoryWithGit is the only correct
           // creation path (it also enforces the private-repo entitlement).
           // Update and delete stay: both are authorized and have side effects
-          // wired up (rename moves storage, delete removes it)
-          behavior: "-insert",
+          // wired up (rename moves storage, delete removes it).
+          //
+          // The two query behaviors remove Query.repository(rowId:) and
+          // Query.repositoryById. Those return one row rather than a
+          // connection, so RepositoryRead.plugin.ts cannot scope them, and they
+          // were a complete bypass of it: a private repository was readable
+          // directly by id, and GitTypes hangs ref/commit/tree access off
+          // Repository. Removing the unprotected path is more reliable than
+          // trying to filter a single-row plan. Every live consumer already
+          // reads through the `repositories` connection, which IS scoped
+          // (see repositoryBySlug / repositoryWithBranches in arbor-app).
+          // `-query:resource:single` rather than a bare `-single`: the latter
+          // also strips the singular RELATION fields (Stack.repository,
+          // PullRequest.repository), which the app does use. `-node` removes
+          // the by-node-id accessor, which is the same bypass reached through a
+          // constructed Node ID
+          behavior: "-insert -query:resource:single -node",
         },
         attribute: {
           visibility: {
