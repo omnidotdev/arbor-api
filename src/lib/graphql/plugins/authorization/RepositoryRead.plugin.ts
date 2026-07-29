@@ -34,6 +34,26 @@ import type { PlanWrapperFn } from "postgraphile/utils";
  * repository list flicker as the mirror aged. Write paths remain gated by
  * `canWriteRepository`, which uses the claims directly.
  */
+/**
+ * SQL for the set of repository ids the caller may see.
+ *
+ * Shared by every wrapper below so the definition of "visible" cannot drift
+ * between the repository connections and the rows that hang off a repository.
+ */
+const visibleRepositoryIds = (userId: unknown) => sql`
+  select r.id from repository r where (
+    r.visibility = 'public'
+    or r.owner_id = ${userId as never}
+    or exists (
+      select 1 from repository_collaborator rc
+      where rc.repository_id = r.id and rc.user_id = ${userId as never}
+    )
+    or exists (
+      select 1 from organization_member om
+      where om.organization_id = r.organization_id and om.user_id = ${userId as never}
+    )
+  )`;
+
 const scopeToVisible = EXPORTABLE(
   (context, lambda, sql, TYPES): PlanWrapperFn =>
     (plan) => {
@@ -73,6 +93,49 @@ const scopeToVisible = EXPORTABLE(
 );
 
 /**
+ * Scope a connection whose rows carry a repository reference.
+ *
+ * `column` is the path from the row to a repository id: either the column
+ * itself, or a subquery for rows that reach a repository indirectly (a comment
+ * through its pull request, a verification check through its change).
+ *
+ * Without this, pull request titles, descriptions, review bodies, and comment
+ * text from private repositories are readable, and `repositoryId` on a pull
+ * request hands out the id needed to try the singular accessor.
+ */
+const scopeByRepository = (buildRef: (alias: unknown) => unknown) =>
+  EXPORTABLE(
+    (
+      context,
+      lambda,
+      sql,
+      TYPES,
+      visibleRepositoryIds,
+      buildRef,
+    ): PlanWrapperFn =>
+      (plan) => {
+        const $connection = plan();
+        const $select = (
+          $connection as unknown as { getSubplan(): PgSelectStep }
+        ).getSubplan();
+
+        const $observer = context().get("observer");
+        const $userId = lambda($observer, (observer) => observer?.id ?? null);
+        const userId = $select.placeholder($userId, TYPES.uuid);
+
+        $select.where(
+          sql`${buildRef($select.alias) as never} in (${visibleRepositoryIds(userId)})`,
+        );
+
+        return $connection;
+      },
+    [context, lambda, sql, TYPES, visibleRepositoryIds, buildRef],
+  );
+
+/** Rows with a direct repository_id column */
+const direct = (alias: unknown) => sql`${alias as never}.repository_id`;
+
+/**
  * Authorization plugin for reading repositories.
  *
  * Covers every field in the schema whose type is `RepositoryConnection`:
@@ -89,6 +152,10 @@ const scopeToVisible = EXPORTABLE(
 const RepositoryReadPlugin = wrapPlans({
   Query: {
     repositories: scopeToVisible,
+    // rows carrying a direct repository_id, scoped by the same visible set
+    pullRequests: scopeByRepository(direct),
+    stacks: scopeByRepository(direct),
+    changes: scopeByRepository(direct),
   },
   Organization: {
     repositories: scopeToVisible,
