@@ -152,6 +152,42 @@ const visibleChangeIds = (userId: unknown) =>
   sql`select c.id from change c where c.repository_id in (${visibleRepositoryIds(userId)})`;
 
 /**
+ * Scope the agents connection to the caller's own agents.
+ *
+ * An agent record carries its owner and the model and vendor it runs on, so an
+ * unscoped list tells any caller who is running which agents where. Visibility
+ * is ownership or membership of the owning organization; there is no public
+ * agent, so there is no `public` arm here.
+ */
+const scopeAgentsToCaller = EXPORTABLE(
+  (context, lambda, sql, TYPES): PlanWrapperFn =>
+    (plan) => {
+      const $connection = plan();
+      const $select = (
+        $connection as unknown as { getSubplan(): PgSelectStep }
+      ).getSubplan();
+
+      const $observer = context().get("observer");
+      const $userId = lambda($observer, (observer) => observer?.id ?? null);
+      const userId = $select.placeholder($userId, TYPES.uuid);
+
+      $select.where(
+        sql`(
+          ${$select.alias}.owner_id = ${userId}
+          or exists (
+            select 1 from organization_member om
+            where om.organization_id = ${$select.alias}.organization_id
+              and om.user_id = ${userId}
+          )
+        )`,
+      );
+
+      return $connection;
+    },
+  [context, lambda, sql, TYPES],
+);
+
+/**
  * Authorization plugin for reading repositories.
  *
  * Covers every field in the schema whose type is `RepositoryConnection`:
@@ -181,6 +217,8 @@ const RepositoryReadPlugin = wrapPlans({
       visiblePullRequestIds,
     ),
     verificationChecks: scopeByRepository(viaChange, visibleChangeIds),
+    // not repository-derived, but the same class of cross-account read leak
+    agents: scopeAgentsToCaller,
   },
   Organization: {
     repositories: scopeToVisible,

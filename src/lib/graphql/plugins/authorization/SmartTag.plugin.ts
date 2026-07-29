@@ -50,6 +50,24 @@ const SmartTagPlugin = jsonPgSmartTags({
           },
         },
       },
+      user: {
+        attribute: {
+          // Every user row is listable, so exposing these leaks the email
+          // address and IDP subject of every account to any caller. Neither is
+          // needed: the authenticated user's own email comes from the
+          // `observer` query, and nothing reads the IDP id through the API
+          email: {
+            tags: {
+              behavior: "-*",
+            },
+          },
+          identity_provider_id: {
+            tags: {
+              behavior: "-*",
+            },
+          },
+        },
+      },
       personal_access_token: {
         tags: {
           // Tokens are minted only through the custom createPersonalAccessToken
