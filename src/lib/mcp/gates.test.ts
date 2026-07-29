@@ -37,8 +37,13 @@ mock.module("lib/db/db", () => ({
   },
 }));
 
-const { callerMayRead, gateRead, gateWrite, gateWriteByRepositoryId } =
-  await import("./gates");
+const {
+  callerMayRead,
+  gateCreate,
+  gateRead,
+  gateWrite,
+  gateWriteByRepositoryId,
+} = await import("./gates");
 
 import type { McpCaller } from "./auth";
 
@@ -161,5 +166,21 @@ describe("gateWriteByRepositoryId", () => {
       "repo-1",
     );
     expect(gate).toBeNull();
+  });
+});
+
+describe("gateCreate", () => {
+  test("allows an unconfined write credential", () => {
+    expect(gateCreate(makeCaller("write", null))).toBe(true);
+  });
+
+  test("refuses a read-only credential", () => {
+    expect(gateCreate(makeCaller("read", null))).toBe(false);
+  });
+
+  test("refuses a credential confined to specific repositories", () => {
+    // a token issued for a fixed set of repositories has no business minting
+    // new ones: the new repository could never be in its whitelist
+    expect(gateCreate(makeCaller("write", ["repo-1"]))).toBe(false);
   });
 });

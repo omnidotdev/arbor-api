@@ -98,6 +98,26 @@ describe("authenticateGitRequest scope", () => {
     __setResolveUserFromPatForTests(null);
   });
 
+  test("surfaces the caller's organization claims", async () => {
+    const user = makeUser();
+    __setResolveUserFromPatForTests(async () => ({
+      user,
+      organizations: [orgClaim("idp-org-1", ["admin"])],
+      scope: UNRESTRICTED_SCOPE,
+    }));
+
+    const req = new Request("http://localhost/git/foo/bar/info/refs", {
+      headers: { authorization: "Bearer arbor_pat_org" },
+    });
+    const result = await authenticateGitRequest(req);
+
+    // needed by callers that make membership decisions, e.g. creating a
+    // repository inside an organization over MCP
+    expect(result?.organizations.map((org) => org.id)).toEqual(["idp-org-1"]);
+
+    __setResolveUserFromPatForTests(null);
+  });
+
   test("an IDP session token carries unrestricted scope", async () => {
     const user = makeUser();
     __setResolveUserFromTokenForTests(async () => ({

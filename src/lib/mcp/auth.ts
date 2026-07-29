@@ -5,6 +5,7 @@ import {
 import { dbPool } from "lib/db/db";
 import { authenticateGitRequest } from "lib/git";
 
+import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { TokenScope } from "lib/auth/tokenScope";
 import type { SelectAgent, SelectUser } from "lib/db/schema";
 
@@ -26,6 +27,8 @@ export interface McpCaller {
    * user it authenticates as.
    */
   scope: TokenScope;
+  /** Organizations the caller acts under, used for membership decisions */
+  organizations: OrganizationClaim[];
 }
 
 /**
@@ -90,5 +93,10 @@ export const resolveMcpCaller = async (
   const token = extractBearerToken(request);
   const agent = token ? await resolveAgentForToken(token) : null;
 
-  return { user: caller.user, agent, scope: caller.scope };
+  return {
+    user: caller.user,
+    agent,
+    scope: caller.scope,
+    organizations: caller.organizations,
+  };
 };

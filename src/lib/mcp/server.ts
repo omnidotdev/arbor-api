@@ -15,9 +15,11 @@ import {
 import { gitService } from "lib/git";
 import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
 import { pullRequestService } from "lib/pullRequest";
+import { createRepository } from "lib/repository";
 import { stackService } from "lib/stack";
 import {
   callerMayRead,
+  gateCreate,
   gateRead,
   gateWrite,
   gateWriteByRepositoryId,
@@ -505,6 +507,83 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
   // attributed to caller.agent on the columns that carry agent attribution
   // (pull requests and stacks). No tool performs destructive git.
   // ============================================================
+
+  server.registerTool(
+    "create_repository",
+    {
+      title: "Create repository",
+      description:
+        "Create a repository and initialize its git storage. Requires a token with write access that is not confined to specific repositories. Pass organizationId to create it inside an organization you belong to",
+      inputSchema: {
+        name: z.string().min(1).describe("Repository name"),
+        slug: z
+          .string()
+          .min(1)
+          .regex(
+            /^[a-z0-9][a-z0-9-]*$/,
+            "Lowercase letters, digits and hyphens only",
+          )
+          .describe("URL-friendly slug, unique per owner"),
+        description: z.string().optional().describe("Repository description"),
+        visibility: z
+          .enum(["public", "private"])
+          .optional()
+          .describe("Defaults to public"),
+        defaultBranch: z
+          .string()
+          .optional()
+          .describe("Default branch name (defaults to master)"),
+        organizationId: z
+          .string()
+          .optional()
+          .describe("Organization to create the repository under"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({
+      name,
+      slug,
+      description,
+      visibility,
+      defaultBranch,
+      organizationId,
+    }) => {
+      if (!gateCreate(caller)) {
+        return errorResult(
+          "This token cannot create repositories: it must have write access and must not be confined to specific repositories",
+        );
+      }
+
+      try {
+        const result = await createRepository({
+          observer: { id: caller.user.id },
+          // For an access token these come from the membership mirror, which is
+          // what lets a token create inside an organization at all
+          organizations: caller.organizations,
+          input: {
+            name,
+            slug,
+            description: description ?? null,
+            visibility,
+            defaultBranch,
+            organizationId: organizationId ?? null,
+          },
+          db: dbPool,
+        });
+
+        if (result.error) return errorResult(result.error);
+
+        return jsonResult({
+          rowId: result.rowId,
+          slug: result.slug,
+          ownerUsername: result.ownerUsername,
+        });
+      } catch (err) {
+        console.error("[MCP] create_repository failed:", err);
+        return errorResult("Failed to create repository");
+      }
+    },
+  );
 
   server.registerTool(
     "create_pull_request",

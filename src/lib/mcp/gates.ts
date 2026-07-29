@@ -118,3 +118,15 @@ export const gateWriteByRepositoryId = async (
 
   return summary;
 };
+
+/**
+ * Whether the caller may create a repository.
+ *
+ * Creation requires an unconfined write credential. A token issued for a fixed
+ * set of repositories has no business minting new ones: the repository it
+ * created could never fall inside its own whitelist, so it would be able to
+ * create something it then cannot touch, and the confinement would no longer
+ * describe what the token can affect.
+ */
+export const gateCreate = (caller: McpCaller): boolean =>
+  scopeAllowsWrite(caller.scope) && caller.scope.repositoryIds === null;

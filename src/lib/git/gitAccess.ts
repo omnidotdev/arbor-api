@@ -138,6 +138,12 @@ const extractToken = (request: Request): string | null => {
 export interface AuthenticatedGitCaller {
   user: SelectUser;
   scope: TokenScope;
+  /**
+   * Organizations the caller acts under. Present here as well as in the
+   * internal cache because membership decisions (creating a repository inside
+   * an organization, for instance) are made by callers outside this module.
+   */
+  organizations: OrganizationClaim[];
 }
 
 /**
@@ -161,7 +167,11 @@ export const authenticateGitRequest = async (
 
   userOrganizationsCache.set(resolved.user, resolved.organizations);
 
-  return { user: resolved.user, scope: resolved.scope };
+  return {
+    user: resolved.user,
+    scope: resolved.scope,
+    organizations: resolved.organizations,
+  };
 };
 
 /**
