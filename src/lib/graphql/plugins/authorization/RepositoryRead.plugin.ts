@@ -103,16 +103,12 @@ const scopeToVisible = EXPORTABLE(
  * text from private repositories are readable, and `repositoryId` on a pull
  * request hands out the id needed to try the singular accessor.
  */
-const scopeByRepository = (buildRef: (alias: unknown) => unknown) =>
+const scopeByRepository = (
+  buildRef: (alias: unknown) => unknown,
+  buildIdSet: (userId: unknown) => unknown = visibleRepositoryIds,
+) =>
   EXPORTABLE(
-    (
-      context,
-      lambda,
-      sql,
-      TYPES,
-      visibleRepositoryIds,
-      buildRef,
-    ): PlanWrapperFn =>
+    (context, lambda, sql, TYPES, buildIdSet, buildRef): PlanWrapperFn =>
       (plan) => {
         const $connection = plan();
         const $select = (
@@ -124,16 +120,36 @@ const scopeByRepository = (buildRef: (alias: unknown) => unknown) =>
         const userId = $select.placeholder($userId, TYPES.uuid);
 
         $select.where(
-          sql`${buildRef($select.alias) as never} in (${visibleRepositoryIds(userId)})`,
+          sql`${buildRef($select.alias) as never} in (${buildIdSet(userId) as never})`,
         );
 
         return $connection;
       },
-    [context, lambda, sql, TYPES, visibleRepositoryIds, buildRef],
+    [context, lambda, sql, TYPES, buildIdSet, buildRef],
   );
 
 /** Rows with a direct repository_id column */
 const direct = (alias: unknown) => sql`${alias as never}.repository_id`;
+
+/**
+ * Rows reaching a repository through their pull request.
+ *
+ * Shaped as `<column> in (subquery)` rather than a correlated subquery on the
+ * left of the comparison, matching `direct`, which is the form known to apply.
+ */
+const viaPullRequest = (alias: unknown) =>
+  sql`${alias as never}.pull_request_id`;
+
+/** Rows reaching a repository through their change */
+const viaChange = (alias: unknown) => sql`${alias as never}.change_id`;
+
+/** Pull request ids belonging to repositories the caller may see */
+const visiblePullRequestIds = (userId: unknown) =>
+  sql`select pr.id from pull_request pr where pr.repository_id in (${visibleRepositoryIds(userId)})`;
+
+/** Change ids belonging to repositories the caller may see */
+const visibleChangeIds = (userId: unknown) =>
+  sql`select c.id from change c where c.repository_id in (${visibleRepositoryIds(userId)})`;
 
 /**
  * Authorization plugin for reading repositories.
@@ -156,6 +172,15 @@ const RepositoryReadPlugin = wrapPlans({
     pullRequests: scopeByRepository(direct),
     stacks: scopeByRepository(direct),
     changes: scopeByRepository(direct),
+    pullRequestComments: scopeByRepository(
+      viaPullRequest,
+      visiblePullRequestIds,
+    ),
+    pullRequestReviews: scopeByRepository(
+      viaPullRequest,
+      visiblePullRequestIds,
+    ),
+    verificationChecks: scopeByRepository(viaChange, visibleChangeIds),
   },
   Organization: {
     repositories: scopeToVisible,
