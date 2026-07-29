@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 
 import { eq } from "drizzle-orm";
 
+import { readOrganizationClaims } from "lib/auth/organizationMembership";
 import { dbPool } from "lib/db/db";
 import {
   personalAccessTokenRepositoryTable,
@@ -194,9 +195,11 @@ const resolveTokenScope = (row: ScopableTokenRow): TokenScope => ({
  * a missing row or an expired token, then resolves the owning user. Updates
  * `lastUsedAt` best-effort (a failure there never blocks authentication).
  *
- * A PAT does not carry IDP organization claims, so `organizations` is always
- * empty: a PAT authenticates as the user (owner/collaborator access works),
- * but org-membership-derived access is not available over a PAT.
+ * A PAT carries no IDP organization claims of its own, so `organizations` is
+ * read from the membership mirror written whenever this user last resolved a
+ * session token. Membership older than the freshness window is dropped, so a
+ * user removed from an organization upstream loses cached access rather than
+ * keeping it indefinitely.
  *
  * @param token - Raw credential (the git Basic-auth password)
  * @param db - Database surface (defaults to the pool)
@@ -233,7 +236,12 @@ export const resolveUserFromPat = async (
         console.warn("[Auth] PAT lastUsedAt update failed:", err),
       );
 
-    return { user: row.user, organizations: [], scope };
+    // A token carries no IDP claims, so organization membership comes from the
+    // mirror written on session login (see organizationMembership). Without
+    // this, org-membership-derived access is unavailable to every token
+    const organizations = await readOrganizationClaims(row.user.id, db);
+
+    return { user: row.user, organizations, scope };
   } catch (err) {
     console.error("[Auth] PAT resolution error:", err);
     return null;

@@ -9,6 +9,15 @@ const SmartTagPlugin = jsonPgSmartTags({
   config: {
     class: {
       repository: {
+        tags: {
+          // Hide the auto-generated createRepository. It inserts the row without
+          // initializing git storage on disk, producing a repository that cannot
+          // be cloned or pushed to. createRepositoryWithGit is the only correct
+          // creation path (it also enforces the private-repo entitlement).
+          // Update and delete stay: both are authorized and have side effects
+          // wired up (rename moves storage, delete removes it)
+          behavior: "-insert",
+        },
         attribute: {
           visibility: {
             tags: {

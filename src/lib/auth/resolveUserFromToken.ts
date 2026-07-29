@@ -3,6 +3,7 @@ import { QueryClient } from "@tanstack/query-core";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import ms from "ms";
 
+import { syncOrganizationMemberships } from "lib/auth/organizationMembership";
 import { UNRESTRICTED_SCOPE } from "lib/auth/tokenScope";
 import { AUTH_BASE_URL } from "lib/config/env.config";
 import { dbPool } from "lib/db/db";
@@ -236,6 +237,11 @@ export const resolveUserFromToken = async (
       .returning();
 
     if (!user) return null;
+
+    // Mirror membership so a personal access token, which carries no claims,
+    // can still act on this user's organization repositories. Fire and forget:
+    // authentication must not depend on the mirror
+    void syncOrganizationMemberships(user.id, organizations, dbPool);
 
     // A session token from the IDP carries the user's full authority
     return { user, organizations, scope: UNRESTRICTED_SCOPE };

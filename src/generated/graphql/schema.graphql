@@ -115,6 +115,8 @@ type Organization implements Node {
   billingAccountId: String
   deletedAt: Datetime
   deletionReason: String
+  name: String
+  slug: String
 
   """Reads and enables pagination through a set of `Repository`."""
   repositories(
@@ -253,6 +255,40 @@ type Organization implements Node {
     """The method to use when ordering `Agent`."""
     orderBy: [AgentOrderBy!] = [PRIMARY_KEY_ASC]
   ): AgentConnection!
+
+  """Reads and enables pagination through a set of `OrganizationMember`."""
+  organizationMembers(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: OrganizationMemberCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: OrganizationMemberFilter
+
+    """The method to use when ordering `OrganizationMember`."""
+    orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
+  ): OrganizationMemberConnection!
 }
 
 """A connection to a list of `Repository` values."""
@@ -1000,6 +1036,40 @@ type User implements Node {
     """The method to use when ordering `Stack`."""
     orderBy: [StackOrderBy!] = [PRIMARY_KEY_ASC]
   ): StackConnection!
+
+  """Reads and enables pagination through a set of `OrganizationMember`."""
+  organizationMembers(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: OrganizationMemberCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: OrganizationMemberFilter
+
+    """The method to use when ordering `OrganizationMember`."""
+    orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
+  ): OrganizationMemberConnection!
 }
 
 """A location in a connection that can be used for resuming pagination."""
@@ -1608,6 +1678,12 @@ input UserFilter {
 
   """Some related `authoredStacks` exist."""
   authoredStacksExist: Boolean
+
+  """Filter by the object’s `organizationMembers` relation."""
+  organizationMembers: UserToManyOrganizationMemberFilter
+
+  """Some related `organizationMembers` exist."""
+  organizationMembersExist: Boolean
 
   """Checks for all expressions in this list."""
   and: [UserFilter!]
@@ -3343,6 +3419,12 @@ input OrganizationFilter {
   """Filter by the object’s `deletionReason` field."""
   deletionReason: StringFilter
 
+  """Filter by the object’s `name` field."""
+  name: StringFilter
+
+  """Filter by the object’s `slug` field."""
+  slug: StringFilter
+
   """Filter by the object’s `repositories` relation."""
   repositories: OrganizationToManyRepositoryFilter
 
@@ -3366,6 +3448,12 @@ input OrganizationFilter {
 
   """Some related `agents` exist."""
   agentsExist: Boolean
+
+  """Filter by the object’s `organizationMembers` relation."""
+  organizationMembers: OrganizationToManyOrganizationMemberFilter
+
+  """Some related `organizationMembers` exist."""
+  organizationMembersExist: Boolean
 
   """Checks for all expressions in this list."""
   and: [OrganizationFilter!]
@@ -4022,6 +4110,84 @@ input AgentDistinctCountAggregateFilter {
 }
 
 """
+A filter to be used against many `OrganizationMember` object types. All fields are combined with a logical ‘and.’
+"""
+input OrganizationToManyOrganizationMemberFilter {
+  """
+  Every related `OrganizationMember` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: OrganizationMemberFilter
+
+  """
+  Some related `OrganizationMember` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: OrganizationMemberFilter
+
+  """
+  No related `OrganizationMember` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: OrganizationMemberFilter
+
+  """
+  Aggregates across related `OrganizationMember` match the filter criteria.
+  """
+  aggregates: OrganizationMemberAggregatesFilter
+}
+
+"""
+A filter to be used against `OrganizationMember` object types. All fields are combined with a logical ‘and.’
+"""
+input OrganizationMemberFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `userId` field."""
+  userId: UUIDFilter
+
+  """Filter by the object’s `organizationId` field."""
+  organizationId: UUIDFilter
+
+  """Filter by the object’s `syncedAt` field."""
+  syncedAt: DatetimeFilter
+
+  """Filter by the object’s `organization` relation."""
+  organization: OrganizationFilter
+
+  """Filter by the object’s `user` relation."""
+  user: UserFilter
+
+  """Checks for all expressions in this list."""
+  and: [OrganizationMemberFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [OrganizationMemberFilter!]
+
+  """Negates the expression."""
+  not: OrganizationMemberFilter
+}
+
+"""
+A filter to be used against aggregates of `OrganizationMember` object types.
+"""
+input OrganizationMemberAggregatesFilter {
+  """
+  A filter that must pass for the relevant `OrganizationMember` object to be included within the aggregate.
+  """
+  filter: OrganizationMemberFilter
+
+  """Distinct count aggregate over matching `OrganizationMember` objects."""
+  distinctCount: OrganizationMemberDistinctCountAggregateFilter
+}
+
+input OrganizationMemberDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  userId: BigIntFilter
+  organizationId: BigIntFilter
+  roles: BigIntFilter
+  syncedAt: BigIntFilter
+}
+
+"""
 A filter to be used against many `MergeQueueEntry` object types. All fields are combined with a logical ‘and.’
 """
 input PullRequestToManyMergeQueueEntryFilter {
@@ -4159,6 +4325,31 @@ input UserToManyStackFilter {
 
   """Aggregates across related `Stack` match the filter criteria."""
   aggregates: StackAggregatesFilter
+}
+
+"""
+A filter to be used against many `OrganizationMember` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyOrganizationMemberFilter {
+  """
+  Every related `OrganizationMember` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: OrganizationMemberFilter
+
+  """
+  Some related `OrganizationMember` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: OrganizationMemberFilter
+
+  """
+  No related `OrganizationMember` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: OrganizationMemberFilter
+
+  """
+  Aggregates across related `OrganizationMember` match the filter criteria.
+  """
+  aggregates: OrganizationMemberAggregatesFilter
 }
 
 """
@@ -8919,6 +9110,199 @@ enum AgentOrderBy {
   STACKS_BY_AUTHORED_BY_AGENT_ID_DISTINCT_COUNT_UPDATED_AT_DESC
 }
 
+"""A connection to a list of `OrganizationMember` values."""
+type OrganizationMemberConnection {
+  """A list of `OrganizationMember` objects."""
+  nodes: [OrganizationMember!]!
+
+  """
+  A list of edges which contains the `OrganizationMember` and cursor to aid in pagination.
+  """
+  edges: [OrganizationMemberEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `OrganizationMember` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: OrganizationMemberAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `OrganizationMember` for these aggregates.
+    """
+    groupBy: [OrganizationMemberGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: OrganizationMemberHavingInput
+  ): [OrganizationMemberAggregates!]
+}
+
+type OrganizationMember implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  userId: UUID!
+  organizationId: UUID!
+  roles: JSON!
+  syncedAt: Datetime!
+
+  """
+  Reads a single `Organization` that is related to this `OrganizationMember`.
+  """
+  organization: Organization
+
+  """Reads a single `User` that is related to this `OrganizationMember`."""
+  user: User
+}
+
+"""
+Represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+"""A `OrganizationMember` edge in the connection."""
+type OrganizationMemberEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `OrganizationMember` at the end of the edge."""
+  node: OrganizationMember!
+}
+
+type OrganizationMemberAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: OrganizationMemberDistinctCountAggregates
+}
+
+type OrganizationMemberDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of userId across the matching connection"""
+  userId: BigInt
+
+  """Distinct count of organizationId across the matching connection"""
+  organizationId: BigInt
+
+  """Distinct count of roles across the matching connection"""
+  roles: BigInt
+
+  """Distinct count of syncedAt across the matching connection"""
+  syncedAt: BigInt
+}
+
+"""
+Grouping methods for `OrganizationMember` for usage during aggregation.
+"""
+enum OrganizationMemberGroupBy {
+  USER_ID
+  ORGANIZATION_ID
+  ROLES
+  SYNCED_AT
+  SYNCED_AT_TRUNCATED_TO_HOUR
+  SYNCED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `OrganizationMember` aggregates."""
+input OrganizationMemberHavingInput {
+  AND: [OrganizationMemberHavingInput!]
+  OR: [OrganizationMemberHavingInput!]
+  sum: OrganizationMemberHavingSumInput
+  distinctCount: OrganizationMemberHavingDistinctCountInput
+  min: OrganizationMemberHavingMinInput
+  max: OrganizationMemberHavingMaxInput
+  average: OrganizationMemberHavingAverageInput
+  stddevSample: OrganizationMemberHavingStddevSampleInput
+  stddevPopulation: OrganizationMemberHavingStddevPopulationInput
+  varianceSample: OrganizationMemberHavingVarianceSampleInput
+  variancePopulation: OrganizationMemberHavingVariancePopulationInput
+}
+
+input OrganizationMemberHavingSumInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingDistinctCountInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingMinInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingMaxInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingAverageInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingStddevSampleInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingStddevPopulationInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingVarianceSampleInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+input OrganizationMemberHavingVariancePopulationInput {
+  syncedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `OrganizationMember` object types. All fields are
+tested for equality and combined with a logical ‘and.’
+"""
+input OrganizationMemberCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `userId` field."""
+  userId: UUID
+
+  """Checks for equality with the object’s `organizationId` field."""
+  organizationId: UUID
+
+  """Checks for equality with the object’s `syncedAt` field."""
+  syncedAt: Datetime
+}
+
+"""Methods to use when ordering `OrganizationMember`."""
+enum OrganizationMemberOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  ORGANIZATION_ID_ASC
+  ORGANIZATION_ID_DESC
+  SYNCED_AT_ASC
+  SYNCED_AT_DESC
+}
+
 """A connection to a list of `ExternalDependency` values."""
 type ExternalDependencyConnection {
   """A list of `ExternalDependency` objects."""
@@ -11002,6 +11386,18 @@ enum UserOrderBy {
   AUTHORED_STACKS_DISTINCT_COUNT_CREATED_AT_DESC
   AUTHORED_STACKS_DISTINCT_COUNT_UPDATED_AT_ASC
   AUTHORED_STACKS_DISTINCT_COUNT_UPDATED_AT_DESC
+  ORGANIZATION_MEMBERS_COUNT_ASC
+  ORGANIZATION_MEMBERS_COUNT_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROW_ID_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROW_ID_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_USER_ID_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_USER_ID_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ORGANIZATION_ID_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ORGANIZATION_ID_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROLES_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROLES_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_DESC
 }
 
 """A connection to a list of `Organization` values."""
@@ -11085,6 +11481,12 @@ type OrganizationDistinctCountAggregates {
 
   """Distinct count of deletionReason across the matching connection"""
   deletionReason: BigInt
+
+  """Distinct count of name across the matching connection"""
+  name: BigInt
+
+  """Distinct count of slug across the matching connection"""
+  slug: BigInt
 }
 
 """Grouping methods for `Organization` for usage during aggregation."""
@@ -11103,6 +11505,8 @@ enum OrganizationGroupBy {
   DELETED_AT_TRUNCATED_TO_HOUR
   DELETED_AT_TRUNCATED_TO_DAY
   DELETION_REASON
+  NAME
+  SLUG
 }
 
 """Conditions for `Organization` aggregates."""
@@ -11208,6 +11612,12 @@ input OrganizationCondition {
 
   """Checks for equality with the object’s `deletionReason` field."""
   deletionReason: String
+
+  """Checks for equality with the object’s `name` field."""
+  name: String
+
+  """Checks for equality with the object’s `slug` field."""
+  slug: String
 }
 
 """Methods to use when ordering `Organization`."""
@@ -11235,6 +11645,10 @@ enum OrganizationOrderBy {
   DELETED_AT_DESC
   DELETION_REASON_ASC
   DELETION_REASON_DESC
+  NAME_ASC
+  NAME_DESC
+  SLUG_ASC
+  SLUG_DESC
   REPOSITORIES_COUNT_ASC
   REPOSITORIES_COUNT_DESC
   REPOSITORIES_DISTINCT_COUNT_ROW_ID_ASC
@@ -11313,6 +11727,18 @@ enum OrganizationOrderBy {
   AGENTS_DISTINCT_COUNT_CREATED_AT_DESC
   AGENTS_DISTINCT_COUNT_UPDATED_AT_ASC
   AGENTS_DISTINCT_COUNT_UPDATED_AT_DESC
+  ORGANIZATION_MEMBERS_COUNT_ASC
+  ORGANIZATION_MEMBERS_COUNT_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROW_ID_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROW_ID_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_USER_ID_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_USER_ID_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ORGANIZATION_ID_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ORGANIZATION_ID_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROLES_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROLES_DESC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_ASC
+  ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_DESC
 }
 
 """The output of our create `ProjectRepository` mutation."""
@@ -11404,6 +11830,50 @@ input RepositoryRelationshipMetadatumInput {
   key: String!
   value: String!
   createdAt: Datetime
+}
+
+"""The output of our create `OrganizationMember` mutation."""
+type CreateOrganizationMemberPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `OrganizationMember` that was created by this mutation."""
+  organizationMember: OrganizationMember
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `OrganizationMember`. May be used by Relay 1."""
+  organizationMemberEdge(
+    """The method to use when ordering `OrganizationMember`."""
+    orderBy: [OrganizationMemberOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): OrganizationMemberEdge
+}
+
+"""All input for the create `OrganizationMember` mutation."""
+input CreateOrganizationMemberInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `OrganizationMember` to be created by this mutation."""
+  organizationMember: OrganizationMemberInput!
+}
+
+"""An input for mutations affecting `OrganizationMember`"""
+input OrganizationMemberInput {
+  rowId: UUID
+  userId: UUID!
+  organizationId: UUID!
+  roles: JSON
+  syncedAt: Datetime
 }
 
 """The output of our create `MergeBatch` mutation."""
@@ -11928,55 +12398,6 @@ input VerificationCheckInput {
   updatedAt: Datetime
 }
 
-"""The output of our create `Organization` mutation."""
-type CreateOrganizationPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Organization` that was created by this mutation."""
-  organization: Organization
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Organization`. May be used by Relay 1."""
-  organizationEdge(
-    """The method to use when ordering `Organization`."""
-    orderBy: [OrganizationOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): OrganizationEdge
-}
-
-"""All input for the create `Organization` mutation."""
-input CreateOrganizationInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `Organization` to be created by this mutation."""
-  organization: OrganizationInput!
-}
-
-"""An input for mutations affecting `Organization`"""
-input OrganizationInput {
-  rowId: UUID
-  description: String
-  avatarUrl: String
-  createdAt: Datetime
-  updatedAt: Datetime
-  idpOrganizationId: String!
-  subscriptionId: String
-  billingAccountId: String
-  deletedAt: Datetime
-  deletionReason: String
-}
-
 """The output of our create `RepositoryRelationship` mutation."""
 type CreateRepositoryRelationshipPayload {
   """
@@ -12126,53 +12547,55 @@ input ProjectInput {
   updatedAt: Datetime
 }
 
-"""The output of our create `Repository` mutation."""
-type CreateRepositoryPayload {
+"""The output of our create `Organization` mutation."""
+type CreateOrganizationPayload {
   """
   The exact same `clientMutationId` that was provided in the mutation input,
   unchanged and unused. May be used by a client to track mutations.
   """
   clientMutationId: String
 
-  """The `Repository` that was created by this mutation."""
-  repository: Repository
+  """The `Organization` that was created by this mutation."""
+  organization: Organization
 
   """
   Our root query field type. Allows us to run any query from our mutation payload.
   """
   query: Query
 
-  """An edge for our `Repository`. May be used by Relay 1."""
-  repositoryEdge(
-    """The method to use when ordering `Repository`."""
-    orderBy: [RepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): RepositoryEdge
+  """An edge for our `Organization`. May be used by Relay 1."""
+  organizationEdge(
+    """The method to use when ordering `Organization`."""
+    orderBy: [OrganizationOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): OrganizationEdge
 }
 
-"""All input for the create `Repository` mutation."""
-input CreateRepositoryInput {
+"""All input for the create `Organization` mutation."""
+input CreateOrganizationInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
 
-  """The `Repository` to be created by this mutation."""
-  repository: RepositoryInput!
+  """The `Organization` to be created by this mutation."""
+  organization: OrganizationInput!
 }
 
-"""An input for mutations affecting `Repository`"""
-input RepositoryInput {
+"""An input for mutations affecting `Organization`"""
+input OrganizationInput {
   rowId: UUID
-  ownerId: UUID!
-  organizationId: UUID
-  name: String!
-  slug: String!
   description: String
-  visibility: Visibility
-  defaultBranch: String
+  avatarUrl: String
   createdAt: Datetime
   updatedAt: Datetime
+  idpOrganizationId: String!
+  subscriptionId: String
+  billingAccountId: String
+  deletedAt: Datetime
+  deletionReason: String
+  name: String
+  slug: String
 }
 
 """The output of our create `PullRequest` mutation."""
@@ -12329,6 +12752,55 @@ input RepositoryRelationshipMetadatumPatch {
   key: String
   value: String
   createdAt: Datetime
+}
+
+"""The output of our update `OrganizationMember` mutation."""
+type UpdateOrganizationMemberPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `OrganizationMember` that was updated by this mutation."""
+  organizationMember: OrganizationMember
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `OrganizationMember`. May be used by Relay 1."""
+  organizationMemberEdge(
+    """The method to use when ordering `OrganizationMember`."""
+    orderBy: [OrganizationMemberOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): OrganizationMemberEdge
+}
+
+"""All input for the `updateOrganizationMember` mutation."""
+input UpdateOrganizationMemberInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `OrganizationMember` being updated.
+  """
+  patch: OrganizationMemberPatch!
+}
+
+"""
+Represents an update to a `OrganizationMember`. Fields that are set will be updated.
+"""
+input OrganizationMemberPatch {
+  rowId: UUID
+  userId: UUID
+  organizationId: UUID
+  roles: JSON
+  syncedAt: Datetime
 }
 
 """The output of our update `MergeBatch` mutation."""
@@ -12907,60 +13379,6 @@ input VerificationCheckPatch {
   updatedAt: Datetime
 }
 
-"""The output of our update `Organization` mutation."""
-type UpdateOrganizationPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Organization` that was updated by this mutation."""
-  organization: Organization
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Organization`. May be used by Relay 1."""
-  organizationEdge(
-    """The method to use when ordering `Organization`."""
-    orderBy: [OrganizationOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): OrganizationEdge
-}
-
-"""All input for the `updateOrganization` mutation."""
-input UpdateOrganizationInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `Organization` being updated.
-  """
-  patch: OrganizationPatch!
-}
-
-"""
-Represents an update to a `Organization`. Fields that are set will be updated.
-"""
-input OrganizationPatch {
-  rowId: UUID
-  description: String
-  avatarUrl: String
-  createdAt: Datetime
-  updatedAt: Datetime
-  idpOrganizationId: String
-  subscriptionId: String
-  billingAccountId: String
-  deletedAt: Datetime
-  deletionReason: String
-}
-
 """The output of our update `RepositoryRelationship` mutation."""
 type UpdateRepositoryRelationshipPayload {
   """
@@ -13125,6 +13543,62 @@ input ProjectPatch {
   updatedAt: Datetime
 }
 
+"""The output of our update `Organization` mutation."""
+type UpdateOrganizationPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Organization` that was updated by this mutation."""
+  organization: Organization
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Organization`. May be used by Relay 1."""
+  organizationEdge(
+    """The method to use when ordering `Organization`."""
+    orderBy: [OrganizationOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): OrganizationEdge
+}
+
+"""All input for the `updateOrganization` mutation."""
+input UpdateOrganizationInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `Organization` being updated.
+  """
+  patch: OrganizationPatch!
+}
+
+"""
+Represents an update to a `Organization`. Fields that are set will be updated.
+"""
+input OrganizationPatch {
+  rowId: UUID
+  description: String
+  avatarUrl: String
+  createdAt: Datetime
+  updatedAt: Datetime
+  idpOrganizationId: String
+  subscriptionId: String
+  billingAccountId: String
+  deletedAt: Datetime
+  deletionReason: String
+  name: String
+  slug: String
+}
+
 """The output of our update `Repository` mutation."""
 type UpdateRepositoryPayload {
   """
@@ -13148,14 +13622,18 @@ type UpdateRepositoryPayload {
   ): RepositoryEdge
 }
 
-"""All input for the `updateRepository` mutation."""
-input UpdateRepositoryInput {
+"""All input for the `updateRepositoryById` mutation."""
+input UpdateRepositoryByIdInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
   """
   clientMutationId: String
-  rowId: UUID!
+
+  """
+  The globally unique `ID` which will identify a single `Repository` to be updated.
+  """
+  id: ID!
 
   """
   An object where the defined keys will be set on the `Repository` being updated.
@@ -13177,6 +13655,21 @@ input RepositoryPatch {
   defaultBranch: String
   createdAt: Datetime
   updatedAt: Datetime
+}
+
+"""All input for the `updateRepository` mutation."""
+input UpdateRepositoryInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `Repository` being updated.
+  """
+  patch: RepositoryPatch!
 }
 
 """The output of our update `PullRequest` mutation."""
@@ -13303,6 +13796,40 @@ type DeleteRepositoryRelationshipMetadatumPayload {
 
 """All input for the `deleteRepositoryRelationshipMetadatum` mutation."""
 input DeleteRepositoryRelationshipMetadatumInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
+"""The output of our delete `OrganizationMember` mutation."""
+type DeleteOrganizationMemberPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `OrganizationMember` that was deleted by this mutation."""
+  organizationMember: OrganizationMember
+  deletedOrganizationMemberId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `OrganizationMember`. May be used by Relay 1."""
+  organizationMemberEdge(
+    """The method to use when ordering `OrganizationMember`."""
+    orderBy: [OrganizationMemberOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): OrganizationMemberEdge
+}
+
+"""All input for the `deleteOrganizationMember` mutation."""
+input DeleteOrganizationMemberInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -13719,40 +14246,6 @@ input DeleteVerificationCheckInput {
   rowId: UUID!
 }
 
-"""The output of our delete `Organization` mutation."""
-type DeleteOrganizationPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `Organization` that was deleted by this mutation."""
-  organization: Organization
-  deletedOrganizationId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `Organization`. May be used by Relay 1."""
-  organizationEdge(
-    """The method to use when ordering `Organization`."""
-    orderBy: [OrganizationOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): OrganizationEdge
-}
-
-"""All input for the `deleteOrganization` mutation."""
-input DeleteOrganizationInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-}
-
 """The output of our delete `RepositoryRelationship` mutation."""
 type DeleteRepositoryRelationshipPayload {
   """
@@ -13855,6 +14348,40 @@ input DeleteProjectInput {
   rowId: UUID!
 }
 
+"""The output of our delete `Organization` mutation."""
+type DeleteOrganizationPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Organization` that was deleted by this mutation."""
+  organization: Organization
+  deletedOrganizationId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Organization`. May be used by Relay 1."""
+  organizationEdge(
+    """The method to use when ordering `Organization`."""
+    orderBy: [OrganizationOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): OrganizationEdge
+}
+
+"""All input for the `deleteOrganization` mutation."""
+input DeleteOrganizationInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
 """The output of our delete `Repository` mutation."""
 type DeleteRepositoryPayload {
   """
@@ -13877,6 +14404,20 @@ type DeleteRepositoryPayload {
     """The method to use when ordering `Repository`."""
     orderBy: [RepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
   ): RepositoryEdge
+}
+
+"""All input for the `deleteRepositoryById` mutation."""
+input DeleteRepositoryByIdInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """
+  The globally unique `ID` which will identify a single `Repository` to be deleted.
+  """
+  id: ID!
 }
 
 """All input for the `deleteRepository` mutation."""
@@ -14461,6 +15002,9 @@ type Query implements Node {
   """Get a single `RepositoryRelationshipMetadatum`."""
   repositoryRelationshipMetadatum(rowId: UUID!): RepositoryRelationshipMetadatum
 
+  """Get a single `OrganizationMember`."""
+  organizationMember(rowId: UUID!): OrganizationMember
+
   """Get a single `MergeBatch`."""
   mergeBatch(rowId: UUID!): MergeBatch
 
@@ -14503,12 +15047,6 @@ type Query implements Node {
   """Get a single `VerificationCheck`."""
   verificationCheck(rowId: UUID!): VerificationCheck
 
-  """Get a single `Organization`."""
-  organization(rowId: UUID!): Organization
-
-  """Get a single `Organization`."""
-  organizationByIdpOrganizationId(idpOrganizationId: String!): Organization
-
   """Get a single `RepositoryRelationship`."""
   repositoryRelationship(rowId: UUID!): RepositoryRelationship
 
@@ -14517,6 +15055,12 @@ type Query implements Node {
 
   """Get a single `Project`."""
   project(rowId: UUID!): Project
+
+  """Get a single `Organization`."""
+  organization(rowId: UUID!): Organization
+
+  """Get a single `Organization`."""
+  organizationByIdpOrganizationId(idpOrganizationId: String!): Organization
 
   """Get a single `Repository`."""
   repository(rowId: UUID!): Repository
@@ -14541,6 +15085,14 @@ type Query implements Node {
     """
     id: ID!
   ): RepositoryRelationshipMetadatum
+
+  """Reads a single `OrganizationMember` using its globally unique `ID`."""
+  organizationMemberById(
+    """
+    The globally unique `ID` to be used in selecting a single `OrganizationMember`.
+    """
+    id: ID!
+  ): OrganizationMember
 
   """Reads a single `MergeBatch` using its globally unique `ID`."""
   mergeBatchById(
@@ -14628,14 +15180,6 @@ type Query implements Node {
     id: ID!
   ): VerificationCheck
 
-  """Reads a single `Organization` using its globally unique `ID`."""
-  organizationById(
-    """
-    The globally unique `ID` to be used in selecting a single `Organization`.
-    """
-    id: ID!
-  ): Organization
-
   """
   Reads a single `RepositoryRelationship` using its globally unique `ID`.
   """
@@ -14657,6 +15201,14 @@ type Query implements Node {
     """The globally unique `ID` to be used in selecting a single `Project`."""
     id: ID!
   ): Project
+
+  """Reads a single `Organization` using its globally unique `ID`."""
+  organizationById(
+    """
+    The globally unique `ID` to be used in selecting a single `Organization`.
+    """
+    id: ID!
+  ): Organization
 
   """Reads a single `Repository` using its globally unique `ID`."""
   repositoryById(
@@ -14779,6 +15331,40 @@ type Query implements Node {
     """The method to use when ordering `RepositoryRelationshipMetadatum`."""
     orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryRelationshipMetadatumConnection
+
+  """Reads and enables pagination through a set of `OrganizationMember`."""
+  organizationMembers(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: OrganizationMemberCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: OrganizationMemberFilter
+
+    """The method to use when ordering `OrganizationMember`."""
+    orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
+  ): OrganizationMemberConnection
 
   """Reads and enables pagination through a set of `MergeBatch`."""
   mergeBatches(
@@ -15192,40 +15778,6 @@ type Query implements Node {
     orderBy: [VerificationCheckOrderBy!] = [PRIMARY_KEY_ASC]
   ): VerificationCheckConnection
 
-  """Reads and enables pagination through a set of `Organization`."""
-  organizations(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: OrganizationCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: OrganizationFilter
-
-    """The method to use when ordering `Organization`."""
-    orderBy: [OrganizationOrderBy!] = [PRIMARY_KEY_ASC]
-  ): OrganizationConnection
-
   """
   Reads and enables pagination through a set of `RepositoryRelationship`.
   """
@@ -15330,6 +15882,40 @@ type Query implements Node {
     orderBy: [ProjectOrderBy!] = [PRIMARY_KEY_ASC]
   ): ProjectConnection
 
+  """Reads and enables pagination through a set of `Organization`."""
+  organizations(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: OrganizationCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: OrganizationFilter
+
+    """The method to use when ordering `Organization`."""
+    orderBy: [OrganizationOrderBy!] = [PRIMARY_KEY_ASC]
+  ): OrganizationConnection
+
   """Reads and enables pagination through a set of `Repository`."""
   repositories(
     """Only read the first `n` values of the set."""
@@ -15428,6 +16014,14 @@ type Mutation {
     input: CreateRepositoryRelationshipMetadatumInput!
   ): CreateRepositoryRelationshipMetadatumPayload
 
+  """Creates a single `OrganizationMember`."""
+  createOrganizationMember(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateOrganizationMemberInput!
+  ): CreateOrganizationMemberPayload
+
   """Creates a single `MergeBatch`."""
   createMergeBatch(
     """
@@ -15516,14 +16110,6 @@ type Mutation {
     input: CreateVerificationCheckInput!
   ): CreateVerificationCheckPayload
 
-  """Creates a single `Organization`."""
-  createOrganization(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateOrganizationInput!
-  ): CreateOrganizationPayload
-
   """Creates a single `RepositoryRelationship`."""
   createRepositoryRelationship(
     """
@@ -15548,13 +16134,13 @@ type Mutation {
     input: CreateProjectInput!
   ): CreateProjectPayload
 
-  """Creates a single `Repository`."""
-  createRepository(
+  """Creates a single `Organization`."""
+  createOrganization(
     """
     The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
     """
-    input: CreateRepositoryInput!
-  ): CreateRepositoryPayload
+    input: CreateOrganizationInput!
+  ): CreateOrganizationPayload
 
   """Creates a single `PullRequest`."""
   createPullRequest(
@@ -15581,6 +16167,14 @@ type Mutation {
     """
     input: UpdateRepositoryRelationshipMetadatumInput!
   ): UpdateRepositoryRelationshipMetadatumPayload
+
+  """Updates a single `OrganizationMember` using a unique key and a patch."""
+  updateOrganizationMember(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateOrganizationMemberInput!
+  ): UpdateOrganizationMemberPayload
 
   """Updates a single `MergeBatch` using a unique key and a patch."""
   updateMergeBatch(
@@ -15674,14 +16268,6 @@ type Mutation {
     input: UpdateVerificationCheckInput!
   ): UpdateVerificationCheckPayload
 
-  """Updates a single `Organization` using a unique key and a patch."""
-  updateOrganization(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateOrganizationInput!
-  ): UpdateOrganizationPayload
-
   """
   Updates a single `RepositoryRelationship` using a unique key and a patch.
   """
@@ -15707,6 +16293,24 @@ type Mutation {
     """
     input: UpdateProjectInput!
   ): UpdateProjectPayload
+
+  """Updates a single `Organization` using a unique key and a patch."""
+  updateOrganization(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateOrganizationInput!
+  ): UpdateOrganizationPayload
+
+  """
+  Updates a single `Repository` using its globally unique id and a patch.
+  """
+  updateRepositoryById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateRepositoryByIdInput!
+  ): UpdateRepositoryPayload
 
   """Updates a single `Repository` using a unique key and a patch."""
   updateRepository(
@@ -15739,6 +16343,14 @@ type Mutation {
     """
     input: DeleteRepositoryRelationshipMetadatumInput!
   ): DeleteRepositoryRelationshipMetadatumPayload
+
+  """Deletes a single `OrganizationMember` using a unique key."""
+  deleteOrganizationMember(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteOrganizationMemberInput!
+  ): DeleteOrganizationMemberPayload
 
   """Deletes a single `MergeBatch` using a unique key."""
   deleteMergeBatch(
@@ -15836,14 +16448,6 @@ type Mutation {
     input: DeleteVerificationCheckInput!
   ): DeleteVerificationCheckPayload
 
-  """Deletes a single `Organization` using a unique key."""
-  deleteOrganization(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteOrganizationInput!
-  ): DeleteOrganizationPayload
-
   """Deletes a single `RepositoryRelationship` using a unique key."""
   deleteRepositoryRelationship(
     """
@@ -15867,6 +16471,22 @@ type Mutation {
     """
     input: DeleteProjectInput!
   ): DeleteProjectPayload
+
+  """Deletes a single `Organization` using a unique key."""
+  deleteOrganization(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteOrganizationInput!
+  ): DeleteOrganizationPayload
+
+  """Deletes a single `Repository` using its globally unique id."""
+  deleteRepositoryById(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteRepositoryByIdInput!
+  ): DeleteRepositoryPayload
 
   """Deletes a single `Repository` using a unique key."""
   deleteRepository(
