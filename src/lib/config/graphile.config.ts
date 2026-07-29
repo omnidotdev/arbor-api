@@ -14,6 +14,7 @@ import {
   PullRequestReviewPlugin,
   RepositoryCollaboratorPlugin,
   RepositoryPlugin,
+  RepositoryReadPlugin,
   RepositoryRelationshipPlugin,
   SmartTagPlugin,
   UserPlugin,
@@ -63,6 +64,8 @@ const graphilePreset: GraphileConfig.Preset = {
     PullRequestCommentPlugin,
     PullRequestReviewPlugin,
     RepositoryPlugin,
+    // Read authorization: scope repository connections to what the caller may see
+    RepositoryReadPlugin,
     RepositoryCollaboratorPlugin,
     RepositoryRelationshipPlugin,
     SmartTagPlugin,

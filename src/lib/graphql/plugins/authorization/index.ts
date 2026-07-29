@@ -6,6 +6,7 @@ export { default as PullRequestCommentPlugin } from "./PullRequestComment.plugin
 export { default as PullRequestReviewPlugin } from "./PullRequestReview.plugin";
 export { default as RepositoryPlugin } from "./Repository.plugin";
 export { default as RepositoryCollaboratorPlugin } from "./RepositoryCollaborator.plugin";
+export { default as RepositoryReadPlugin } from "./RepositoryRead.plugin";
 export { default as RepositoryRelationshipPlugin } from "./RepositoryRelationship.plugin";
 export { default as SmartTagPlugin } from "./SmartTag.plugin";
 export { default as UserPlugin } from "./User.plugin";
