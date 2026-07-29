@@ -137,6 +137,56 @@ describe("resolveUserFromPat", () => {
     expect(resolved?.user.id).toBe(user.id);
   });
 
+  test("carries the token's permission and repository whitelist as its scope", async () => {
+    const user = makeUser();
+    const db = makeResolveDb({
+      id: "pat-1",
+      userId: user.id,
+      expiresAt: null,
+      permission: "read",
+      repositories: [{ repositoryId: "repo-1" }, { repositoryId: "repo-2" }],
+      user,
+    });
+
+    const resolved = await resolveUserFromPat(`${PAT_PREFIX}scoped`, db);
+
+    expect(resolved?.scope.permission).toBe("read");
+    expect(resolved?.scope.repositoryIds).toEqual(["repo-1", "repo-2"]);
+  });
+
+  test("a token with no whitelisted repositories is unconfined", async () => {
+    const user = makeUser();
+    const db = makeResolveDb({
+      id: "pat-1",
+      userId: user.id,
+      expiresAt: null,
+      permission: "write",
+      repositories: [],
+      user,
+    });
+
+    const resolved = await resolveUserFromPat(`${PAT_PREFIX}unconfined`, db);
+
+    // null (not []) so it reaches everything its owner can reach
+    expect(resolved?.scope.repositoryIds).toBeNull();
+  });
+
+  test("a token predating scopes keeps full authority", async () => {
+    const user = makeUser();
+    // No permission column and no repositories relation, as an old row reads
+    const db = makeResolveDb({
+      id: "pat-1",
+      userId: user.id,
+      expiresAt: null,
+      user,
+    });
+
+    const resolved = await resolveUserFromPat(`${PAT_PREFIX}legacy`, db);
+
+    expect(resolved?.scope.permission).toBe("write");
+    expect(resolved?.scope.repositoryIds).toBeNull();
+  });
+
   test("returns null for a credential that is not a PAT (no lookup)", async () => {
     let lookedUp = false;
     const db = {
@@ -171,6 +221,44 @@ describe("createPersonalAccessTokenRecord", () => {
                 name: values.name,
                 tokenPrefix: values.tokenPrefix,
                 expiresAt: values.expiresAt,
+                createdAt: new Date().toISOString(),
+              },
+            ],
+          };
+        },
+      }),
+    }) as unknown as Parameters<
+      typeof createPersonalAccessTokenRecord
+    >[0]["db"];
+
+  /**
+   * Stub db that captures both the token insert and any whitelist rows, so a
+   * test can assert what the token was confined to.
+   */
+  const makeInsertDbWithScopes = (
+    captured: { values?: Record<string, unknown> },
+    scoped: Record<string, unknown>[],
+  ) =>
+    ({
+      insert: (_table: unknown) => ({
+        values: (
+          values: Record<string, unknown> | Record<string, unknown>[],
+        ) => {
+          // the whitelist insert passes an array of rows
+          if (Array.isArray(values)) {
+            scoped.push(...values);
+            return Promise.resolve();
+          }
+
+          captured.values = values;
+          return {
+            returning: async () => [
+              {
+                id: "pat-1",
+                name: values.name,
+                tokenPrefix: values.tokenPrefix,
+                expiresAt: values.expiresAt,
+                permission: values.permission,
                 createdAt: new Date().toISOString(),
               },
             ],
@@ -229,6 +317,81 @@ describe("createPersonalAccessTokenRecord", () => {
     const expected = Date.now() + 30 * 86_400_000;
     // within a minute of the expected instant
     expect(Math.abs(expiresAt - expected)).toBeLessThan(60_000);
+  });
+
+  test("persists the requested permission", async () => {
+    const captured: { values?: Record<string, unknown> } = {};
+    const db = makeInsertDb(captured);
+
+    await createPersonalAccessTokenRecord({
+      observer: { id: "observer-1" },
+      name: "read only",
+      permission: "read",
+      db,
+    });
+
+    expect(captured.values?.permission).toBe("read");
+  });
+
+  test("defaults to a write token when no permission is given", async () => {
+    const captured: { values?: Record<string, unknown> } = {};
+    const db = makeInsertDb(captured);
+
+    await createPersonalAccessTokenRecord({
+      observer: { id: "observer-1" },
+      name: "default",
+      db,
+    });
+
+    expect(captured.values?.permission).toBe("write");
+  });
+
+  test("rejects a permission that is not read or write", async () => {
+    const captured: { values?: Record<string, unknown> } = {};
+    const db = makeInsertDb(captured);
+
+    await expect(
+      createPersonalAccessTokenRecord({
+        observer: { id: "observer-1" },
+        name: "bogus",
+        // a value outside the supported set must never reach the column, where
+        // it would read as "not read" and therefore behave as write
+        permission: "admin" as "read" | "write",
+        db,
+      }),
+    ).rejects.toThrow("Invalid permission");
+  });
+
+  test("confines the token to the requested repositories", async () => {
+    const captured: { values?: Record<string, unknown> } = {};
+    const scoped: Record<string, unknown>[] = [];
+    const db = makeInsertDbWithScopes(captured, scoped);
+
+    await createPersonalAccessTokenRecord({
+      observer: { id: "observer-1" },
+      name: "confined",
+      repositoryIds: ["repo-1", "repo-2"],
+      db,
+    });
+
+    expect(scoped).toEqual([
+      { personalAccessTokenId: "pat-1", repositoryId: "repo-1" },
+      { personalAccessTokenId: "pat-1", repositoryId: "repo-2" },
+    ]);
+  });
+
+  test("writes no whitelist rows when no repositories are named", async () => {
+    const captured: { values?: Record<string, unknown> } = {};
+    const scoped: Record<string, unknown>[] = [];
+    const db = makeInsertDbWithScopes(captured, scoped);
+
+    await createPersonalAccessTokenRecord({
+      observer: { id: "observer-1" },
+      name: "unconfined",
+      db,
+    });
+
+    expect(scoped).toEqual([]);
   });
 
   test("leaves expiresAt null when no lifetime is given", async () => {

@@ -55,6 +55,28 @@ const SmartTagPlugin = jsonPgSmartTags({
           },
         },
       },
+      personal_access_token_repository: {
+        tags: {
+          // A token's repository whitelist is what confines it, so it is set
+          // once at mint time by createPersonalAccessToken and is immutable
+          // afterwards. Without this, deletePersonalAccessTokenRepository would
+          // let a caller widen a confined token back to full reach, which is
+          // exactly the boundary the whitelist exists to enforce
+          behavior: "-insert -update -delete -single -node",
+        },
+        constraint: {
+          // Hide the Repository -> tokens reverse relation: which tokens are
+          // scoped to a repository is not something a repository viewer should
+          // be able to enumerate. `-single` is deliberately NOT set, so the
+          // forward whitelistRow -> repository field stays readable and a token
+          // owner can see what their own token is confined to
+          personal_access_token_repository_repository_id_repository_id_fk: {
+            tags: {
+              behavior: "-connection -list",
+            },
+          },
+        },
+      },
     },
   },
 });

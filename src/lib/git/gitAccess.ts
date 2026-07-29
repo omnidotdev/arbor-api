@@ -10,6 +10,7 @@ import { repositoryTable, userTable } from "lib/db/schema";
 
 import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { ResolvedUser } from "lib/auth/resolveUserFromToken";
+import type { TokenScope } from "lib/auth/tokenScope";
 import type { SelectUser } from "lib/db/schema";
 
 /**
@@ -128,13 +129,26 @@ const extractToken = (request: Request): string | null => {
 };
 
 /**
+ * An authenticated caller and the limits of the credential they presented.
+ *
+ * The scope travels with the user deliberately: a personal access token may be
+ * narrower than its owner, so a caller that only looked at `user` would grant
+ * the token its owner's full authority.
+ */
+export interface AuthenticatedGitCaller {
+  user: SelectUser;
+  scope: TokenScope;
+}
+
+/**
  * Authenticate a Smart-HTTP git request from its Authorization header.
  *
- * @returns The resolved user, or null when no/invalid credentials are present
+ * @returns The caller and their credential's scope, or null when no/invalid
+ *   credentials are present
  */
 export const authenticateGitRequest = async (
   request: Request,
-): Promise<SelectUser | null> => {
+): Promise<AuthenticatedGitCaller | null> => {
   const token = extractToken(request);
   if (!token) return null;
 
@@ -147,7 +161,7 @@ export const authenticateGitRequest = async (
 
   userOrganizationsCache.set(resolved.user, resolved.organizations);
 
-  return resolved.user;
+  return { user: resolved.user, scope: resolved.scope };
 };
 
 /**

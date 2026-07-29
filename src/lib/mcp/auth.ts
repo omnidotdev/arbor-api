@@ -5,6 +5,7 @@ import {
 import { dbPool } from "lib/db/db";
 import { authenticateGitRequest } from "lib/git";
 
+import type { TokenScope } from "lib/auth/tokenScope";
 import type { SelectAgent, SelectUser } from "lib/db/schema";
 
 /**
@@ -19,6 +20,12 @@ import type { SelectAgent, SelectUser } from "lib/db/schema";
 export interface McpCaller {
   user: SelectUser;
   agent: SelectAgent | null;
+  /**
+   * Limits of the credential that was presented. A tool must gate on this as
+   * well as on `user`, because an agent token is typically narrower than the
+   * user it authenticates as.
+   */
+  scope: TokenScope;
 }
 
 /**
@@ -77,11 +84,11 @@ const resolveAgentForToken = async (
 export const resolveMcpCaller = async (
   request: Request,
 ): Promise<McpCaller | null> => {
-  const user = await authenticateGitRequest(request);
-  if (!user) return null;
+  const caller = await authenticateGitRequest(request);
+  if (!caller) return null;
 
   const token = extractBearerToken(request);
   const agent = token ? await resolveAgentForToken(token) : null;
 
-  return { user, agent };
+  return { user: caller.user, agent, scope: caller.scope };
 };

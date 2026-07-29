@@ -22,11 +22,13 @@ const state: {
   canRead: boolean;
   canWrite: boolean;
   authedUser: { id: string } | null;
+  scope: { permission: "read" | "write"; repositoryIds: string[] | null };
 } = {
   repo: null,
   canRead: false,
   canWrite: false,
   authedUser: null,
+  scope: { permission: "write", repositoryIds: null },
 };
 
 const noopResult = { success: true, data: new Uint8Array([1, 2, 3]) };
@@ -51,7 +53,8 @@ mock.module("lib/git", () => ({
     s === "git-upload-pack" || s === "git-receive-pack" ? s : null,
   // git access boundary
   resolveRepositorySummary: async () => state.repo,
-  authenticateGitRequest: async () => state.authedUser,
+  authenticateGitRequest: async () =>
+    state.authedUser ? { user: state.authedUser, scope: state.scope } : null,
   canReadRepository: async () => state.canRead,
   canWriteRepository: async () => state.canWrite,
 }));
@@ -99,6 +102,7 @@ const reset = () => {
   state.canRead = false;
   state.canWrite = false;
   state.authedUser = null;
+  state.scope = { permission: "write", repositoryIds: null };
 };
 
 beforeEach(reset);
@@ -286,5 +290,115 @@ describe("git routes write authorization", () => {
       }),
     );
     expect(res.status).toBe(401);
+  });
+});
+
+describe("git routes token scope enforcement", () => {
+  const repo = {
+    id: "r1",
+    visibility: "private" as const,
+    ownerId: "o1",
+    organizationId: null,
+  };
+
+  test("a token confined to another repository cannot read this one => 404", async () => {
+    state.repo = repo;
+    state.canRead = true;
+    state.authedUser = { id: "o1" };
+    // owner-level access, but the credential is confined elsewhere
+    state.scope = { permission: "write", repositoryIds: ["other-repo"] };
+
+    const res = await makeApp().handle(
+      new Request(
+        "http://localhost/git/alice/repo/info/refs?service=git-upload-pack",
+        { headers: { authorization: "Bearer arbor_pat_x" } },
+      ),
+    );
+
+    // same 404 as a nonexistent repo, so a confined token learns nothing
+    expect(res.status).toBe(404);
+  });
+
+  test("a token confined to this repository can read it => 200", async () => {
+    state.repo = repo;
+    state.canRead = true;
+    state.authedUser = { id: "o1" };
+    state.scope = { permission: "read", repositoryIds: ["r1"] };
+
+    const res = await makeApp().handle(
+      new Request(
+        "http://localhost/git/alice/repo/info/refs?service=git-upload-pack",
+        { headers: { authorization: "Bearer arbor_pat_x" } },
+      ),
+    );
+
+    expect(res.status).toBe(200);
+  });
+
+  test("a read-only token cannot push => 403", async () => {
+    state.repo = repo;
+    state.canWrite = true;
+    state.authedUser = { id: "o1" };
+    state.scope = { permission: "read", repositoryIds: null };
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/git-receive-pack", {
+        method: "POST",
+        body: new Uint8Array([0]),
+        headers: { authorization: "Bearer arbor_pat_x" },
+      }),
+    );
+
+    expect(res.status).toBe(403);
+  });
+
+  test("a read-only token can still fetch => 200", async () => {
+    state.repo = repo;
+    state.canRead = true;
+    state.authedUser = { id: "o1" };
+    state.scope = { permission: "read", repositoryIds: null };
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/git-upload-pack", {
+        method: "POST",
+        body: new Uint8Array([0]),
+        headers: { authorization: "Bearer arbor_pat_x" },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+  });
+
+  test("a token confined elsewhere cannot push here => 403", async () => {
+    state.repo = repo;
+    state.canWrite = true;
+    state.authedUser = { id: "o1" };
+    state.scope = { permission: "write", repositoryIds: ["other-repo"] };
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/git-receive-pack", {
+        method: "POST",
+        body: new Uint8Array([0]),
+        headers: { authorization: "Bearer arbor_pat_x" },
+      }),
+    );
+
+    expect(res.status).toBe(403);
+  });
+
+  test("the receive-pack advertisement is refused for a read-only token => 403", async () => {
+    state.repo = repo;
+    state.canWrite = true;
+    state.authedUser = { id: "o1" };
+    state.scope = { permission: "read", repositoryIds: null };
+
+    const res = await makeApp().handle(
+      new Request(
+        "http://localhost/git/alice/repo/info/refs?service=git-receive-pack",
+        { headers: { authorization: "Bearer arbor_pat_x" } },
+      ),
+    );
+
+    expect(res.status).toBe(403);
   });
 });

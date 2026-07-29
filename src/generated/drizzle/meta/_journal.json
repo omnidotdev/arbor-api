@@ -43,6 +43,13 @@
       "when": 1784479863479,
       "tag": "0005_heavy_jimmy_woo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785303103211,
+      "tag": "0006_bouncy_living_lightning",
+      "breakpoints": true
     }
   ]
 }

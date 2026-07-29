@@ -12,15 +12,16 @@ import {
   stackTable,
   verificationCheckTable,
 } from "lib/db/schema";
-import {
-  canReadRepository,
-  canWriteRepository,
-  gitService,
-  resolveRepositorySummary,
-} from "lib/git";
+import { gitService } from "lib/git";
 import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
 import { pullRequestService } from "lib/pullRequest";
 import { stackService } from "lib/stack";
+import {
+  callerMayRead,
+  gateRead,
+  gateWrite,
+  gateWriteByRepositoryId,
+} from "./gates";
 
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { RepositorySummary } from "lib/git";
@@ -62,25 +63,6 @@ const errorResult = (message: string): CallToolResult => ({
 });
 
 /**
- * Resolve a repository and enforce read access for the caller.
- *
- * Returns the repository summary when the caller may read it, or null (with no
- * distinction between missing and forbidden) otherwise.
- */
-const gateRead = async (
-  caller: McpCaller,
-  owner: string,
-  repo: string,
-): Promise<RepositorySummary | null> => {
-  const repository = await resolveRepositorySummary(owner, repo);
-  if (!repository) return null;
-
-  if (!(await canReadRepository(caller.user, repository))) return null;
-
-  return repository;
-};
-
-/**
  * Generic "not writable" message.
  *
  * A repository the caller may not write is reported identically to one that does
@@ -88,60 +70,6 @@ const gateRead = async (
  * or the caller's exact permission level.
  */
 const NOT_WRITABLE_MESSAGE = "Repository not found or not writable";
-
-/**
- * Resolve a repository and enforce write access for the caller.
- *
- * Returns the repository summary when the caller may write to it, or null (with
- * no distinction between missing and forbidden) otherwise. Reuses the same
- * write gate as the Smart-HTTP git routes and the GraphQL mutations.
- */
-const gateWrite = async (
-  caller: McpCaller,
-  owner: string,
-  repo: string,
-): Promise<RepositorySummary | null> => {
-  const repository = await resolveRepositorySummary(owner, repo);
-  if (!repository) return null;
-
-  if (!(await canWriteRepository(caller.user, repository))) return null;
-
-  return repository;
-};
-
-/**
- * Enforce write access for the caller against a repository resolved by id.
- *
- * Used by the stack and change tools, which reach the repository through a stack
- * or change row rather than an owner/slug pair. Returns the summary when the
- * caller may write, or null otherwise (missing and forbidden are indistinguishable).
- */
-const gateWriteByRepositoryId = async (
-  caller: McpCaller,
-  repositoryId: string,
-): Promise<RepositorySummary | null> => {
-  const row = await dbPool.query.repositoryTable.findFirst({
-    where: (table, { eq: eqOp }) => eqOp(table.id, repositoryId),
-    columns: {
-      id: true,
-      visibility: true,
-      ownerId: true,
-      organizationId: true,
-    },
-  });
-  if (!row) return null;
-
-  const summary: RepositorySummary = {
-    id: row.id,
-    visibility: row.visibility,
-    ownerId: row.ownerId,
-    organizationId: row.organizationId,
-  };
-
-  if (!(await canWriteRepository(caller.user, summary))) return null;
-
-  return summary;
-};
 
 /** Clamp a caller-requested limit into the supported range */
 const clampLimit = (limit: number | undefined): number =>
@@ -245,7 +173,7 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
           ownerId: repository.ownerId,
           organizationId: repository.organizationId,
         };
-        if (await canReadRepository(caller.user, summary)) {
+        if (await callerMayRead(caller, summary)) {
           visible.push(shapeRepository(repository));
         }
       }
@@ -324,7 +252,7 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
           ownerId: repository.ownerId,
           organizationId: repository.organizationId,
         };
-        if (await canReadRepository(caller.user, summary)) {
+        if (await callerMayRead(caller, summary)) {
           visible.push(shapeRepository(repository));
         }
       }
@@ -554,7 +482,7 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       const byId = new Map(edges.map((e) => [e.sourceRepositoryId, e]));
       const dependents = [];
       for (const source of sources) {
-        if (!(await canReadRepository(caller.user, source))) continue;
+        if (!(await callerMayRead(caller, source))) continue;
         const edge = byId.get(source.id);
         dependents.push({
           ...shapeRepository(source),

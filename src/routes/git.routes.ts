@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 
+import { scopeAllowsRepository, scopeAllowsWrite } from "lib/auth/tokenScope";
 import { dbPool } from "lib/db/db";
 import { isWithinLimit } from "lib/entitlements";
 import {
@@ -67,9 +68,16 @@ const gateRead = async (
     return { authorized: false, body: NOT_FOUND };
   }
 
-  const user = await authenticateGitRequest(request);
+  const caller = await authenticateGitRequest(request);
 
-  if (!(await canReadRepository(user, repository))) {
+  // A credential confined to other repositories is treated exactly like one
+  // with no access at all, so a scoped token cannot probe for what exists
+  if (caller && !scopeAllowsRepository(caller.scope, repository.id)) {
+    set.status = 404;
+    return { authorized: false, body: NOT_FOUND };
+  }
+
+  if (!(await canReadRepository(caller?.user ?? null, repository))) {
     // Do not reveal existence of private repos
     set.status = 404;
     return { authorized: false, body: NOT_FOUND };
@@ -110,15 +118,35 @@ const gateWrite = async (
     return { authorized: false, body: NOT_FOUND };
   }
 
-  const user = await authenticateGitRequest(request);
+  const caller = await authenticateGitRequest(request);
 
-  if (!user) {
+  if (!caller) {
     set.status = 401;
     set.headers["WWW-Authenticate"] = GIT_AUTH_REALM;
     return { authorized: false, body: { error: "Authentication required" } };
   }
 
-  if (!(await canWriteRepository(user, repository))) {
+  // The credential's own limits are checked before the user's permissions: a
+  // read-only or differently-confined token is refused even when its owner
+  // could write here. 403 rather than 404 because the caller already proved
+  // they hold a valid credential for this account
+  if (!scopeAllowsWrite(caller.scope)) {
+    set.status = 403;
+    return {
+      authorized: false,
+      body: { error: "This token is read-only" },
+    };
+  }
+
+  if (!scopeAllowsRepository(caller.scope, repository.id)) {
+    set.status = 403;
+    return {
+      authorized: false,
+      body: { error: "This token is not authorized for this repository" },
+    };
+  }
+
+  if (!(await canWriteRepository(caller.user, repository))) {
     set.status = 403;
     return {
       authorized: false,

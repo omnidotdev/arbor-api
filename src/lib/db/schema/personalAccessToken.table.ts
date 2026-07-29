@@ -10,6 +10,7 @@ import {
 
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
 import { agentTable } from "./agent.table";
+import { repositoryTable } from "./repository.table";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -40,6 +41,9 @@ export const personalAccessTokenTable = pgTable(
     tokenHash: text().notNull().unique(),
     // Short non-secret prefix for display in the UI (e.g. arbor_pat_ab12)
     tokenPrefix: text().notNull(),
+    // Furthest operation the token may perform: "read" or "write". Defaults to
+    // "write" so tokens minted before scoping existed keep their full authority
+    permission: text().notNull().default("write"),
     lastUsedAt: timestamp({
       precision: 6,
       mode: "string",
@@ -59,9 +63,36 @@ export const personalAccessTokenTable = pgTable(
   ],
 );
 
+/**
+ * Repositories a token is confined to.
+ *
+ * A token with no rows here is not confined and reaches every repository its
+ * owning user can reach (the pre-scoping behaviour). Naming repositories is
+ * what confines it, which is how an agent credential is prevented from
+ * touching anything outside the work it was issued for.
+ */
+export const personalAccessTokenRepositoryTable = pgTable(
+  "personal_access_token_repository",
+  {
+    id: generateDefaultId(),
+    personalAccessTokenId: uuid()
+      .notNull()
+      .references(() => personalAccessTokenTable.id, { onDelete: "cascade" }),
+    repositoryId: uuid()
+      .notNull()
+      .references(() => repositoryTable.id, { onDelete: "cascade" }),
+    createdAt: generateDefaultDate(),
+  },
+  (table) => [
+    uniqueIndex().on(table.personalAccessTokenId, table.repositoryId),
+    index().on(table.personalAccessTokenId),
+    index().on(table.repositoryId),
+  ],
+);
+
 export const personalAccessTokenRelations = relations(
   personalAccessTokenTable,
-  ({ one }) => ({
+  ({ one, many }) => ({
     user: one(userTable, {
       fields: [personalAccessTokenTable.userId],
       references: [userTable.id],
@@ -69,6 +100,21 @@ export const personalAccessTokenRelations = relations(
     agent: one(agentTable, {
       fields: [personalAccessTokenTable.agentId],
       references: [agentTable.id],
+    }),
+    repositories: many(personalAccessTokenRepositoryTable),
+  }),
+);
+
+export const personalAccessTokenRepositoryRelations = relations(
+  personalAccessTokenRepositoryTable,
+  ({ one }) => ({
+    personalAccessToken: one(personalAccessTokenTable, {
+      fields: [personalAccessTokenRepositoryTable.personalAccessTokenId],
+      references: [personalAccessTokenTable.id],
+    }),
+    repository: one(repositoryTable, {
+      fields: [personalAccessTokenRepositoryTable.repositoryId],
+      references: [repositoryTable.id],
     }),
   }),
 );
@@ -78,4 +124,10 @@ export type InsertPersonalAccessToken = InferInsertModel<
 >;
 export type SelectPersonalAccessToken = InferSelectModel<
   typeof personalAccessTokenTable
+>;
+export type InsertPersonalAccessTokenRepository = InferInsertModel<
+  typeof personalAccessTokenRepositoryTable
+>;
+export type SelectPersonalAccessTokenRepository = InferSelectModel<
+  typeof personalAccessTokenRepositoryTable
 >;

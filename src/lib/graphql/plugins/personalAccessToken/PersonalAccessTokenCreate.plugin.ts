@@ -23,6 +23,14 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
   return {
     typeDefs: /* GraphQL */ `
       """
+      Furthest operation an access token may perform.
+      """
+      enum PersonalAccessTokenPermission {
+        READ
+        WRITE
+      }
+
+      """
       Payload for the createPersonalAccessToken mutation.
       """
       type CreatePersonalAccessTokenPayload {
@@ -52,6 +60,11 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
         createdAt: Datetime!
 
         """
+        Furthest operation the token may perform: "read" or "write".
+        """
+        permission: String!
+
+        """
         The plaintext token. Returned exactly once, at creation, and never
         retrievable again. Store it securely.
         """
@@ -73,6 +86,17 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
           Optional lifetime in days. Omit for a token that never expires.
           """
           expiresInDays: Int
+
+          """
+          Furthest operation the token may perform. Defaults to WRITE.
+          """
+          permission: PersonalAccessTokenPermission
+
+          """
+          Repositories to confine the token to. Omit to leave the token
+          unconfined, so it reaches every repository its owner can reach.
+          """
+          repositoryIds: [UUID!]
         ): CreatePersonalAccessTokenPayload
       }
     `,
@@ -85,6 +109,8 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
               (_$root: unknown, fieldArgs: FieldArgs) => {
                 const $name = fieldArgs.getRaw("name");
                 const $expiresInDays = fieldArgs.getRaw("expiresInDays");
+                const $permission = fieldArgs.getRaw("permission");
+                const $repositoryIds = fieldArgs.getRaw("repositoryIds");
                 const $db = context().get("db");
                 const $observer = context().get("observer");
 
@@ -92,6 +118,8 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
                   object({
                     name: $name,
                     expiresInDays: $expiresInDays,
+                    permission: $permission,
+                    repositoryIds: $repositoryIds,
                     db: $db,
                     observer: $observer,
                   }),
@@ -101,6 +129,17 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
                       name: args.name as string,
                       expiresInDays: args.expiresInDays as
                         | number
+                        | null
+                        | undefined,
+                      // the enum arrives uppercase over the wire
+                      permission:
+                        (
+                          args.permission as string | null | undefined
+                        )?.toLowerCase() === "read"
+                          ? "read"
+                          : "write",
+                      repositoryIds: args.repositoryIds as
+                        | string[]
                         | null
                         | undefined,
                       db: args.db,

@@ -3130,6 +3130,15 @@ input PersonalAccessTokenFilter {
   """Filter by the object’s `agentId` field."""
   agentId: UUIDFilter
 
+  """Filter by the object’s `permission` field."""
+  permission: StringFilter
+
+  """Filter by the object’s `personalAccessTokenRepositories` relation."""
+  personalAccessTokenRepositories: PersonalAccessTokenToManyPersonalAccessTokenRepositoryFilter
+
+  """Some related `personalAccessTokenRepositories` exist."""
+  personalAccessTokenRepositoriesExist: Boolean
+
   """Filter by the object’s `agent` relation."""
   agent: AgentFilter
 
@@ -3147,6 +3156,85 @@ input PersonalAccessTokenFilter {
 
   """Negates the expression."""
   not: PersonalAccessTokenFilter
+}
+
+"""
+A filter to be used against many `PersonalAccessTokenRepository` object types. All fields are combined with a logical ‘and.’
+"""
+input PersonalAccessTokenToManyPersonalAccessTokenRepositoryFilter {
+  """
+  Every related `PersonalAccessTokenRepository` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: PersonalAccessTokenRepositoryFilter
+
+  """
+  Some related `PersonalAccessTokenRepository` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: PersonalAccessTokenRepositoryFilter
+
+  """
+  No related `PersonalAccessTokenRepository` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: PersonalAccessTokenRepositoryFilter
+
+  """
+  Aggregates across related `PersonalAccessTokenRepository` match the filter criteria.
+  """
+  aggregates: PersonalAccessTokenRepositoryAggregatesFilter
+}
+
+"""
+A filter to be used against `PersonalAccessTokenRepository` object types. All fields are combined with a logical ‘and.’
+"""
+input PersonalAccessTokenRepositoryFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `personalAccessTokenId` field."""
+  personalAccessTokenId: UUIDFilter
+
+  """Filter by the object’s `repositoryId` field."""
+  repositoryId: UUIDFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `personalAccessToken` relation."""
+  personalAccessToken: PersonalAccessTokenFilter
+
+  """Filter by the object’s `repository` relation."""
+  repository: RepositoryFilter
+
+  """Checks for all expressions in this list."""
+  and: [PersonalAccessTokenRepositoryFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [PersonalAccessTokenRepositoryFilter!]
+
+  """Negates the expression."""
+  not: PersonalAccessTokenRepositoryFilter
+}
+
+"""
+A filter to be used against aggregates of `PersonalAccessTokenRepository` object types.
+"""
+input PersonalAccessTokenRepositoryAggregatesFilter {
+  """
+  A filter that must pass for the relevant `PersonalAccessTokenRepository` object to be included within the aggregate.
+  """
+  filter: PersonalAccessTokenRepositoryFilter
+
+  """
+  Distinct count aggregate over matching `PersonalAccessTokenRepository` objects.
+  """
+  distinctCount: PersonalAccessTokenRepositoryDistinctCountAggregateFilter
+}
+
+input PersonalAccessTokenRepositoryDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  personalAccessTokenId: BigIntFilter
+  repositoryId: BigIntFilter
+  createdAt: BigIntFilter
 }
 
 """
@@ -3171,6 +3259,7 @@ input PersonalAccessTokenDistinctCountAggregateFilter {
   expiresAt: BigIntFilter
   createdAt: BigIntFilter
   agentId: BigIntFilter
+  permission: BigIntFilter
 }
 
 """
@@ -4652,6 +4741,16 @@ enum RepositoryOrderBy {
   MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_DESC
   MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_ASC
   MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_COUNT_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_COUNT_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_ROW_ID_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_ROW_ID_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PERSONAL_ACCESS_TOKEN_ID_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PERSONAL_ACCESS_TOKEN_ID_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """A connection to a list of `RepositoryCollaborator` values."""
@@ -5838,9 +5937,222 @@ type PersonalAccessToken {
   expiresAt: Datetime
   createdAt: Datetime!
   agentId: UUID
+  permission: String!
 
   """Reads a single `Agent` that is related to this `PersonalAccessToken`."""
   agent: Agent
+
+  """
+  Reads and enables pagination through a set of `PersonalAccessTokenRepository`.
+  """
+  personalAccessTokenRepositories(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PersonalAccessTokenRepositoryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PersonalAccessTokenRepositoryFilter
+
+    """The method to use when ordering `PersonalAccessTokenRepository`."""
+    orderBy: [PersonalAccessTokenRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PersonalAccessTokenRepositoryConnection!
+}
+
+"""A connection to a list of `PersonalAccessTokenRepository` values."""
+type PersonalAccessTokenRepositoryConnection {
+  """A list of `PersonalAccessTokenRepository` objects."""
+  nodes: [PersonalAccessTokenRepository!]!
+
+  """
+  A list of edges which contains the `PersonalAccessTokenRepository` and cursor to aid in pagination.
+  """
+  edges: [PersonalAccessTokenRepositoryEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `PersonalAccessTokenRepository` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: PersonalAccessTokenRepositoryAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `PersonalAccessTokenRepository` for these aggregates.
+    """
+    groupBy: [PersonalAccessTokenRepositoryGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: PersonalAccessTokenRepositoryHavingInput
+  ): [PersonalAccessTokenRepositoryAggregates!]
+}
+
+type PersonalAccessTokenRepository {
+  rowId: UUID!
+  personalAccessTokenId: UUID!
+  repositoryId: UUID!
+  createdAt: Datetime!
+
+  """
+  Reads a single `Repository` that is related to this `PersonalAccessTokenRepository`.
+  """
+  repository: Repository
+}
+
+"""A `PersonalAccessTokenRepository` edge in the connection."""
+type PersonalAccessTokenRepositoryEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `PersonalAccessTokenRepository` at the end of the edge."""
+  node: PersonalAccessTokenRepository!
+}
+
+type PersonalAccessTokenRepositoryAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: PersonalAccessTokenRepositoryDistinctCountAggregates
+}
+
+type PersonalAccessTokenRepositoryDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of personalAccessTokenId across the matching connection"""
+  personalAccessTokenId: BigInt
+
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+Grouping methods for `PersonalAccessTokenRepository` for usage during aggregation.
+"""
+enum PersonalAccessTokenRepositoryGroupBy {
+  PERSONAL_ACCESS_TOKEN_ID
+  REPOSITORY_ID
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `PersonalAccessTokenRepository` aggregates."""
+input PersonalAccessTokenRepositoryHavingInput {
+  AND: [PersonalAccessTokenRepositoryHavingInput!]
+  OR: [PersonalAccessTokenRepositoryHavingInput!]
+  sum: PersonalAccessTokenRepositoryHavingSumInput
+  distinctCount: PersonalAccessTokenRepositoryHavingDistinctCountInput
+  min: PersonalAccessTokenRepositoryHavingMinInput
+  max: PersonalAccessTokenRepositoryHavingMaxInput
+  average: PersonalAccessTokenRepositoryHavingAverageInput
+  stddevSample: PersonalAccessTokenRepositoryHavingStddevSampleInput
+  stddevPopulation: PersonalAccessTokenRepositoryHavingStddevPopulationInput
+  varianceSample: PersonalAccessTokenRepositoryHavingVarianceSampleInput
+  variancePopulation: PersonalAccessTokenRepositoryHavingVariancePopulationInput
+}
+
+input PersonalAccessTokenRepositoryHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input PersonalAccessTokenRepositoryHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `PersonalAccessTokenRepository` object types. All
+fields are tested for equality and combined with a logical ‘and.’
+"""
+input PersonalAccessTokenRepositoryCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `personalAccessTokenId` field."""
+  personalAccessTokenId: UUID
+
+  """Checks for equality with the object’s `repositoryId` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering `PersonalAccessTokenRepository`."""
+enum PersonalAccessTokenRepositoryOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  PERSONAL_ACCESS_TOKEN_ID_ASC
+  PERSONAL_ACCESS_TOKEN_ID_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
 }
 
 """A `PersonalAccessToken` edge in the connection."""
@@ -5885,6 +6197,9 @@ type PersonalAccessTokenDistinctCountAggregates {
 
   """Distinct count of agentId across the matching connection"""
   agentId: BigInt
+
+  """Distinct count of permission across the matching connection"""
+  permission: BigInt
 }
 
 """
@@ -5904,6 +6219,7 @@ enum PersonalAccessTokenGroupBy {
   CREATED_AT_TRUNCATED_TO_HOUR
   CREATED_AT_TRUNCATED_TO_DAY
   AGENT_ID
+  PERMISSION
 }
 
 """Conditions for `PersonalAccessToken` aggregates."""
@@ -6003,6 +6319,9 @@ input PersonalAccessTokenCondition {
 
   """Checks for equality with the object’s `agentId` field."""
   agentId: UUID
+
+  """Checks for equality with the object’s `permission` field."""
+  permission: String
 }
 
 """Methods to use when ordering `PersonalAccessToken`."""
@@ -6026,6 +6345,18 @@ enum PersonalAccessTokenOrderBy {
   CREATED_AT_DESC
   AGENT_ID_ASC
   AGENT_ID_DESC
+  PERMISSION_ASC
+  PERMISSION_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_COUNT_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_COUNT_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_ROW_ID_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_ROW_ID_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PERSONAL_ACCESS_TOKEN_ID_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PERSONAL_ACCESS_TOKEN_ID_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """A connection to a list of `Stack` values."""
@@ -8562,6 +8893,8 @@ enum AgentOrderBy {
   PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_CREATED_AT_DESC
   PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_AGENT_ID_ASC
   PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_AGENT_ID_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_PERMISSION_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_PERMISSION_DESC
   STACKS_BY_AUTHORED_BY_AGENT_ID_COUNT_ASC
   STACKS_BY_AUTHORED_BY_AGENT_ID_COUNT_DESC
   STACKS_BY_AUTHORED_BY_AGENT_ID_DISTINCT_COUNT_ROW_ID_ASC
@@ -10603,6 +10936,8 @@ enum UserOrderBy {
   PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_CREATED_AT_DESC
   PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_AGENT_ID_ASC
   PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_AGENT_ID_DESC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_PERMISSION_ASC
+  PERSONAL_ACCESS_TOKENS_DISTINCT_COUNT_PERMISSION_DESC
   PROJECTS_BY_OWNER_ID_COUNT_ASC
   PROJECTS_BY_OWNER_ID_COUNT_DESC
   PROJECTS_BY_OWNER_ID_DISTINCT_COUNT_ROW_ID_ASC
@@ -13113,39 +13448,6 @@ input DeleteRepositoryRelationshipTypeInput {
   rowId: UUID!
 }
 
-"""The output of our delete `PersonalAccessToken` mutation."""
-type DeletePersonalAccessTokenPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `PersonalAccessToken` that was deleted by this mutation."""
-  personalAccessToken: PersonalAccessToken
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `PersonalAccessToken`. May be used by Relay 1."""
-  personalAccessTokenEdge(
-    """The method to use when ordering `PersonalAccessToken`."""
-    orderBy: [PersonalAccessTokenOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): PersonalAccessTokenEdge
-}
-
-"""All input for the `deletePersonalAccessToken` mutation."""
-input DeletePersonalAccessTokenInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-}
-
 """The output of our delete `User` mutation."""
 type DeleteUserPayload {
   """
@@ -13308,6 +13610,39 @@ type DeleteMergeQueueEntryPayload {
 
 """All input for the `deleteMergeQueueEntry` mutation."""
 input DeleteMergeQueueEntryInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
+"""The output of our delete `PersonalAccessToken` mutation."""
+type DeletePersonalAccessTokenPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `PersonalAccessToken` that was deleted by this mutation."""
+  personalAccessToken: PersonalAccessToken
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `PersonalAccessToken`. May be used by Relay 1."""
+  personalAccessTokenEdge(
+    """The method to use when ordering `PersonalAccessToken`."""
+    orderBy: [PersonalAccessTokenOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): PersonalAccessTokenEdge
+}
+
+"""All input for the `deletePersonalAccessToken` mutation."""
+input DeletePersonalAccessTokenInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -13596,6 +13931,12 @@ type Observer {
   email: String!
 }
 
+"""Furthest operation an access token may perform."""
+enum PersonalAccessTokenPermission {
+  READ
+  WRITE
+}
+
 """Payload for the createPersonalAccessToken mutation."""
 type CreatePersonalAccessTokenPayload {
   """The created token row ID."""
@@ -13612,6 +13953,9 @@ type CreatePersonalAccessTokenPayload {
 
   """When the token was created."""
   createdAt: Datetime!
+
+  """Furthest operation the token may perform: "read" or "write"."""
+  permission: String!
 
   """
   The plaintext token. Returned exactly once, at creation, and never
@@ -14330,6 +14674,42 @@ type Query implements Node {
     id: ID!
   ): PullRequest
 
+  """
+  Reads and enables pagination through a set of `PersonalAccessTokenRepository`.
+  """
+  personalAccessTokenRepositories(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PersonalAccessTokenRepositoryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PersonalAccessTokenRepositoryFilter
+
+    """The method to use when ordering `PersonalAccessTokenRepository`."""
+    orderBy: [PersonalAccessTokenRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PersonalAccessTokenRepositoryConnection
+
   """Reads and enables pagination through a set of `ProjectRepository`."""
   projectRepositories(
     """Only read the first `n` values of the set."""
@@ -14540,40 +14920,6 @@ type Query implements Node {
     orderBy: [RepositoryRelationshipTypeOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryRelationshipTypeConnection
 
-  """Reads and enables pagination through a set of `PersonalAccessToken`."""
-  personalAccessTokens(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PersonalAccessTokenCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PersonalAccessTokenFilter
-
-    """The method to use when ordering `PersonalAccessToken`."""
-    orderBy: [PersonalAccessTokenOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PersonalAccessTokenConnection
-
   """Reads and enables pagination through a set of `User`."""
   users(
     """Only read the first `n` values of the set."""
@@ -14743,6 +15089,40 @@ type Query implements Node {
     """The method to use when ordering `MergeQueueEntry`."""
     orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
   ): MergeQueueEntryConnection
+
+  """Reads and enables pagination through a set of `PersonalAccessToken`."""
+  personalAccessTokens(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PersonalAccessTokenCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PersonalAccessTokenFilter
+
+    """The method to use when ordering `PersonalAccessToken`."""
+    orderBy: [PersonalAccessTokenOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PersonalAccessTokenConnection
 
   """Reads and enables pagination through a set of `PullRequestComment`."""
   pullRequestComments(
@@ -15392,14 +15772,6 @@ type Mutation {
     input: DeleteRepositoryRelationshipTypeInput!
   ): DeleteRepositoryRelationshipTypePayload
 
-  """Deletes a single `PersonalAccessToken` using a unique key."""
-  deletePersonalAccessToken(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeletePersonalAccessTokenInput!
-  ): DeletePersonalAccessTokenPayload
-
   """Deletes a single `User` using a unique key."""
   deleteUser(
     """
@@ -15439,6 +15811,14 @@ type Mutation {
     """
     input: DeleteMergeQueueEntryInput!
   ): DeleteMergeQueueEntryPayload
+
+  """Deletes a single `PersonalAccessToken` using a unique key."""
+  deletePersonalAccessToken(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeletePersonalAccessTokenInput!
+  ): DeletePersonalAccessTokenPayload
 
   """Deletes a single `PullRequestComment` using a unique key."""
   deletePullRequestComment(
@@ -15514,6 +15894,15 @@ type Mutation {
 
     """Optional lifetime in days. Omit for a token that never expires."""
     expiresInDays: Int
+
+    """Furthest operation the token may perform. Defaults to WRITE."""
+    permission: PersonalAccessTokenPermission
+
+    """
+    Repositories to confine the token to. Omit to leave the token
+    unconfined, so it reaches every repository its owner can reach.
+    """
+    repositoryIds: [UUID!]
   ): CreatePersonalAccessTokenPayload
 
   """

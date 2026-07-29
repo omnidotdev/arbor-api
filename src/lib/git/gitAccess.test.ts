@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { UNRESTRICTED_SCOPE } from "lib/auth/tokenScope";
 import {
   __setOrganizationsForUser,
   __setResolveUserFromPatForTests,
@@ -76,6 +77,47 @@ const orgClaim = (
   teams: [],
 });
 
+describe("authenticateGitRequest scope", () => {
+  test("surfaces the resolved credential's scope alongside the user", async () => {
+    const user = makeUser();
+    __setResolveUserFromPatForTests(async () => ({
+      user,
+      organizations: [],
+      scope: { permission: "read", repositoryIds: ["repo-1"] },
+    }));
+
+    const req = new Request("http://localhost/git/foo/bar/info/refs", {
+      headers: { authorization: "Bearer arbor_pat_scoped" },
+    });
+    const result = await authenticateGitRequest(req);
+
+    expect(result?.user.id).toBe(user.id);
+    expect(result?.scope.permission).toBe("read");
+    expect(result?.scope.repositoryIds).toEqual(["repo-1"]);
+
+    __setResolveUserFromPatForTests(null);
+  });
+
+  test("an IDP session token carries unrestricted scope", async () => {
+    const user = makeUser();
+    __setResolveUserFromTokenForTests(async () => ({
+      user,
+      organizations: [],
+      scope: { permission: "write", repositoryIds: null },
+    }));
+
+    const req = new Request("http://localhost/git/foo/bar/info/refs", {
+      headers: { authorization: "Bearer session-token" },
+    });
+    const result = await authenticateGitRequest(req);
+
+    expect(result?.scope.permission).toBe("write");
+    expect(result?.scope.repositoryIds).toBeNull();
+
+    __setResolveUserFromTokenForTests(null);
+  });
+});
+
 describe("authenticateGitRequest", () => {
   test("returns null when no Authorization header is present", async () => {
     const req = new Request("http://localhost/git/foo/bar/info/refs");
@@ -88,7 +130,7 @@ describe("authenticateGitRequest", () => {
     let seenToken: string | null = null;
     __setResolveUserFromTokenForTests(async (token) => {
       seenToken = token;
-      return { user, organizations: [] };
+      return { user, organizations: [], scope: UNRESTRICTED_SCOPE };
     });
 
     const req = new Request("http://localhost/git/foo/bar/info/refs", {
@@ -97,7 +139,7 @@ describe("authenticateGitRequest", () => {
     const result = await authenticateGitRequest(req);
 
     expect(seenToken as string | null).toBe("my-access-token");
-    expect(result?.id).toBe(user.id);
+    expect(result?.user.id).toBe(user.id);
 
     __setResolveUserFromTokenForTests(null);
   });
@@ -107,7 +149,7 @@ describe("authenticateGitRequest", () => {
     let seenToken: string | null = null;
     __setResolveUserFromTokenForTests(async (token) => {
       seenToken = token;
-      return { user, organizations: [] };
+      return { user, organizations: [], scope: UNRESTRICTED_SCOPE };
     });
 
     // git sends base64(username:password); password is the access token
@@ -118,7 +160,7 @@ describe("authenticateGitRequest", () => {
     const result = await authenticateGitRequest(req);
 
     expect(seenToken as string | null).toBe("my-access-token");
-    expect(result?.id).toBe(user.id);
+    expect(result?.user.id).toBe(user.id);
 
     __setResolveUserFromTokenForTests(null);
   });
@@ -141,7 +183,7 @@ describe("authenticateGitRequest", () => {
     let jwtCalled = false;
     __setResolveUserFromPatForTests(async (token) => {
       patToken = token;
-      return { user: patUser, organizations: [] };
+      return { user: patUser, organizations: [], scope: UNRESTRICTED_SCOPE };
     });
     __setResolveUserFromTokenForTests(async () => {
       jwtCalled = true;
@@ -157,7 +199,7 @@ describe("authenticateGitRequest", () => {
 
     expect(patToken as string | null).toBe("arbor_pat_secret");
     expect(jwtCalled).toBe(false);
-    expect(result?.id).toBe(patUser.id);
+    expect(result?.user.id).toBe(patUser.id);
 
     __setResolveUserFromPatForTests(null);
     __setResolveUserFromTokenForTests(null);
@@ -173,7 +215,7 @@ describe("authenticateGitRequest", () => {
     });
     __setResolveUserFromTokenForTests(async (token) => {
       jwtToken = token;
-      return { user: jwtUser, organizations: [] };
+      return { user: jwtUser, organizations: [], scope: UNRESTRICTED_SCOPE };
     });
 
     const req = new Request("http://localhost/git/foo/bar/info/refs", {
@@ -183,7 +225,7 @@ describe("authenticateGitRequest", () => {
 
     expect(jwtToken as string | null).toBe("session-jwt");
     expect(patCalled).toBe(false);
-    expect(result?.id).toBe(jwtUser.id);
+    expect(result?.user.id).toBe(jwtUser.id);
 
     __setResolveUserFromPatForTests(null);
     __setResolveUserFromTokenForTests(null);

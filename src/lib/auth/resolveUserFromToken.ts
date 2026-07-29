@@ -3,12 +3,14 @@ import { QueryClient } from "@tanstack/query-core";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import ms from "ms";
 
+import { UNRESTRICTED_SCOPE } from "lib/auth/tokenScope";
 import { AUTH_BASE_URL } from "lib/config/env.config";
 import { dbPool } from "lib/db/db";
 import { userTable } from "lib/db/schema";
 
 import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { JWTPayload } from "jose";
+import type { TokenScope } from "lib/auth/tokenScope";
 import type { InsertUser, SelectUser } from "lib/db/schema";
 
 /**
@@ -38,6 +40,13 @@ class AuthenticationError extends Error {
 export interface ResolvedUser {
   user: SelectUser;
   organizations: OrganizationClaim[];
+  /**
+   * How far the presented credential may go. An IDP session token carries the
+   * user's full authority; a personal access token may be narrower (see
+   * `resolveUserFromPat`), so every consumer must gate on this rather than on
+   * the user alone.
+   */
+  scope: TokenScope;
 }
 
 const queryClient = new QueryClient({
@@ -228,7 +237,8 @@ export const resolveUserFromToken = async (
 
     if (!user) return null;
 
-    return { user, organizations };
+    // A session token from the IDP carries the user's full authority
+    return { user, organizations, scope: UNRESTRICTED_SCOPE };
   } catch (err) {
     if (err instanceof AuthenticationError) {
       console.error(`[Auth] ${err.code}: ${err.message}`);

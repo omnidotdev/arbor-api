@@ -3,9 +3,13 @@ import { createHash, randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 
 import { dbPool } from "lib/db/db";
-import { personalAccessTokenTable } from "lib/db/schema";
+import {
+  personalAccessTokenRepositoryTable,
+  personalAccessTokenTable,
+} from "lib/db/schema";
 
 import type { ResolvedUser } from "lib/auth/resolveUserFromToken";
+import type { TokenScope } from "lib/auth/tokenScope";
 
 /**
  * Prefix that marks a credential as an Arbor personal access token (PAT).
@@ -71,6 +75,13 @@ export interface CreatePersonalAccessTokenArgs {
   name: string;
   /** Optional lifetime in days; omit or null for a non-expiring token */
   expiresInDays?: number | null;
+  /** Furthest operation the token may perform; defaults to "write" */
+  permission?: "read" | "write";
+  /**
+   * Repositories to confine the token to. Omit or pass an empty list to leave
+   * the token unconfined (it then reaches everything its owner can reach).
+   */
+  repositoryIds?: string[] | null;
   /** Database surface used for the insert */
   db: Pick<typeof dbPool, "insert">;
 }
@@ -82,6 +93,7 @@ export interface CreatedPersonalAccessTokenPayload {
   tokenPrefix: string;
   expiresAt: string | null;
   createdAt: string;
+  permission: string;
   /** Plaintext token, returned exactly once */
   token: string;
 }
@@ -97,10 +109,18 @@ export const createPersonalAccessTokenRecord = async ({
   observer,
   name,
   expiresInDays,
+  permission = "write",
+  repositoryIds,
   db,
 }: CreatePersonalAccessTokenArgs): Promise<CreatedPersonalAccessTokenPayload> => {
   // Must be authenticated; never trust a client-supplied owner
   if (!observer) throw new Error("Unauthorized");
+
+  // Reject anything outside the supported set rather than storing it: an
+  // unrecognized value would read as "not read" downstream and so would
+  // silently grant write
+  if (permission !== "read" && permission !== "write")
+    throw new Error("Invalid permission");
 
   const expiresAt =
     expiresInDays != null
@@ -117,10 +137,22 @@ export const createPersonalAccessTokenRecord = async ({
       tokenHash,
       tokenPrefix,
       expiresAt,
+      permission,
     })
     .returning();
 
   if (!row) throw new Error("Failed to create token");
+
+  // Naming repositories is what confines the token; writing no rows leaves it
+  // unconfined, which is the behaviour of every token minted before scoping
+  if (repositoryIds?.length) {
+    await db.insert(personalAccessTokenRepositoryTable).values(
+      repositoryIds.map((repositoryId) => ({
+        personalAccessTokenId: row.id,
+        repositoryId,
+      })),
+    );
+  }
 
   return {
     rowId: row.id,
@@ -128,9 +160,32 @@ export const createPersonalAccessTokenRecord = async ({
     tokenPrefix: row.tokenPrefix,
     expiresAt: row.expiresAt,
     createdAt: row.createdAt,
+    permission: row.permission,
     token,
   };
 };
+
+/** Shape of a token row that scope is derived from */
+interface ScopableTokenRow {
+  permission?: string | null;
+  repositories?: { repositoryId: string }[] | null;
+}
+
+/**
+ * Derive a token's scope from its row.
+ *
+ * Both fields fall back to full authority when absent, so a token minted before
+ * scoping existed is never silently narrowed. An empty repository whitelist
+ * means "not confined" rather than "reaches nothing", because confinement is
+ * expressed by naming repositories, and a token that reaches nothing would be
+ * useless rather than safe.
+ */
+const resolveTokenScope = (row: ScopableTokenRow): TokenScope => ({
+  permission: row.permission === "read" ? "read" : "write",
+  repositoryIds: row.repositories?.length
+    ? row.repositories.map(({ repositoryId }) => repositoryId)
+    : null,
+});
 
 /**
  * Resolve an Arbor user from a personal access token.
@@ -158,7 +213,7 @@ export const resolveUserFromPat = async (
 
     const row = await db.query.personalAccessTokenTable.findFirst({
       where: (table, { eq: eqOp }) => eqOp(table.tokenHash, tokenHash),
-      with: { user: true },
+      with: { user: true, repositories: true },
     });
 
     if (!row?.user) return null;
@@ -166,6 +221,8 @@ export const resolveUserFromPat = async (
     // Reject expired tokens
     if (row.expiresAt && new Date(row.expiresAt).getTime() <= Date.now())
       return null;
+
+    const scope = resolveTokenScope(row);
 
     // Best-effort last-used stamp; never block auth on a write failure
     void db
@@ -176,7 +233,7 @@ export const resolveUserFromPat = async (
         console.warn("[Auth] PAT lastUsedAt update failed:", err),
       );
 
-    return { user: row.user, organizations: [] };
+    return { user: row.user, organizations: [], scope };
   } catch (err) {
     console.error("[Auth] PAT resolution error:", err);
     return null;
