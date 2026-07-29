@@ -188,6 +188,42 @@ const scopeAgentsToCaller = EXPORTABLE(
 );
 
 /**
+ * Scope the organizations connection to the caller's memberships.
+ *
+ * An organization exists in Arbor only because someone created it, so its
+ * existence is not public information. Scoping the root connection does not
+ * affect the `Repository.organization` relation, so a public repository page
+ * can still show the organization that owns it.
+ *
+ * This also matches what the app wants: the connection backs the workspace
+ * switcher, which should only ever list organizations the caller belongs to.
+ */
+const scopeOrganizationsToCaller = EXPORTABLE(
+  (context, lambda, sql, TYPES): PlanWrapperFn =>
+    (plan) => {
+      const $connection = plan();
+      const $select = (
+        $connection as unknown as { getSubplan(): PgSelectStep }
+      ).getSubplan();
+
+      const $observer = context().get("observer");
+      const $userId = lambda($observer, (observer) => observer?.id ?? null);
+      const userId = $select.placeholder($userId, TYPES.uuid);
+
+      $select.where(
+        sql`exists (
+          select 1 from organization_member om
+          where om.organization_id = ${$select.alias}.id
+            and om.user_id = ${userId}
+        )`,
+      );
+
+      return $connection;
+    },
+  [context, lambda, sql, TYPES],
+);
+
+/**
  * Authorization plugin for reading repositories.
  *
  * Covers every field in the schema whose type is `RepositoryConnection`:
@@ -219,6 +255,7 @@ const RepositoryReadPlugin = wrapPlans({
     verificationChecks: scopeByRepository(viaChange, visibleChangeIds),
     // not repository-derived, but the same class of cross-account read leak
     agents: scopeAgentsToCaller,
+    organizations: scopeOrganizationsToCaller,
   },
   Organization: {
     repositories: scopeToVisible,

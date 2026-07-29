@@ -1,0 +1,254 @@
+/**
+ * Verify GraphQL read authorization end to end.
+ *
+ * Deliberately a script rather than a `bun test` file: it needs a live database
+ * and a booted server, and the unit suite runs in pre-commit with neither. Run
+ * it on demand after touching `RepositoryRead.plugin.ts`, the smart tags, or
+ * anything under `lib/auth`.
+ *
+ * Every read-authorization fix in `plans/2026-07-29-arbor-graphql-read-authorization.md`
+ * was verified by hand once. This makes that repeatable, which matters because a
+ * predicate can compile, typecheck, and silently not apply (a correlated
+ * subquery on the left of an `IN` did exactly that).
+ *
+ * Usage, against a server started with PROTECT_ROUTES=false:
+ *   bun run --env-file .env.local src/scripts/verifyReadAuthorization.ts
+ *
+ * Exits non-zero if any private data is reachable by an unauthenticated caller.
+ */
+
+import { eq } from "drizzle-orm";
+
+import { dbPool } from "lib/db/db";
+import {
+  agentTable,
+  organizationMemberTable,
+  organizationTable,
+  pullRequestCommentTable,
+  pullRequestReviewTable,
+  pullRequestTable,
+  repositoryTable,
+  userTable,
+} from "lib/db/schema";
+
+const TAG = "readauthz";
+const ENDPOINT =
+  process.env.VERIFY_ENDPOINT ?? "https://localhost:4000/graphql";
+
+/** Marker strings that must never appear in an unauthenticated response */
+const SECRETS = [
+  `${TAG}-private`,
+  `${TAG}-orgprivate`,
+  "SECRET_PR",
+  "SECRET_COMMENT",
+  "SECRET_REVIEW",
+  "SECRET_AGENT",
+];
+
+const query = async (document: string): Promise<string> => {
+  const response = await fetch(ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ query: document }),
+    // the dev server uses a self-signed certificate
+    tls: { rejectUnauthorized: false },
+  } as RequestInit);
+
+  return await response.text();
+};
+
+const cleanup = async () => {
+  for (const user of await dbPool.query.userTable.findMany({
+    where: (table, { like }) => like(table.username, `${TAG}%`),
+  })) {
+    await dbPool.delete(userTable).where(eq(userTable.id, user.id));
+  }
+  for (const org of await dbPool.query.organizationTable.findMany({
+    where: (table, { like }) => like(table.idpOrganizationId, `${TAG}%`),
+  })) {
+    await dbPool
+      .delete(organizationTable)
+      .where(eq(organizationTable.id, org.id));
+  }
+};
+
+const seed = async () => {
+  await cleanup();
+
+  const [owner] = await dbPool
+    .insert(userTable)
+    .values({
+      identityProviderId: crypto.randomUUID(),
+      name: "Owner",
+      username: `${TAG}-owner`,
+      email: `${TAG}-owner@example.com`,
+    })
+    .returning();
+  if (!owner) throw new Error("failed to seed user");
+
+  const [organization] = await dbPool
+    .insert(organizationTable)
+    .values({ idpOrganizationId: `${TAG}-org` })
+    .returning();
+  if (!organization) throw new Error("failed to seed organization");
+
+  await dbPool.insert(organizationMemberTable).values({
+    userId: owner.id,
+    organizationId: organization.id,
+    roles: ["member"],
+  });
+
+  const [publicRepo] = await dbPool
+    .insert(repositoryTable)
+    .values({
+      ownerId: owner.id,
+      name: "pub",
+      slug: `${TAG}-public`,
+      visibility: "public",
+    })
+    .returning();
+  const [privateRepo] = await dbPool
+    .insert(repositoryTable)
+    .values({
+      ownerId: owner.id,
+      name: "priv",
+      slug: `${TAG}-private`,
+      visibility: "private",
+    })
+    .returning();
+  await dbPool.insert(repositoryTable).values({
+    ownerId: owner.id,
+    organizationId: organization.id,
+    name: "orgpriv",
+    slug: `${TAG}-orgprivate`,
+    visibility: "private",
+  });
+  if (!publicRepo || !privateRepo)
+    throw new Error("failed to seed repositories");
+
+  const [publicPr] = await dbPool
+    .insert(pullRequestTable)
+    .values({
+      number: 1,
+      repositoryId: publicRepo.id,
+      authorId: owner.id,
+      title: "public pr",
+      sourceBranch: "a",
+      targetBranch: "b",
+    })
+    .returning();
+  const [privatePr] = await dbPool
+    .insert(pullRequestTable)
+    .values({
+      number: 1,
+      repositoryId: privateRepo.id,
+      authorId: owner.id,
+      title: "SECRET_PR",
+      sourceBranch: "a",
+      targetBranch: "b",
+    })
+    .returning();
+  if (!publicPr || !privatePr) throw new Error("failed to seed pull requests");
+
+  await dbPool.insert(pullRequestCommentTable).values({
+    pullRequestId: privatePr.id,
+    authorId: owner.id,
+    body: "SECRET_COMMENT",
+  });
+  await dbPool.insert(pullRequestReviewTable).values({
+    pullRequestId: privatePr.id,
+    reviewerId: owner.id,
+    body: "SECRET_REVIEW",
+    state: "approved",
+  });
+  await dbPool.insert(agentTable).values({
+    ownerId: owner.id,
+    name: "SECRET_AGENT",
+    slug: `${TAG}-agent`,
+    model: "claude-opus-5",
+    vendor: "anthropic",
+  });
+
+  return { privateRepoId: privateRepo.id };
+};
+
+/** A read an unauthenticated caller must not be able to make */
+const cases = (privateRepoId: string) => [
+  {
+    name: "repositories connection",
+    document: `{ repositories(first:100){ nodes{ slug } } }`,
+  },
+  {
+    name: "Organization.repositories",
+    document: `{ organizations(first:20){ nodes{ repositories(first:50){ nodes{ slug } } } } }`,
+  },
+  {
+    name: "pullRequests",
+    document: `{ pullRequests(first:100){ nodes{ title } } }`,
+  },
+  {
+    name: "pullRequestComments",
+    document: `{ pullRequestComments(first:100){ nodes{ body } } }`,
+  },
+  {
+    name: "pullRequestReviews",
+    document: `{ pullRequestReviews(first:100){ nodes{ body } } }`,
+  },
+  { name: "agents", document: `{ agents(first:100){ nodes{ name } } }` },
+  {
+    name: "single-row accessor is gone",
+    document: `{ repository(rowId:"${privateRepoId}"){ slug } }`,
+  },
+  {
+    name: "node accessor is gone",
+    document: `{ repositoryById(id:"whatever"){ slug } }`,
+  },
+  {
+    name: "User.email is gone",
+    document: `{ users(first:5){ nodes{ email } } }`,
+  },
+];
+
+const main = async () => {
+  const { privateRepoId } = await seed();
+
+  let failures = 0;
+
+  for (const testCase of cases(privateRepoId)) {
+    const body = await query(testCase.document);
+    const leaked = SECRETS.filter((secret) => body.includes(secret));
+
+    if (leaked.length > 0) {
+      failures++;
+      console.error(`LEAK  ${testCase.name}: ${leaked.join(", ")}`);
+    } else {
+      console.info(`ok    ${testCase.name}`);
+    }
+  }
+
+  // the public repository must still be reachable, or the predicate is simply
+  // denying everything and the checks above would pass for the wrong reason
+  const publicBody = await query(
+    `{ repositories(first:100){ nodes{ slug } } }`,
+  );
+  if (!publicBody.includes(`${TAG}-public`)) {
+    failures++;
+    console.error(
+      "LEAK  control: the public repository is NOT visible, so the checks above prove nothing",
+    );
+  } else {
+    console.info("ok    control: public repository still visible");
+  }
+
+  await cleanup();
+
+  if (failures > 0) {
+    console.error(`\n${failures} check(s) failed`);
+    process.exit(1);
+  }
+
+  console.info("\nAll read-authorization checks passed.");
+  process.exit(0);
+};
+
+await main();
