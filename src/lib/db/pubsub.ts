@@ -9,5 +9,10 @@ import { pgPool } from "lib/db/db";
  * function, so the subscriber is injected onto the context as `pgSubscriber`
  * (that is what the `listen` step reads) and is also handed to the Postgraphile
  * preset's pgService. Publish with `pg_notify(<topic>, <json>)`
+ *
+ * Stays on the internal pool rather than the GraphQL one: LISTEN receives
+ * notification payloads, it does not read table rows, so there is nothing for
+ * row-level security to filter, and it holds its connection open for the
+ * process lifetime rather than per request
  */
 export const pgSubscriber = new PgSubscriber(pgPool);

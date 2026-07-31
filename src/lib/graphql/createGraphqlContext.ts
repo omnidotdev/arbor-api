@@ -1,6 +1,6 @@
 import { createWithPgClient } from "postgraphile/adaptors/pg";
 
-import { dbPool, pgPool } from "lib/db/db";
+import { dbPool, graphqlPgPool } from "lib/db/db";
 import { pgSubscriber } from "lib/db/pubsub";
 
 import type { YogaInitialContext } from "graphql-yoga";
@@ -11,7 +11,11 @@ import type {
   PgSubscriber,
 } from "postgraphile/adaptors/pg";
 
-const withPgClient = createWithPgClient({ pool: pgPool });
+// Postgraphile executes every GraphQL query through this, so it is the one place
+// that must use the GraphQL pool. `db` below stays on the internal pool: it backs
+// the custom Grafast plans and the authentication path, which cannot be
+// constrained (see lib/db/db.ts)
+const withPgClient = createWithPgClient({ pool: graphqlPgPool });
 
 /** Organization claim structure from IDP JWT claims */
 export interface OrganizationClaim {

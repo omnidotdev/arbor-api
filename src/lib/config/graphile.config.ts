@@ -109,6 +109,12 @@ const graphilePreset: GraphileConfig.Preset = {
   },
   pgServices: [
     makePgService({
+      // Introspection, not execution. Query execution goes through the
+      // `withPgClient` this app supplies on the context, which uses the separate
+      // GraphQL pool (see createGraphqlContext). Deliberately the privileged
+      // DATABASE_URL: Postgraphile omits tables the connecting role cannot
+      // select, so introspecting as a constrained role would silently shrink the
+      // emitted schema rather than filter rows, which is not what RLS is for
       connectionString: DATABASE_URL,
       // LISTEN/NOTIFY subscriber for GraphQL subscriptions. This app supplies
       // its own context function, so the subscriber is also injected onto the
