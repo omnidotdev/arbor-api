@@ -15,22 +15,39 @@ import graphilePreset from "lib/config/graphile.config";
 
 const CACHE_DIR = `${__dirname}/../../.cache`;
 const HASH_FILE = `${CACHE_DIR}/schema-hash`;
-const SCHEMA_DIR = `${__dirname}/../lib/db/schema`;
 
 /**
- * Compute hash of all schema files.
+ * Directories whose contents determine the emitted SDL.
+ *
+ * The Drizzle tables are the obvious input, but they are not the only one: the
+ * Graphile plugins decide what is emitted from those tables, so a smart tag that
+ * removes an accessor changes the SDL without touching a table. Hashing only the
+ * tables left those changes unable to invalidate the cache, so `schema.graphql`
+ * silently kept the removed fields, and client codegen kept generating them.
+ */
+const SOURCE_DIRS = [
+  `${__dirname}/../lib/db/schema`,
+  `${__dirname}/../lib/graphql`,
+  `${__dirname}/../lib/config`,
+];
+
+/**
+ * Compute hash of every source file the emitted schema depends on.
  */
 const computeSchemaHash = (): string => {
   const hash = createHash("sha256");
 
-  const files = readdirSync(SCHEMA_DIR, { recursive: true })
-    .filter((f): f is string => typeof f === "string" && f.endsWith(".ts"))
-    .sort();
+  for (const directory of SOURCE_DIRS) {
+    const files = readdirSync(directory, { recursive: true })
+      .filter((f): f is string => typeof f === "string" && f.endsWith(".ts"))
+      .sort();
 
-  for (const file of files) {
-    const content = readFileSync(join(SCHEMA_DIR, file));
-    hash.update(file);
-    hash.update(content);
+    for (const file of files) {
+      const content = readFileSync(join(directory, file));
+      hash.update(directory);
+      hash.update(file);
+      hash.update(content);
+    }
   }
 
   return hash.digest("hex");
