@@ -51,11 +51,41 @@ const SmartTagPlugin = jsonPgSmartTags({
         },
       },
       user: {
+        tags: {
+          // Remove every root accessor for users. `users` listed every account
+          // to any caller, and the single-row accessors were worse than the
+          // listing they bypassed: `userByEmail` remained a working oracle even
+          // after the email attribute was hidden below, so an anonymous caller
+          // could confirm an address belonged to an account and read that
+          // account's username and activity graph back. Single-row plans cannot
+          // be filtered (see RepositoryRead.plugin.ts), so removal is the fix.
+          //
+          // Nothing consumes these: arbor-app queries no root user field, and
+          // authentication resolves users through Drizzle in
+          // lib/auth/resolveUserFromToken.ts, never through GraphQL. The
+          // authenticated user reads themselves via `observer`.
+          //
+          // `-query:resource:single` rather than a bare `-single`, which would
+          // also strip the singular RELATION fields (PullRequest.author,
+          // Repository.owner, PullRequestReview.reviewer) the attribution UI
+          // renders. Those stay, and are already scoped by the repository
+          // predicate that gates reaching the parent row at all
+          //
+          // `-insert` because users are created by the OAuth flow only, in the
+          // Drizzle upsert in lib/auth/resolveUserFromToken.ts. The generated
+          // createUser was dead surface that User.plugin.ts rejected on every
+          // call; its wrapper stays as defence in depth if this tag is ever
+          // dropped, the way createRepository does
+          behavior:
+            "-insert -query:resource:single -query:resource:connection -query:resource:list -node",
+        },
         attribute: {
-          // Every user row is listable, so exposing these leaks the email
-          // address and IDP subject of every account to any caller. Neither is
-          // needed: the authenticated user's own email comes from the
-          // `observer` query, and nothing reads the IDP id through the API
+          // Exposing these leaked the email address and IDP subject of every
+          // account to any caller. Neither is needed: the authenticated user's
+          // own email comes from the `observer` query, and nothing reads the
+          // IDP id through the API. Kept alongside the root-accessor removal
+          // above as defence in depth, since User is still reachable through
+          // relations
           email: {
             tags: {
               behavior: "-*",

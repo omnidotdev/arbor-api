@@ -43,6 +43,11 @@ const SECRETS = [
   "SECRET_COMMENT",
   "SECRET_REVIEW",
   "SECRET_AGENT",
+  // the seeded account, which no root query may enumerate. Its username is
+  // legitimately readable through a public repository's owner relation, so this
+  // marker is meaningful only for the documents below, none of which ask for it
+  // by that path
+  `${TAG}-owner`,
 ];
 
 const query = async (document: string): Promise<string> => {
@@ -172,8 +177,18 @@ const seed = async () => {
   return { privateRepoId: privateRepo.id };
 };
 
-/** A read an unauthenticated caller must not be able to make */
-const cases = (privateRepoId: string) => [
+/**
+ * A read an unauthenticated caller must not be able to make.
+ *
+ * `mustReject` marks a field that was removed from the schema rather than
+ * filtered. Those need an assertion of their own: a document naming a field that
+ * does not exist fails validation and returns no data, which trivially contains
+ * no secret marker, so a leak check alone would keep passing even if the field
+ * came back.
+ */
+const cases = (
+  privateRepoId: string,
+): { name: string; document: string; mustReject?: boolean }[] => [
   {
     name: "repositories connection",
     document: `{ repositories(first:100){ nodes{ slug } } }`,
@@ -198,14 +213,45 @@ const cases = (privateRepoId: string) => [
   {
     name: "single-row accessor is gone",
     document: `{ repository(rowId:"${privateRepoId}"){ slug } }`,
+    mustReject: true,
   },
   {
     name: "node accessor is gone",
     document: `{ repositoryById(id:"whatever"){ slug } }`,
+    mustReject: true,
   },
   {
+    name: "users connection is gone",
+    document: `{ users(first:100){ nodes{ username } } }`,
+    mustReject: true,
+  },
+  {
+    name: "user(rowId:) is gone",
+    document: `{ user(rowId:"${privateRepoId}"){ username } }`,
+    mustReject: true,
+  },
+  {
+    name: "userByEmail is gone (account-enumeration oracle)",
+    document: `{ userByEmail(email:"${TAG}-owner@example.com"){ username } }`,
+    mustReject: true,
+  },
+  {
+    name: "userByUsername is gone",
+    document: `{ userByUsername(username:"${TAG}-owner"){ name } }`,
+    mustReject: true,
+  },
+  {
+    name: "userById is gone",
+    document: `{ userById(id:"whatever"){ username } }`,
+    mustReject: true,
+  },
+  {
+    // reached through a relation, which is the only way to a User row now. The
+    // observer query exposes the caller's own email deliberately and is not
+    // this field
     name: "User.email is gone",
-    document: `{ users(first:5){ nodes{ email } } }`,
+    document: `{ repositories(first:100){ nodes{ owner{ email } } } }`,
+    mustReject: true,
   },
 ];
 
@@ -221,9 +267,24 @@ const main = async () => {
     if (leaked.length > 0) {
       failures++;
       console.error(`LEAK  ${testCase.name}: ${leaked.join(", ")}`);
-    } else {
-      console.info(`ok    ${testCase.name}`);
+      continue;
     }
+
+    // a removed field must fail validation. Anything else means the field is
+    // back, and the leak check above passed only because this document did not
+    // happen to ask for a seeded secret
+    if (
+      testCase.mustReject &&
+      !/Cannot query field|Unknown argument/.test(body)
+    ) {
+      failures++;
+      console.error(
+        `LEAK  ${testCase.name}: the field still exists (expected a validation error)`,
+      );
+      continue;
+    }
+
+    console.info(`ok    ${testCase.name}`);
   }
 
   // the public repository must still be reachable, or the predicate is simply
