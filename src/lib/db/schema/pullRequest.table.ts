@@ -12,6 +12,7 @@ import {
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
 import { agentTable } from "./agent.table";
 import { repositoryTable } from "./repository.table";
+import { derivedFrom, readPolicies } from "./rowLevelSecurity";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -55,6 +56,7 @@ export const pullRequestTable = pgTable(
     index().on(table.authorId),
     index().on(table.authoredByAgentId),
     index().on(table.state),
+    ...readPolicies("pull_request", derivedFrom("repository_id", "repository")),
   ],
 );
 
@@ -81,6 +83,10 @@ export const pullRequestReviewTable = pgTable(
     uniqueIndex().on(table.id),
     index().on(table.pullRequestId),
     index().on(table.reviewerId),
+    ...readPolicies(
+      "pull_request_review",
+      derivedFrom("pull_request_id", "pull_request"),
+    ),
   ],
 );
 
@@ -112,6 +118,10 @@ export const pullRequestCommentTable = pgTable(
     index().on(table.pullRequestId),
     index().on(table.authorId),
     index().on(table.replyToId),
+    ...readPolicies(
+      "pull_request_comment",
+      derivedFrom("pull_request_id", "pull_request"),
+    ),
   ],
 );
 

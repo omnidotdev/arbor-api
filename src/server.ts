@@ -22,7 +22,7 @@ import {
   isProdEnv,
 } from "lib/config/env.config";
 import graphilePreset from "lib/config/graphile.config";
-import { pgPool } from "lib/db/db";
+import { graphqlPgPool } from "lib/db/db";
 import { pgSubscriber } from "lib/db/pubsub";
 import { warnIfRowLevelSecurityIsBypassed } from "lib/db/rowLevelSecurity";
 import { ensureReposDirectory } from "lib/git";
@@ -68,9 +68,12 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
   });
 }
 
-// Report whether the connection role can be constrained by row-level security.
-// Not awaited: it is a diagnostic, and it must not sit on the boot path
-warnIfRowLevelSecurityIsBypassed((sql) => pgPool.query(sql));
+// Report whether the GraphQL connection can be constrained by row-level
+// security. Deliberately the GraphQL pool and not the internal one: the internal
+// pool is meant to bypass RLS (authentication has to read the user row that
+// establishes who the caller is), so checking it would report the wrong
+// connection. Not awaited: a diagnostic must not sit on the boot path
+warnIfRowLevelSecurityIsBypassed((sql) => graphqlPgPool.query(sql));
 
 // Build the schema at runtime from database introspection. arbor-api has custom Grafast
 // plans that close over runtime singletons (gitService, repositoryService), so it uses

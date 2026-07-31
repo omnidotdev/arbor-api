@@ -15,6 +15,7 @@ import {
   externalDependencyTable,
   repositoryRelationshipTable,
 } from "./repositoryRelationship.table";
+import { readPolicies, repositoryVisible } from "./rowLevelSecurity";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -52,6 +53,7 @@ export const repositoryTable = pgTable(
     uniqueIndex().on(table.organizationId, table.slug),
     index().on(table.ownerId),
     index().on(table.organizationId),
+    ...readPolicies("repository", repositoryVisible),
   ],
 );
 

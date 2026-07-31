@@ -3,6 +3,7 @@ import { index, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
 import { organizationTable } from "./organization.table";
+import { agentVisible, readPolicies } from "./rowLevelSecurity";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -45,6 +46,7 @@ export const agentTable = pgTable(
     uniqueIndex().on(table.organizationId, table.slug),
     index().on(table.ownerId),
     index().on(table.organizationId),
+    ...readPolicies("agent", agentVisible),
   ],
 );
 

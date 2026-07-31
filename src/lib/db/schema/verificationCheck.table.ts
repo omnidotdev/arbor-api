@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
+import { derivedFrom, readPolicies } from "./rowLevelSecurity";
 import { changeTable } from "./stack.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -49,6 +50,7 @@ export const verificationCheckTable = pgTable(
     uniqueIndex().on(table.changeId, table.name),
     index().on(table.changeId),
     index().on(table.status),
+    ...readPolicies("verification_check", derivedFrom("change_id", "change")),
   ],
 );
 

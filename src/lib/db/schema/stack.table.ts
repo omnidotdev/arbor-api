@@ -12,6 +12,7 @@ import { generateDefaultDate, generateDefaultId } from "lib/db/util";
 import { agentTable } from "./agent.table";
 import { pullRequestTable } from "./pullRequest.table";
 import { repositoryTable } from "./repository.table";
+import { derivedFrom, readPolicies } from "./rowLevelSecurity";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -52,6 +53,7 @@ export const stackTable = pgTable(
     index().on(table.repositoryId),
     index().on(table.authorId),
     index().on(table.status),
+    ...readPolicies("stack", derivedFrom("repository_id", "repository")),
   ],
 );
 
@@ -120,6 +122,7 @@ export const changeTable = pgTable(
     index().on(table.repositoryId),
     index().on(table.parentChangeId),
     index().on(table.status),
+    ...readPolicies("change", derivedFrom("repository_id", "repository")),
   ],
 );
 

@@ -11,6 +11,7 @@ import {
 
 import { generateDefaultDate, generateDefaultId } from "lib/db/util";
 import { repositoryTable } from "./repository.table";
+import { organizationVisible, readPolicies } from "./rowLevelSecurity";
 import { userTable } from "./user.table";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -51,6 +52,7 @@ export const organizationTable = pgTable(
   (table) => [
     uniqueIndex().on(table.id),
     index("organization_idp_organization_id_idx").on(table.idpOrganizationId),
+    ...readPolicies("organization", organizationVisible),
   ],
 );
 
