@@ -51,35 +51,49 @@ const ROLE_STATUS_QUERY = `
  */
 export const warnIfRowLevelSecurityIsBypassed = async (
   query: (sql: string) => Promise<{ rows: DatabaseRoleRow[] }>,
+  { enforce = false }: { enforce?: boolean } = {},
 ): Promise<void> => {
+  let rows: DatabaseRoleRow[];
+
+  // only the query is guarded. Wrapping the verdict too would let `enforce`
+  // throw into this catch and be downgraded to a warning, which is the one
+  // outcome the enforcement exists to prevent
   try {
-    const { rows } = await query(ROLE_STATUS_QUERY);
-
-    const row = rows[0];
-    if (!row) return;
-
-    // count() comes back as a string from node-postgres (bigint), so compare
-    // numerically rather than trusting the type
-    const ownedUnforced = Number(row.owned_unforced_tables ?? 0);
-
-    const reason = row.is_superuser
-      ? "is a superuser"
-      : row.can_bypass_rls
-        ? "has BYPASSRLS"
-        : ownedUnforced > 0
-          ? `owns ${ownedUnforced} table(s) with row-level security enabled but not forced, and an owner bypasses its own policies`
-          : null;
-
-    if (!reason) return;
-
-    console.warn(
-      `Database role "${row.current_user}" ${reason}, so row-level security is bypassed and cannot back up the read-authorization plan wrappers`,
-    );
+    ({ rows } = await query(ROLE_STATUS_QUERY));
   } catch (err) {
-    // never let a diagnostic take the boot path down
+    // a database blip must not take the boot path down
     console.warn(
       "Could not determine the database role, skipping the row-level security check:",
       err instanceof Error ? err.message : err,
     );
+    return;
   }
+
+  const row = rows[0];
+  if (!row) return;
+
+  // count() comes back as a string from node-postgres (bigint), so compare
+  // numerically rather than trusting the type
+  const ownedUnforced = Number(row.owned_unforced_tables ?? 0);
+
+  const reason = row.is_superuser
+    ? "is a superuser"
+    : row.can_bypass_rls
+      ? "has BYPASSRLS"
+      : ownedUnforced > 0
+        ? `owns ${ownedUnforced} table(s) with row-level security enabled but not forced, and an owner bypasses its own policies`
+        : null;
+
+  if (!reason) return;
+
+  const message = `Database role "${row.current_user}" ${reason}, so row-level security is bypassed and cannot back up the read-authorization plan wrappers`;
+
+  // in production this is a regression, not a status report: the GraphQL
+  // connection has lost its constrained role and the backstop is gone. Refuse to
+  // boot rather than serve in that state. ALLOW_RLS_BYPASS exists because the
+  // documented rollback is to unset GRAPHQL_DATABASE_URL, which would otherwise
+  // leave the service unable to start
+  if (enforce) throw new Error(message);
+
+  console.warn(message);
 };

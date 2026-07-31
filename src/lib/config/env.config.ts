@@ -35,6 +35,10 @@ export const {
   // Meilisearch (unified search)
   MEILISEARCH_URL,
   MEILISEARCH_MASTER_KEY,
+  // Escape hatch for the boot-time row-level security check. Set to "true" only
+  // to roll GRAPHQL_DATABASE_URL back to the privileged role, which the check
+  // would otherwise refuse to start under
+  ALLOW_RLS_BYPASS,
 } = process.env;
 
 export const isDevEnv = NODE_ENV === "development",

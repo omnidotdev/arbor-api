@@ -98,6 +98,46 @@ describe("warnIfRowLevelSecurityIsBypassed", () => {
     expect(await captureWarnings([])).toEqual([]);
   });
 
+  test("throws instead of warning when enforcing", async () => {
+    await expect(
+      warnIfRowLevelSecurityIsBypassed(
+        async () =>
+          ({
+            rows: [role({ current_user: "arbor", is_superuser: true })],
+          }) as Awaited<
+            ReturnType<Parameters<typeof warnIfRowLevelSecurityIsBypassed>[0]>
+          >,
+        { enforce: true },
+      ),
+    ).rejects.toThrow("is a superuser");
+  });
+
+  test("does not throw when enforcing and the role is constrained", async () => {
+    await expect(
+      warnIfRowLevelSecurityIsBypassed(
+        async () =>
+          ({ rows: [role()] }) as Awaited<
+            ReturnType<Parameters<typeof warnIfRowLevelSecurityIsBypassed>[0]>
+          >,
+        { enforce: true },
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  test("a database failure never throws, even when enforcing", async () => {
+    // the enforcement must not turn a transient connectivity blip into a boot
+    // failure, and the connectivity catch must not swallow an enforcement throw.
+    // Those pull in opposite directions, so both are pinned
+    await expect(
+      warnIfRowLevelSecurityIsBypassed(
+        async () => {
+          throw new Error("connection refused");
+        },
+        { enforce: true },
+      ),
+    ).resolves.toBeUndefined();
+  });
+
   test("does not throw when the database is unreachable", async () => {
     const warnings: string[] = [];
     const spy = spyOn(console, "warn").mockImplementation(

@@ -14,6 +14,7 @@ import webhooks from "webhooks";
 
 import appConfig from "lib/config/app.config";
 import {
+  ALLOW_RLS_BYPASS,
   CORS_ALLOWED_ORIGINS,
   PORT,
   VORTEX_API_KEY,
@@ -73,7 +74,14 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
 // pool is meant to bypass RLS (authentication has to read the user row that
 // establishes who the caller is), so checking it would report the wrong
 // connection. Not awaited: a diagnostic must not sit on the boot path
-warnIfRowLevelSecurityIsBypassed((sql) => graphqlPgPool.query(sql));
+warnIfRowLevelSecurityIsBypassed((sql) => graphqlPgPool.query(sql), {
+  // enforced in production only: locally the connection is the superuser that
+  // owns the schema, and crashing on that would make the service undevelopable
+  enforce: isProdEnv && ALLOW_RLS_BYPASS !== "true",
+}).catch((err) => {
+  console.error(`[Startup] ${err instanceof Error ? err.message : err}`);
+  process.exit(1);
+});
 
 // Build the schema at runtime from database introspection. arbor-api has custom Grafast
 // plans that close over runtime singletons (gitService, repositoryService), so it uses
