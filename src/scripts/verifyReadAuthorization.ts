@@ -22,6 +22,7 @@ import { eq } from "drizzle-orm";
 import { dbPool } from "lib/db/db";
 import {
   agentTable,
+  changeTable,
   externalDependencyTable,
   mergeBatchTable,
   mergeQueueEntryTable,
@@ -39,7 +40,9 @@ import {
   repositoryRelationshipTable,
   repositoryRelationshipTypeTable,
   repositoryTable,
+  stackTable,
   userTable,
+  verificationCheckTable,
 } from "lib/db/schema";
 
 const TAG = "readauthz";
@@ -54,6 +57,9 @@ const SECRETS = [
   "SECRET_COMMENT",
   "SECRET_REVIEW",
   "SECRET_AGENT",
+  "SECRET_STACK",
+  "SECRET_CHANGE",
+  "SECRET_CHECK",
   "SECRET_PROJECT",
   "SECRET_TYPE",
   "SECRET_METADATA",
@@ -65,6 +71,10 @@ const SECRETS = [
   // marker is meaningful only for the documents below, none of which ask for it
   // by that path
   `${TAG}-owner`,
+  // the seeded organization's IDP id. `organizations` is scoped to the caller's
+  // memberships, so an anonymous caller must not see the organization exists at
+  // all. Note this also matches `${TAG}-orgprivate`, which is a secret too
+  `${TAG}-org`,
 ];
 
 const query = async (document: string): Promise<string> => {
@@ -191,6 +201,39 @@ const seed = async () => {
     vendor: "anthropic",
   });
 
+  // the stacked-change chain, seeded against the PRIVATE repository. A change
+  // carries the commit and branch it lands, and a verification check reaches a
+  // repository only through its change, which is the one indirection in the
+  // predicate set that is not through a pull request
+  const [stack] = await dbPool
+    .insert(stackTable)
+    .values({
+      repositoryId: privateRepo.id,
+      authorId: owner.id,
+      title: "SECRET_STACK",
+    })
+    .returning();
+  if (!stack) throw new Error("failed to seed stack");
+
+  const [change] = await dbPool
+    .insert(changeTable)
+    .values({
+      stackId: stack.id,
+      repositoryId: privateRepo.id,
+      title: "SECRET_CHANGE",
+      headBranch: `${TAG}-head`,
+    })
+    .returning();
+  if (!change) throw new Error("failed to seed change");
+
+  await dbPool.insert(verificationCheckTable).values({
+    changeId: change.id,
+    name: `${TAG}-check`,
+    category: "test",
+    status: "failed",
+    summary: "SECRET_CHECK",
+  });
+
   // the polyrepo graph and its neighbours. Seeded against the PRIVATE repository
   // so each row is one an anonymous caller must not reach: an edge leaks the
   // existence and id of a private repository even when the other end is public
@@ -304,6 +347,21 @@ const cases = (
     document: `{ pullRequestReviews(first:100){ nodes{ body } } }`,
   },
   { name: "agents", document: `{ agents(first:100){ nodes{ name } } }` },
+  { name: "stacks", document: `{ stacks(first:100){ nodes{ title } } }` },
+  {
+    name: "changes",
+    document: `{ changes(first:100){ nodes{ title headBranch } } }`,
+  },
+  {
+    // the only surface reaching a repository through a change rather than a
+    // pull request, so it exercises a predicate shape nothing else covers
+    name: "verificationChecks",
+    document: `{ verificationChecks(first:100){ nodes{ name summary } } }`,
+  },
+  {
+    name: "organizations",
+    document: `{ organizations(first:100){ nodes{ idpOrganizationId name slug } } }`,
+  },
   {
     name: "projects",
     document: `{ projects(first:100){ nodes{ name slug } } }`,
@@ -389,6 +447,13 @@ const cases = (
     // this field
     name: "User.email is gone",
     document: `{ repositories(first:100){ nodes{ owner{ email } } } }`,
+    mustReject: true,
+  },
+  {
+    // hidden alongside email: it is the IDP subject, and exposing it hands out
+    // a stable cross-service identifier for every account
+    name: "User.identityProviderId is gone",
+    document: `{ repositories(first:100){ nodes{ owner{ identityProviderId } } } }`,
     mustReject: true,
   },
 ];
