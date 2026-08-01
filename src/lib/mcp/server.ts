@@ -37,6 +37,32 @@ const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 100;
 
 /**
+ * The agent instruction file Arbor recognizes.
+ *
+ * `AGENTS.md` and nothing else, deliberately. It is the vendor-neutral
+ * convention, and Arbor's counter-position is that the forge is model-agnostic
+ * and editor-agnostic; falling back to a vendor-specific filename would make the
+ * forge take a side on which agent a repository is written for. A repository
+ * that wants one to follow the other can commit a symlink.
+ *
+ * Repository root only. Nested per-directory instructions are a real part of the
+ * convention, but resolving them needs the path an agent is about to touch,
+ * which is a different tool shape than "tell me how to work in this repo".
+ */
+const AGENT_INSTRUCTIONS_PATH = "AGENTS.md";
+
+/**
+ * Handshake instructions, which is the "honor it" half of recognizing AGENTS.md.
+ *
+ * Exposing a tool an agent never thinks to call surfaces the file without
+ * changing behavior. MCP clients put this in front of the model at connection
+ * time, so it is the one place to say the file exists and is binding.
+ */
+const MCP_INSTRUCTIONS = `Arbor is a git forge. Repositories may define agent instructions in a root ${AGENT_INSTRUCTIONS_PATH}.
+
+Before proposing or writing any change to a repository, call \`get_agent_instructions\` for it and follow what it returns. Those conventions take precedence over your own defaults for that repository.`;
+
+/**
  * Upper bound on repositories scanned when building a caller-visible list.
  *
  * Candidate rows are filtered through the same access gate the git routes use,
@@ -112,10 +138,13 @@ const shapeRepository = (repository: {
  * built per request, so the caller is captured directly in each tool closure.
  */
 export const createArborMcpServer = (caller: McpCaller): McpServer => {
-  const server = new McpServer({
-    name: `${appConfig.name.toLowerCase()}-mcp`,
-    version: MCP_SERVER_VERSION,
-  });
+  const server = new McpServer(
+    {
+      name: `${appConfig.name.toLowerCase()}-mcp`,
+      version: MCP_SERVER_VERSION,
+    },
+    { instructions: MCP_INSTRUCTIONS },
+  );
 
   // ============================================================
   // Repositories
@@ -351,6 +380,55 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
         isBinary,
         size: raw?.length ?? 0,
         content: isBinary ? null : content,
+      });
+    },
+  );
+
+  server.registerTool(
+    "get_agent_instructions",
+    {
+      title: "Get agent instructions",
+      description:
+        "Read a repository's AGENTS.md, the conventions an agent must follow when changing that repository. Call this before proposing or writing any change. Returns present:false when the repository defines none",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+        ref: z
+          .string()
+          .optional()
+          .describe(
+            "Branch, tag, or commit SHA (defaults to the repository's default branch)",
+          ),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ owner, repo, ref }) => {
+      const gate = await gateRead(caller, owner, repo);
+      if (!gate) return errorResult(NOT_FOUND_MESSAGE);
+
+      const repository = await dbPool.query.repositoryTable.findFirst({
+        where: (table, { eq: eqOp }) => eqOp(table.id, gate.id),
+        columns: { defaultBranch: true },
+      });
+      if (!repository) return errorResult(NOT_FOUND_MESSAGE);
+
+      const resolvedRef = ref ?? repository.defaultBranch;
+      const content = await gitService.getFileContent(
+        owner,
+        repo,
+        resolvedRef,
+        AGENT_INSTRUCTIONS_PATH,
+      );
+
+      // absent is a normal answer, not an error: an agent asking whether a
+      // repository has conventions needs to distinguish "none defined" from
+      // "you may not look", and an error result would conflate them. A file
+      // that is somehow binary reads as absent, which is the safe direction
+      return jsonResult({
+        path: AGENT_INSTRUCTIONS_PATH,
+        ref: resolvedRef,
+        present: content !== null,
+        content,
       });
     },
   );

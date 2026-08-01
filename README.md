@@ -37,6 +37,24 @@ bun start
 
 The GraphQL endpoint and GraphiQL playground are served at `/graphql`. In development the server listens over HTTPS (e.g. `https://localhost:4000`).
 
+## MCP server
+
+Arbor exposes its own forge operations to agents over [MCP](https://modelcontextprotocol.io) at `/mcp`, so an agent drives repositories, pull requests, stacks and verification checks through a first-party surface rather than by scraping.
+
+Authenticate with a personal access token as a bearer token:
+
+```sh
+Authorization: Bearer <personal access token>
+```
+
+Every tool is scoped twice: by the presented credential (a token may be read-only, and may be confined to named repositories) and by what the authenticating user may see. A repository the caller may not read is reported identically to one that does not exist.
+
+### Agent instructions
+
+A repository may define conventions for agents in a root `AGENTS.md`. `get_agent_instructions` returns it for a given repository and ref (defaulting to the default branch), and the server's handshake instructions tell connecting agents to consult it before proposing a change.
+
+Arbor recognizes `AGENTS.md` only, not vendor-specific filenames, and reads it from the repository root. A repository that defines none gets `present: false`, which is a normal answer rather than an error.
+
 ## Dev commands
 
 | Command | Description |
