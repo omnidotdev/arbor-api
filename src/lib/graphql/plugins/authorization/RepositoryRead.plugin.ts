@@ -151,6 +151,60 @@ const visiblePullRequestIds = (userId: unknown) =>
 const visibleChangeIds = (userId: unknown) =>
   sql`select c.id from change c where c.repository_id in (${visibleRepositoryIds(userId)})`;
 
+/** The row's own primary key, for connections scoped by an id set over themselves */
+const own = (alias: unknown) => sql`${alias as never}.id`;
+
+/** Rows reaching their scope through a project */
+const viaProject = (alias: unknown) => sql`${alias as never}.project_id`;
+
+/** Rows reaching their scope through a repository relationship */
+const viaRelationship = (alias: unknown) =>
+  sql`${alias as never}.relationship_id`;
+
+/** Rows reaching their scope through a personal access token */
+const viaToken = (alias: unknown) =>
+  sql`${alias as never}.personal_access_token_id`;
+
+/** Rows reaching their scope through an organization */
+const viaOrganization = (alias: unknown) =>
+  sql`${alias as never}.organization_id`;
+
+/**
+ * Project ids the caller may see.
+ *
+ * A project aggregates repositories, so its name and description describe work
+ * that may be entirely private. Visibility is ownership or membership of the
+ * owning organization, matching agents; there is no public project.
+ */
+const visibleProjectIds = (userId: unknown) => sql`
+  select p.id from project p where (
+    p.owner_id = ${userId as never}
+    or exists (
+      select 1 from organization_member om
+      where om.organization_id = p.organization_id and om.user_id = ${userId as never}
+    )
+  )`;
+
+/**
+ * Relationship ids where BOTH ends are visible.
+ *
+ * The dependency graph is the product, so an edge leaks the existence of a
+ * private repository at either end and the id needed to try reaching it. An edge
+ * from a public repository to a private one must not be readable.
+ */
+const visibleRelationshipIds = (userId: unknown) => sql`
+  select rr.id from repository_relationship rr
+  where rr.source_repository_id in (${visibleRepositoryIds(userId)})
+    and rr.target_repository_id in (${visibleRepositoryIds(userId)})`;
+
+/** Personal access token ids belonging to the caller */
+const visibleTokenIds = (userId: unknown) =>
+  sql`select pat.id from personal_access_token pat where pat.user_id = ${userId as never}`;
+
+/** Organization ids the caller belongs to */
+const observerOrganizationIds = (userId: unknown) =>
+  sql`select om.organization_id from organization_member om where om.user_id = ${userId as never}`;
+
 /**
  * Scope the agents connection to the caller's own agents.
  *
@@ -185,6 +239,38 @@ const scopeAgentsToCaller = EXPORTABLE(
       return $connection;
     },
   [context, lambda, sql, TYPES],
+);
+
+/**
+ * Scope relationship types to the global set plus the caller's organizations.
+ *
+ * A type is either global (`organization_id` null, shared by everyone) or
+ * defined by an organization, and an organization's taxonomy is not public.
+ * Cannot use the `in (subquery)` form the other wrappers share, because a null
+ * `organization_id` never matches an `in` and the global types would vanish.
+ */
+const scopeRelationshipTypesToCaller = EXPORTABLE(
+  (context, lambda, sql, TYPES, observerOrganizationIds): PlanWrapperFn =>
+    (plan) => {
+      const $connection = plan();
+      const $select = (
+        $connection as unknown as { getSubplan(): PgSelectStep }
+      ).getSubplan();
+
+      const $observer = context().get("observer");
+      const $userId = lambda($observer, (observer) => observer?.id ?? null);
+      const userId = $select.placeholder($userId, TYPES.uuid);
+
+      $select.where(
+        sql`(
+          ${$select.alias}.organization_id is null
+          or ${$select.alias}.organization_id in (${observerOrganizationIds(userId) as never})
+        )`,
+      );
+
+      return $connection;
+    },
+  [context, lambda, sql, TYPES, observerOrganizationIds],
 );
 
 /**
@@ -253,9 +339,32 @@ const RepositoryReadPlugin = wrapPlans({
       visiblePullRequestIds,
     ),
     verificationChecks: scopeByRepository(viaChange, visibleChangeIds),
+    // more rows carrying a direct repository_id
+    externalDependencies: scopeByRepository(direct),
+    mergeBatches: scopeByRepository(direct),
+    mergeQueueEntries: scopeByRepository(direct),
+    repositoryCollaborators: scopeByRepository(direct),
+    // the polyrepo graph. An edge is only visible when BOTH ends are
+    projects: scopeByRepository(own, visibleProjectIds),
+    projectRepositories: scopeByRepository(viaProject, visibleProjectIds),
+    repositoryRelationships: scopeByRepository(own, visibleRelationshipIds),
+    repositoryRelationshipMetadata: scopeByRepository(
+      viaRelationship,
+      visibleRelationshipIds,
+    ),
+    repositoryRelationshipTypes: scopeRelationshipTypesToCaller,
+    // a token's repository whitelist is only the token owner's business
+    personalAccessTokenRepositories: scopeByRepository(
+      viaToken,
+      visibleTokenIds,
+    ),
     // not repository-derived, but the same class of cross-account read leak
     agents: scopeAgentsToCaller,
     organizations: scopeOrganizationsToCaller,
+    organizationMembers: scopeByRepository(
+      viaOrganization,
+      observerOrganizationIds,
+    ),
   },
   Organization: {
     repositories: scopeToVisible,

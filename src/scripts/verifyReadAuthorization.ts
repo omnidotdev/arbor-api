@@ -22,11 +22,22 @@ import { eq } from "drizzle-orm";
 import { dbPool } from "lib/db/db";
 import {
   agentTable,
+  externalDependencyTable,
+  mergeBatchTable,
+  mergeQueueEntryTable,
   organizationMemberTable,
   organizationTable,
+  personalAccessTokenRepositoryTable,
+  personalAccessTokenTable,
+  projectRepositoryTable,
+  projectTable,
   pullRequestCommentTable,
   pullRequestReviewTable,
   pullRequestTable,
+  repositoryCollaboratorTable,
+  repositoryRelationshipMetadataTable,
+  repositoryRelationshipTable,
+  repositoryRelationshipTypeTable,
   repositoryTable,
   userTable,
 } from "lib/db/schema";
@@ -43,6 +54,12 @@ const SECRETS = [
   "SECRET_COMMENT",
   "SECRET_REVIEW",
   "SECRET_AGENT",
+  "SECRET_PROJECT",
+  "SECRET_TYPE",
+  "SECRET_METADATA",
+  "SECRET_DEPENDENCY",
+  "SECRET_BATCH",
+  "SECRET_TOKEN",
   // the seeded account, which no root query may enumerate. Its username is
   // legitimately readable through a public repository's owner relation, so this
   // marker is meaningful only for the documents below, none of which ask for it
@@ -174,6 +191,83 @@ const seed = async () => {
     vendor: "anthropic",
   });
 
+  // the polyrepo graph and its neighbours. Seeded against the PRIVATE repository
+  // so each row is one an anonymous caller must not reach: an edge leaks the
+  // existence and id of a private repository even when the other end is public
+  const [project] = await dbPool
+    .insert(projectTable)
+    .values({
+      ownerId: owner.id,
+      name: "SECRET_PROJECT",
+      slug: `${TAG}-project`,
+    })
+    .returning();
+  if (!project) throw new Error("failed to seed project");
+
+  await dbPool
+    .insert(projectRepositoryTable)
+    .values({ projectId: project.id, repositoryId: privateRepo.id });
+
+  const [relationshipType] = await dbPool
+    .insert(repositoryRelationshipTypeTable)
+    .values({ name: `${TAG}-SECRET_TYPE`, organizationId: organization.id })
+    .returning();
+  if (!relationshipType) throw new Error("failed to seed relationship type");
+
+  const [relationship] = await dbPool
+    .insert(repositoryRelationshipTable)
+    .values({
+      sourceRepositoryId: publicRepo.id,
+      targetRepositoryId: privateRepo.id,
+      relationshipTypeId: relationshipType.id,
+    })
+    .returning();
+  if (!relationship) throw new Error("failed to seed relationship");
+
+  await dbPool.insert(repositoryRelationshipMetadataTable).values({
+    relationshipId: relationship.id,
+    key: `${TAG}-key`,
+    value: "SECRET_METADATA",
+  });
+
+  await dbPool.insert(externalDependencyTable).values({
+    repositoryId: privateRepo.id,
+    packageManager: "npm",
+    packageName: "SECRET_DEPENDENCY",
+  });
+
+  await dbPool
+    .insert(repositoryCollaboratorTable)
+    .values({ repositoryId: privateRepo.id, userId: owner.id });
+
+  const [batch] = await dbPool
+    .insert(mergeBatchTable)
+    .values({ repositoryId: privateRepo.id, speculativeBranch: "SECRET_BATCH" })
+    .returning();
+  if (!batch) throw new Error("failed to seed merge batch");
+
+  await dbPool.insert(mergeQueueEntryTable).values({
+    repositoryId: privateRepo.id,
+    batchId: batch.id,
+    state: "queued",
+  });
+
+  const [token] = await dbPool
+    .insert(personalAccessTokenTable)
+    .values({
+      userId: owner.id,
+      name: "SECRET_TOKEN",
+      tokenHash: `${TAG}-hash`,
+      tokenPrefix: `${TAG}-pref`,
+    })
+    .returning();
+  if (!token) throw new Error("failed to seed token");
+
+  await dbPool.insert(personalAccessTokenRepositoryTable).values({
+    personalAccessTokenId: token.id,
+    repositoryId: privateRepo.id,
+  });
+
   return { privateRepoId: privateRepo.id };
 };
 
@@ -210,6 +304,50 @@ const cases = (
     document: `{ pullRequestReviews(first:100){ nodes{ body } } }`,
   },
   { name: "agents", document: `{ agents(first:100){ nodes{ name } } }` },
+  {
+    name: "projects",
+    document: `{ projects(first:100){ nodes{ name slug } } }`,
+  },
+  {
+    name: "projectRepositories",
+    document: `{ projectRepositories(first:100){ nodes{ repository{ slug } } } }`,
+  },
+  {
+    name: "repositoryRelationships (edge to a private repo)",
+    document: `{ repositoryRelationships(first:100){ nodes{ sourceRepository{ slug } targetRepository{ slug } } } }`,
+  },
+  {
+    name: "repositoryRelationshipMetadata",
+    document: `{ repositoryRelationshipMetadata(first:100){ nodes{ key value } } }`,
+  },
+  {
+    name: "repositoryRelationshipTypes",
+    document: `{ repositoryRelationshipTypes(first:100){ nodes{ name } } }`,
+  },
+  {
+    name: "externalDependencies",
+    document: `{ externalDependencies(first:100){ nodes{ packageName packageManager } } }`,
+  },
+  {
+    name: "mergeBatches",
+    document: `{ mergeBatches(first:100){ nodes{ speculativeBranch repository{ slug } } } }`,
+  },
+  {
+    name: "mergeQueueEntries",
+    document: `{ mergeQueueEntries(first:100){ nodes{ repository{ slug } } } }`,
+  },
+  {
+    name: "repositoryCollaborators",
+    document: `{ repositoryCollaborators(first:100){ nodes{ repository{ slug } user{ username } } } }`,
+  },
+  {
+    name: "organizationMembers",
+    document: `{ organizationMembers(first:100){ nodes{ user{ username } } } }`,
+  },
+  {
+    name: "personalAccessTokenRepositories",
+    document: `{ personalAccessTokenRepositories(first:100){ nodes{ repository{ slug } } } }`,
+  },
   {
     name: "single-row accessor is gone",
     document: `{ repository(rowId:"${privateRepoId}"){ slug } }`,
