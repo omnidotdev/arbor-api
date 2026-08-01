@@ -3259,6 +3259,12 @@ input PersonalAccessTokenRepositoryFilter {
   """Filter by the object’s `createdAt` field."""
   createdAt: DatetimeFilter
 
+  """Filter by the object’s `refPatterns` field."""
+  refPatterns: StringListFilter
+
+  """Filter by the object’s `pathPatterns` field."""
+  pathPatterns: StringListFilter
+
   """Filter by the object’s `personalAccessToken` relation."""
   personalAccessToken: PersonalAccessTokenFilter
 
@@ -3273,6 +3279,69 @@ input PersonalAccessTokenRepositoryFilter {
 
   """Negates the expression."""
   not: PersonalAccessTokenRepositoryFilter
+}
+
+"""
+A filter to be used against String List fields. All fields are combined with a logical ‘and.’
+"""
+input StringListFilter {
+  """
+  Is null (if `true` is specified) or is not null (if `false` is specified).
+  """
+  isNull: Boolean
+
+  """Equal to the specified value."""
+  equalTo: [String]
+
+  """Not equal to the specified value."""
+  notEqualTo: [String]
+
+  """
+  Not equal to the specified value, treating null like an ordinary value.
+  """
+  distinctFrom: [String]
+
+  """Equal to the specified value, treating null like an ordinary value."""
+  notDistinctFrom: [String]
+
+  """Less than the specified value."""
+  lessThan: [String]
+
+  """Less than or equal to the specified value."""
+  lessThanOrEqualTo: [String]
+
+  """Greater than the specified value."""
+  greaterThan: [String]
+
+  """Greater than or equal to the specified value."""
+  greaterThanOrEqualTo: [String]
+
+  """Contains the specified list of values."""
+  contains: [String]
+
+  """Contained by the specified list of values."""
+  containedBy: [String]
+
+  """Overlaps the specified list of values."""
+  overlaps: [String]
+
+  """Any array item is equal to the specified value."""
+  anyEqualTo: String
+
+  """Any array item is not equal to the specified value."""
+  anyNotEqualTo: String
+
+  """Any array item is less than the specified value."""
+  anyLessThan: String
+
+  """Any array item is less than or equal to the specified value."""
+  anyLessThanOrEqualTo: String
+
+  """Any array item is greater than the specified value."""
+  anyGreaterThan: String
+
+  """Any array item is greater than or equal to the specified value."""
+  anyGreaterThanOrEqualTo: String
 }
 
 """
@@ -3295,6 +3364,8 @@ input PersonalAccessTokenRepositoryDistinctCountAggregateFilter {
   personalAccessTokenId: BigIntFilter
   repositoryId: BigIntFilter
   createdAt: BigIntFilter
+  refPatterns: BigIntFilter
+  pathPatterns: BigIntFilter
 }
 
 """
@@ -4926,6 +4997,10 @@ enum RepositoryOrderBy {
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REF_PATTERNS_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REF_PATTERNS_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PATH_PATTERNS_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PATH_PATTERNS_DESC
 }
 
 """A connection to a list of `RepositoryCollaborator` values."""
@@ -6196,6 +6271,8 @@ type PersonalAccessTokenRepository {
   personalAccessTokenId: UUID!
   repositoryId: UUID!
   createdAt: Datetime!
+  refPatterns: [String]
+  pathPatterns: [String]
 
   """
   Reads a single `Repository` that is related to this `PersonalAccessTokenRepository`.
@@ -6233,6 +6310,12 @@ type PersonalAccessTokenRepositoryDistinctCountAggregates {
 
   """Distinct count of createdAt across the matching connection"""
   createdAt: BigInt
+
+  """Distinct count of refPatterns across the matching connection"""
+  refPatterns: BigInt
+
+  """Distinct count of pathPatterns across the matching connection"""
+  pathPatterns: BigInt
 }
 
 """
@@ -6244,6 +6327,8 @@ enum PersonalAccessTokenRepositoryGroupBy {
   CREATED_AT
   CREATED_AT_TRUNCATED_TO_HOUR
   CREATED_AT_TRUNCATED_TO_DAY
+  REF_PATTERNS
+  PATH_PATTERNS
 }
 
 """Conditions for `PersonalAccessTokenRepository` aggregates."""
@@ -6532,6 +6617,10 @@ enum PersonalAccessTokenOrderBy {
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REF_PATTERNS_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REF_PATTERNS_DESC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PATH_PATTERNS_ASC
+  PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PATH_PATTERNS_DESC
 }
 
 """A connection to a list of `Stack` values."""
@@ -14197,6 +14286,28 @@ enum PersonalAccessTokenPermission {
   WRITE
 }
 
+"""
+Per-repository confinement for an access token, limiting the refs and paths
+it may touch within that repository. Enforced against real pushes by the
+git credential boundary and against in-process ref moves (e.g. merges).
+"""
+input PersonalAccessTokenRepositoryScopeInput {
+  """The repository this confinement applies to."""
+  repositoryId: UUID!
+
+  """
+  Full-form ref globs the token may touch (e.g. "refs/heads/agent/*").
+  Omit for every ref in the repository.
+  """
+  refPatterns: [String!]
+
+  """
+  Repo-relative path globs the token may modify (e.g. "src/**"). Omit for
+  every path in the repository.
+  """
+  pathPatterns: [String!]
+}
+
 """Payload for the createPersonalAccessToken mutation."""
 type CreatePersonalAccessTokenPayload {
   """The created token row ID."""
@@ -14916,42 +15027,6 @@ type Query implements Node {
     id: ID!
   ): PullRequest
 
-  """
-  Reads and enables pagination through a set of `PersonalAccessTokenRepository`.
-  """
-  personalAccessTokenRepositories(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PersonalAccessTokenRepositoryCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PersonalAccessTokenRepositoryFilter
-
-    """The method to use when ordering `PersonalAccessTokenRepository`."""
-    orderBy: [PersonalAccessTokenRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PersonalAccessTokenRepositoryConnection
-
   """Reads and enables pagination through a set of `ProjectRepository`."""
   projectRepositories(
     """Only read the first `n` values of the set."""
@@ -15229,6 +15304,42 @@ type Query implements Node {
     """The method to use when ordering `Agent`."""
     orderBy: [AgentOrderBy!] = [PRIMARY_KEY_ASC]
   ): AgentConnection
+
+  """
+  Reads and enables pagination through a set of `PersonalAccessTokenRepository`.
+  """
+  personalAccessTokenRepositories(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PersonalAccessTokenRepositoryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PersonalAccessTokenRepositoryFilter
+
+    """The method to use when ordering `PersonalAccessTokenRepository`."""
+    orderBy: [PersonalAccessTokenRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PersonalAccessTokenRepositoryConnection
 
   """Reads and enables pagination through a set of `PullRequestReview`."""
   pullRequestReviews(
@@ -16149,10 +16260,17 @@ type Mutation {
     permission: PersonalAccessTokenPermission
 
     """
-    Repositories to confine the token to. Omit to leave the token
-    unconfined, so it reaches every repository its owner can reach.
+    Repositories to confine the token to, as whole repositories with no
+    ref/path limits. Omit to leave the token unconfined, so it reaches
+    every repository its owner can reach.
     """
     repositoryIds: [UUID!]
+
+    """
+    Per-repository ref/path confinement. Takes precedence over
+    repositoryIds when both are given.
+    """
+    repositoryScopes: [PersonalAccessTokenRepositoryScopeInput!]
   ): CreatePersonalAccessTokenPayload
 
   """

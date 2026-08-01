@@ -1,8 +1,39 @@
 import { spawn } from "node:child_process";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { getRepositoryPath } from "./storage.config";
 
 import type { Readable } from "node:stream";
+import type { ScopeBounds } from "./receivePackGuard";
+
+/** Absolute path to this project's git hooks (contains `pre-receive`) */
+export const HOOKS_DIR = join(dirname(fileURLToPath(import.meta.url)), "hooks");
+
+/**
+ * Build the pattern environment the pre-receive hook reads.
+ *
+ * Returns `{}` when there is nothing to enforce (`bounds` is null). Otherwise the
+ * repository's ref/path patterns travel in `ARBOR_REF_PATTERNS` /
+ * `ARBOR_PATH_PATTERNS`; an unconfined dimension is omitted, which the hook reads
+ * as null (all). `core.hooksPath` itself is set on the spawn argv via
+ * `git -c` (see `executeGitService`), which is the only form local push and the
+ * plumbing both honor; env-provided `core.hooksPath` is silently ignored.
+ */
+export const buildReceivePackHookEnv = (
+  bounds: ScopeBounds | null,
+): Record<string, string> => {
+  if (!bounds) return {};
+
+  const env: Record<string, string> = {};
+
+  if (bounds.refPatterns !== null)
+    env.ARBOR_REF_PATTERNS = JSON.stringify(bounds.refPatterns);
+  if (bounds.pathPatterns !== null)
+    env.ARBOR_PATH_PATTERNS = JSON.stringify(bounds.pathPatterns);
+
+  return env;
+};
 
 /**
  * Git Smart HTTP Protocol Service.
@@ -124,13 +155,19 @@ export async function uploadPack(
 
 /**
  * Execute git-receive-pack (for push).
+ *
+ * When `bounds` is provided the spawn is pointed at the pre-receive credential
+ * boundary (see `buildReceivePackHookEnv`), which enforces the token's ref/path
+ * confinement against the actual pushed objects. Null bounds means unconfined
+ * and the push runs exactly as before.
  */
 export async function receivePack(
   owner: string,
   repo: string,
   input: Buffer | Readable,
+  bounds: ScopeBounds | null = null,
 ): Promise<{ data: Buffer; success: boolean }> {
-  return executeGitService(owner, repo, "git-receive-pack", input);
+  return executeGitService(owner, repo, "git-receive-pack", input, bounds);
 }
 
 /**
@@ -141,13 +178,34 @@ async function executeGitService(
   repo: string,
   service: GitService,
   input: Buffer | Readable,
+  bounds: ScopeBounds | null = null,
 ): Promise<{ data: Buffer; success: boolean }> {
   const repoPath = getRepositoryPath(owner, repo);
 
   return new Promise((resolve) => {
-    const args = ["--stateless-rpc", repoPath];
-    const gitProcess = spawn(service, args, {
-      env: { ...process.env, GIT_PROTOCOL: "version=2" },
+    // When a push is confined, run receive-pack through `git -c core.hooksPath`
+    // so the credential boundary hook fires. `-c` applies config to the very
+    // process running the hook, which is the only form honored here (an
+    // env-provided core.hooksPath is ignored). Unconfined pushes and every fetch
+    // spawn the plumbing binary directly, exactly as before
+    const confined = service === "git-receive-pack" && bounds !== null;
+    const command = confined ? "git" : service;
+    const args = confined
+      ? [
+          "-c",
+          `core.hooksPath=${HOOKS_DIR}`,
+          "receive-pack",
+          "--stateless-rpc",
+          repoPath,
+        ]
+      : ["--stateless-rpc", repoPath];
+
+    const gitProcess = spawn(command, args, {
+      env: {
+        ...process.env,
+        GIT_PROTOCOL: "version=2",
+        ...buildReceivePackHookEnv(bounds),
+      },
     });
 
     const chunks: Buffer[] = [];

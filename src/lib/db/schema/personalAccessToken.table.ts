@@ -81,6 +81,14 @@ export const personalAccessTokenRepositoryTable = pgTable(
     repositoryId: uuid()
       .notNull()
       .references(() => repositoryTable.id, { onDelete: "cascade" }),
+    // Refs this token may touch in this repository, as full-form glob patterns
+    // (e.g. refs/heads/agent/*). NULL means every ref; an empty array means none.
+    // Enforced against the actual push in the pre-receive hook (lib/git/hooks)
+    refPatterns: text().array(),
+    // Repo-relative POSIX path globs this token may modify here (e.g. src/**).
+    // NULL means every path. Enforced against the unpacked pack, not the client's
+    // claim, in the pre-receive hook
+    pathPatterns: text().array(),
     createdAt: generateDefaultDate(),
   },
   (table) => [

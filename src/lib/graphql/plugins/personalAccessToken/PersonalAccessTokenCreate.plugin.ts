@@ -4,6 +4,7 @@ import { extendSchema } from "postgraphile/utils";
 
 import { createPersonalAccessTokenRecord } from "lib/auth/personalAccessToken";
 
+import type { RepositoryScopeInput } from "lib/auth/personalAccessToken";
 import type { FieldArgs } from "postgraphile/grafast";
 
 /**
@@ -28,6 +29,30 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
       enum PersonalAccessTokenPermission {
         READ
         WRITE
+      }
+
+      """
+      Per-repository confinement for an access token, limiting the refs and paths
+      it may touch within that repository. Enforced against real pushes by the
+      git credential boundary and against in-process ref moves (e.g. merges).
+      """
+      input PersonalAccessTokenRepositoryScopeInput {
+        """
+        The repository this confinement applies to.
+        """
+        repositoryId: UUID!
+
+        """
+        Full-form ref globs the token may touch (e.g. "refs/heads/agent/*").
+        Omit for every ref in the repository.
+        """
+        refPatterns: [String!]
+
+        """
+        Repo-relative path globs the token may modify (e.g. "src/**"). Omit for
+        every path in the repository.
+        """
+        pathPatterns: [String!]
       }
 
       """
@@ -93,10 +118,17 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
           permission: PersonalAccessTokenPermission
 
           """
-          Repositories to confine the token to. Omit to leave the token
-          unconfined, so it reaches every repository its owner can reach.
+          Repositories to confine the token to, as whole repositories with no
+          ref/path limits. Omit to leave the token unconfined, so it reaches
+          every repository its owner can reach.
           """
           repositoryIds: [UUID!]
+
+          """
+          Per-repository ref/path confinement. Takes precedence over
+          repositoryIds when both are given.
+          """
+          repositoryScopes: [PersonalAccessTokenRepositoryScopeInput!]
         ): CreatePersonalAccessTokenPayload
       }
     `,
@@ -111,6 +143,7 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
                 const $expiresInDays = fieldArgs.getRaw("expiresInDays");
                 const $permission = fieldArgs.getRaw("permission");
                 const $repositoryIds = fieldArgs.getRaw("repositoryIds");
+                const $repositoryScopes = fieldArgs.getRaw("repositoryScopes");
                 const $db = context().get("db");
                 const $observer = context().get("observer");
 
@@ -120,6 +153,7 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
                     expiresInDays: $expiresInDays,
                     permission: $permission,
                     repositoryIds: $repositoryIds,
+                    repositoryScopes: $repositoryScopes,
                     db: $db,
                     observer: $observer,
                   }),
@@ -140,6 +174,10 @@ const PersonalAccessTokenCreatePlugin = extendSchema(() => {
                           : "write",
                       repositoryIds: args.repositoryIds as
                         | string[]
+                        | null
+                        | undefined,
+                      repositoryScopes: args.repositoryScopes as
+                        | RepositoryScopeInput[]
                         | null
                         | undefined,
                       db: args.db,

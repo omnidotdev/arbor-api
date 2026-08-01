@@ -1,4 +1,8 @@
-import { scopeAllowsRepository, scopeAllowsWrite } from "lib/auth/tokenScope";
+import {
+  scopeAllowsRef,
+  scopeAllowsRepository,
+  scopeAllowsWrite,
+} from "lib/auth/tokenScope";
 import { dbPool } from "lib/db/db";
 import {
   canReadRepository,
@@ -120,6 +124,30 @@ export const gateWriteByRepositoryId = async (
 };
 
 /**
+ * Enforce write access AND ref-scope for a caller about to move a ref in-process.
+ *
+ * Used by tools that advance a branch server-side (e.g. `merge_change` landing a
+ * change onto its base branch) rather than through a git push. Push has its own
+ * boundary in the pre-receive hook; this closes the same hole on the in-process
+ * path, so a credential confined to `refs/heads/agent/*` cannot merge into
+ * `master`. Returns the summary when the caller may write the ref, or null (with
+ * missing and forbidden indistinguishable) otherwise. `ref` is the full ref
+ * (`refs/heads/master`).
+ */
+export const gateRefWrite = async (
+  caller: McpCaller,
+  repositoryId: string,
+  ref: string,
+): Promise<RepositorySummary | null> => {
+  const summary = await gateWriteByRepositoryId(caller, repositoryId);
+  if (!summary) return null;
+
+  if (!scopeAllowsRef(caller.scope, repositoryId, ref)) return null;
+
+  return summary;
+};
+
+/**
  * Whether the caller may create a repository.
  *
  * Creation requires an unconfined write credential. A token issued for a fixed
@@ -129,4 +157,4 @@ export const gateWriteByRepositoryId = async (
  * describe what the token can affect.
  */
 export const gateCreate = (caller: McpCaller): boolean =>
-  scopeAllowsWrite(caller.scope) && caller.scope.repositoryIds === null;
+  scopeAllowsWrite(caller.scope) && caller.scope.repositories === null;

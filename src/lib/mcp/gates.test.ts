@@ -41,13 +41,14 @@ const {
   callerMayRead,
   gateCreate,
   gateRead,
+  gateRefWrite,
   gateWrite,
   gateWriteByRepositoryId,
 } = await import("./gates");
 
 import type { McpCaller } from "./auth";
 
-/** Build a caller with the given scope */
+/** Build a caller with the given scope; repository ids carry no ref/path limits */
 const makeCaller = (
   permission: "read" | "write",
   repositoryIds: string[] | null,
@@ -55,7 +56,31 @@ const makeCaller = (
   ({
     user: { id: "user-1" },
     agent: null,
-    scope: { permission, repositoryIds },
+    scope: {
+      permission,
+      repositories:
+        repositoryIds === null
+          ? null
+          : repositoryIds.map((repositoryId) => ({
+              repositoryId,
+              refPatterns: null,
+              pathPatterns: null,
+            })),
+    },
+  }) as unknown as McpCaller;
+
+/** Build a write caller confined to a ref pattern in a repository */
+const makeRefCaller = (
+  repositoryId: string,
+  refPatterns: string[],
+): McpCaller =>
+  ({
+    user: { id: "user-1" },
+    agent: null,
+    scope: {
+      permission: "write",
+      repositories: [{ repositoryId, refPatterns, pathPatterns: null }],
+    },
   }) as unknown as McpCaller;
 
 beforeEach(() => {
@@ -182,5 +207,43 @@ describe("gateCreate", () => {
     // a token issued for a fixed set of repositories has no business minting
     // new ones: the new repository could never be in its whitelist
     expect(gateCreate(makeCaller("write", ["repo-1"]))).toBe(false);
+  });
+});
+
+describe("gateRefWrite", () => {
+  test("allows an unconfined credential to move any ref", async () => {
+    const gate = await gateRefWrite(
+      makeCaller("write", null),
+      "repo-1",
+      "refs/heads/master",
+    );
+    expect(gate?.id).toBe("repo-1");
+  });
+
+  test("allows a credential whose ref patterns match the target ref", async () => {
+    const gate = await gateRefWrite(
+      makeRefCaller("repo-1", ["refs/heads/agent/*"]),
+      "repo-1",
+      "refs/heads/agent/task-1",
+    );
+    expect(gate?.id).toBe("repo-1");
+  });
+
+  test("refuses a credential whose ref patterns exclude the target ref", async () => {
+    const gate = await gateRefWrite(
+      makeRefCaller("repo-1", ["refs/heads/agent/*"]),
+      "repo-1",
+      "refs/heads/master",
+    );
+    expect(gate).toBeNull();
+  });
+
+  test("refuses a read-only credential before the ref is considered", async () => {
+    const gate = await gateRefWrite(
+      makeCaller("read", null),
+      "repo-1",
+      "refs/heads/agent/task-1",
+    );
+    expect(gate).toBeNull();
   });
 });

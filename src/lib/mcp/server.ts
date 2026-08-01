@@ -21,6 +21,7 @@ import {
   callerMayRead,
   gateCreate,
   gateRead,
+  gateRefWrite,
   gateWrite,
   gateWriteByRepositoryId,
 } from "./gates";
@@ -940,11 +941,20 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       const change = await dbPool.query.changeTable.findFirst({
         where: (table, { eq: eqOp }) => eqOp(table.id, changeId),
         columns: { id: true, repositoryId: true },
+        with: { stack: { columns: { baseBranch: true } } },
       });
 
-      if (!change) return errorResult("Change not found or not writable");
+      if (!change?.stack)
+        return errorResult("Change not found or not writable");
 
-      const gate = await gateWriteByRepositoryId(caller, change.repositoryId);
+      // Merging advances the stack's base branch in-process, so it is gated on
+      // the credential's ref scope as well as write access: a token confined to
+      // (say) refs/heads/agent/* must not land a change onto master this way
+      const gate = await gateRefWrite(
+        caller,
+        change.repositoryId,
+        `refs/heads/${change.stack.baseBranch}`,
+      );
       if (!gate) return errorResult("Change not found or not writable");
 
       // stackService.mergeChange enforces the verification gate, bottom-of-stack

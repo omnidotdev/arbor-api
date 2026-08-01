@@ -65,7 +65,7 @@ import type { McpCaller } from "./auth";
 const caller = {
   user: { id: "user-1", username: "owner" },
   agent: null,
-  scope: { permission: "read", repositoryIds: null },
+  scope: { permission: "read", repositories: null },
   organizations: [],
 } as unknown as McpCaller;
 

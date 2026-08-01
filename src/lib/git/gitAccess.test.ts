@@ -83,7 +83,12 @@ describe("authenticateGitRequest scope", () => {
     __setResolveUserFromPatForTests(async () => ({
       user,
       organizations: [],
-      scope: { permission: "read", repositoryIds: ["repo-1"] },
+      scope: {
+        permission: "read",
+        repositories: [
+          { repositoryId: "repo-1", refPatterns: null, pathPatterns: null },
+        ],
+      },
     }));
 
     const req = new Request("http://localhost/git/foo/bar/info/refs", {
@@ -93,7 +98,9 @@ describe("authenticateGitRequest scope", () => {
 
     expect(result?.user.id).toBe(user.id);
     expect(result?.scope.permission).toBe("read");
-    expect(result?.scope.repositoryIds).toEqual(["repo-1"]);
+    expect(result?.scope.repositories).toEqual([
+      { repositoryId: "repo-1", refPatterns: null, pathPatterns: null },
+    ]);
 
     __setResolveUserFromPatForTests(null);
   });
@@ -123,7 +130,7 @@ describe("authenticateGitRequest scope", () => {
     __setResolveUserFromTokenForTests(async () => ({
       user,
       organizations: [],
-      scope: { permission: "write", repositoryIds: null },
+      scope: { permission: "write", repositories: null },
     }));
 
     const req = new Request("http://localhost/git/foo/bar/info/refs", {
@@ -132,7 +139,7 @@ describe("authenticateGitRequest scope", () => {
     const result = await authenticateGitRequest(req);
 
     expect(result?.scope.permission).toBe("write");
-    expect(result?.scope.repositoryIds).toBeNull();
+    expect(result?.scope.repositories).toBeNull();
 
     __setResolveUserFromTokenForTests(null);
   });

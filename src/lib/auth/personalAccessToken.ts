@@ -10,7 +10,7 @@ import {
 } from "lib/db/schema";
 
 import type { ResolvedUser } from "lib/auth/resolveUserFromToken";
-import type { TokenScope } from "lib/auth/tokenScope";
+import type { RepositoryScope, TokenScope } from "lib/auth/tokenScope";
 
 /**
  * Prefix that marks a credential as an Arbor personal access token (PAT).
@@ -79,12 +79,26 @@ export interface CreatePersonalAccessTokenArgs {
   /** Furthest operation the token may perform; defaults to "write" */
   permission?: "read" | "write";
   /**
-   * Repositories to confine the token to. Omit or pass an empty list to leave
-   * the token unconfined (it then reaches everything its owner can reach).
+   * Repositories to confine the token to, as whole repositories (no ref/path
+   * limits). Shorthand for the common case; omit or pass an empty list to leave
+   * the token unconfined. Ignored when `repositoryScopes` is provided.
    */
   repositoryIds?: string[] | null;
+  /**
+   * Per-repository confinement with ref and path patterns. Takes precedence over
+   * `repositoryIds`. A pattern list of `null` (or omitted) leaves that dimension
+   * unconfined within the repository.
+   */
+  repositoryScopes?: RepositoryScopeInput[] | null;
   /** Database surface used for the insert */
   db: Pick<typeof dbPool, "insert">;
+}
+
+/** A repository confinement as supplied to token creation */
+export interface RepositoryScopeInput {
+  repositoryId: string;
+  refPatterns?: string[] | null;
+  pathPatterns?: string[] | null;
 }
 
 /** Payload returned to the caller when a token is created */
@@ -112,6 +126,7 @@ export const createPersonalAccessTokenRecord = async ({
   expiresInDays,
   permission = "write",
   repositoryIds,
+  repositoryScopes,
   db,
 }: CreatePersonalAccessTokenArgs): Promise<CreatedPersonalAccessTokenPayload> => {
   // Must be authenticated; never trust a client-supplied owner
@@ -145,12 +160,21 @@ export const createPersonalAccessTokenRecord = async ({
   if (!row) throw new Error("Failed to create token");
 
   // Naming repositories is what confines the token; writing no rows leaves it
-  // unconfined, which is the behaviour of every token minted before scoping
-  if (repositoryIds?.length) {
+  // unconfined, which is the behaviour of every token minted before scoping.
+  // Structured scopes carry ref/path limits; the repositoryIds shorthand
+  // confines to whole repositories (null patterns)
+  const scopeRows: RepositoryScopeInput[] =
+    repositoryScopes ??
+    repositoryIds?.map((repositoryId) => ({ repositoryId })) ??
+    [];
+
+  if (scopeRows.length) {
     await db.insert(personalAccessTokenRepositoryTable).values(
-      repositoryIds.map((repositoryId) => ({
+      scopeRows.map((scope) => ({
         personalAccessTokenId: row.id,
-        repositoryId,
+        repositoryId: scope.repositoryId,
+        refPatterns: scope.refPatterns ?? null,
+        pathPatterns: scope.pathPatterns ?? null,
       })),
     );
   }
@@ -169,7 +193,13 @@ export const createPersonalAccessTokenRecord = async ({
 /** Shape of a token row that scope is derived from */
 interface ScopableTokenRow {
   permission?: string | null;
-  repositories?: { repositoryId: string }[] | null;
+  repositories?:
+    | {
+        repositoryId: string;
+        refPatterns?: string[] | null;
+        pathPatterns?: string[] | null;
+      }[]
+    | null;
 }
 
 /**
@@ -179,12 +209,19 @@ interface ScopableTokenRow {
  * scoping existed is never silently narrowed. An empty repository whitelist
  * means "not confined" rather than "reaches nothing", because confinement is
  * expressed by naming repositories, and a token that reaches nothing would be
- * useless rather than safe.
+ * useless rather than safe. Per-repository `refPatterns` / `pathPatterns` of
+ * `null` leave that dimension unconfined within the repository.
  */
 const resolveTokenScope = (row: ScopableTokenRow): TokenScope => ({
   permission: row.permission === "read" ? "read" : "write",
-  repositoryIds: row.repositories?.length
-    ? row.repositories.map(({ repositoryId }) => repositoryId)
+  repositories: row.repositories?.length
+    ? row.repositories.map(
+        ({ repositoryId, refPatterns, pathPatterns }): RepositoryScope => ({
+          repositoryId,
+          refPatterns: refPatterns ?? null,
+          pathPatterns: pathPatterns ?? null,
+        }),
+      )
     : null,
 });
 

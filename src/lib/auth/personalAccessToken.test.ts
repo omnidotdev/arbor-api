@@ -151,7 +151,39 @@ describe("resolveUserFromPat", () => {
     const resolved = await resolveUserFromPat(`${PAT_PREFIX}scoped`, db);
 
     expect(resolved?.scope.permission).toBe("read");
-    expect(resolved?.scope.repositoryIds).toEqual(["repo-1", "repo-2"]);
+    // repositories with no ref/path patterns are unconfined within each repo
+    expect(resolved?.scope.repositories).toEqual([
+      { repositoryId: "repo-1", refPatterns: null, pathPatterns: null },
+      { repositoryId: "repo-2", refPatterns: null, pathPatterns: null },
+    ]);
+  });
+
+  test("carries a repository's ref and path patterns into the scope", async () => {
+    const user = makeUser();
+    const db = makeResolveDb({
+      id: "pat-1",
+      userId: user.id,
+      expiresAt: null,
+      permission: "write",
+      repositories: [
+        {
+          repositoryId: "repo-1",
+          refPatterns: ["refs/heads/agent/*"],
+          pathPatterns: ["src/**"],
+        },
+      ],
+      user,
+    });
+
+    const resolved = await resolveUserFromPat(`${PAT_PREFIX}refpath`, db);
+
+    expect(resolved?.scope.repositories).toEqual([
+      {
+        repositoryId: "repo-1",
+        refPatterns: ["refs/heads/agent/*"],
+        pathPatterns: ["src/**"],
+      },
+    ]);
   });
 
   test("a token with no whitelisted repositories is unconfined", async () => {
@@ -168,7 +200,7 @@ describe("resolveUserFromPat", () => {
     const resolved = await resolveUserFromPat(`${PAT_PREFIX}unconfined`, db);
 
     // null (not []) so it reaches everything its owner can reach
-    expect(resolved?.scope.repositoryIds).toBeNull();
+    expect(resolved?.scope.repositories).toBeNull();
   });
 
   test("a token predating scopes keeps full authority", async () => {
@@ -184,7 +216,7 @@ describe("resolveUserFromPat", () => {
     const resolved = await resolveUserFromPat(`${PAT_PREFIX}legacy`, db);
 
     expect(resolved?.scope.permission).toBe("write");
-    expect(resolved?.scope.repositoryIds).toBeNull();
+    expect(resolved?.scope.repositories).toBeNull();
   });
 
   test("returns null for a credential that is not a PAT (no lookup)", async () => {
@@ -362,7 +394,7 @@ describe("createPersonalAccessTokenRecord", () => {
     ).rejects.toThrow("Invalid permission");
   });
 
-  test("confines the token to the requested repositories", async () => {
+  test("confines the token to the requested repositories with no ref/path limits", async () => {
     const captured: { values?: Record<string, unknown> } = {};
     const scoped: Record<string, unknown>[] = [];
     const db = makeInsertDbWithScopes(captured, scoped);
@@ -374,9 +406,48 @@ describe("createPersonalAccessTokenRecord", () => {
       db,
     });
 
+    // the repositoryIds shorthand confines to whole repositories: null patterns
     expect(scoped).toEqual([
-      { personalAccessTokenId: "pat-1", repositoryId: "repo-1" },
-      { personalAccessTokenId: "pat-1", repositoryId: "repo-2" },
+      {
+        personalAccessTokenId: "pat-1",
+        repositoryId: "repo-1",
+        refPatterns: null,
+        pathPatterns: null,
+      },
+      {
+        personalAccessTokenId: "pat-1",
+        repositoryId: "repo-2",
+        refPatterns: null,
+        pathPatterns: null,
+      },
+    ]);
+  });
+
+  test("persists per-repository ref and path patterns from structured scopes", async () => {
+    const captured: { values?: Record<string, unknown> } = {};
+    const scoped: Record<string, unknown>[] = [];
+    const db = makeInsertDbWithScopes(captured, scoped);
+
+    await createPersonalAccessTokenRecord({
+      observer: { id: "observer-1" },
+      name: "agent",
+      repositoryScopes: [
+        {
+          repositoryId: "repo-1",
+          refPatterns: ["refs/heads/agent/*"],
+          pathPatterns: ["src/**"],
+        },
+      ],
+      db,
+    });
+
+    expect(scoped).toEqual([
+      {
+        personalAccessTokenId: "pat-1",
+        repositoryId: "repo-1",
+        refPatterns: ["refs/heads/agent/*"],
+        pathPatterns: ["src/**"],
+      },
     ]);
   });
 

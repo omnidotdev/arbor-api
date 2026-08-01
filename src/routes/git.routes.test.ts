@@ -16,19 +16,32 @@ type RepoSummary = {
   organizationId: string | null;
 } | null;
 
+// Confine a scope to whole repositories (no ref/path limits)
+const repos = (
+  ids: string[],
+): { repositoryId: string; refPatterns: null; pathPatterns: null }[] =>
+  ids.map((repositoryId) => ({
+    repositoryId,
+    refPatterns: null,
+    pathPatterns: null,
+  }));
+
 // Mutable test state controlling the stubbed boundary
 const state: {
   repo: RepoSummary;
   canRead: boolean;
   canWrite: boolean;
   authedUser: { id: string } | null;
-  scope: { permission: "read" | "write"; repositoryIds: string[] | null };
+  scope: {
+    permission: "read" | "write";
+    repositories: ReturnType<typeof repos> | null;
+  };
 } = {
   repo: null,
   canRead: false,
   canWrite: false,
   authedUser: null,
-  scope: { permission: "write", repositoryIds: null },
+  scope: { permission: "write", repositories: null },
 };
 
 const noopResult = { success: true, data: new Uint8Array([1, 2, 3]) };
@@ -102,7 +115,7 @@ const reset = () => {
   state.canRead = false;
   state.canWrite = false;
   state.authedUser = null;
-  state.scope = { permission: "write", repositoryIds: null };
+  state.scope = { permission: "write", repositories: null };
 };
 
 beforeEach(reset);
@@ -306,7 +319,7 @@ describe("git routes token scope enforcement", () => {
     state.canRead = true;
     state.authedUser = { id: "o1" };
     // owner-level access, but the credential is confined elsewhere
-    state.scope = { permission: "write", repositoryIds: ["other-repo"] };
+    state.scope = { permission: "write", repositories: repos(["other-repo"]) };
 
     const res = await makeApp().handle(
       new Request(
@@ -323,7 +336,7 @@ describe("git routes token scope enforcement", () => {
     state.repo = repo;
     state.canRead = true;
     state.authedUser = { id: "o1" };
-    state.scope = { permission: "read", repositoryIds: ["r1"] };
+    state.scope = { permission: "read", repositories: repos(["r1"]) };
 
     const res = await makeApp().handle(
       new Request(
@@ -339,7 +352,7 @@ describe("git routes token scope enforcement", () => {
     state.repo = repo;
     state.canWrite = true;
     state.authedUser = { id: "o1" };
-    state.scope = { permission: "read", repositoryIds: null };
+    state.scope = { permission: "read", repositories: null };
 
     const res = await makeApp().handle(
       new Request("http://localhost/git/alice/repo/git-receive-pack", {
@@ -356,7 +369,7 @@ describe("git routes token scope enforcement", () => {
     state.repo = repo;
     state.canRead = true;
     state.authedUser = { id: "o1" };
-    state.scope = { permission: "read", repositoryIds: null };
+    state.scope = { permission: "read", repositories: null };
 
     const res = await makeApp().handle(
       new Request("http://localhost/git/alice/repo/git-upload-pack", {
@@ -373,7 +386,7 @@ describe("git routes token scope enforcement", () => {
     state.repo = repo;
     state.canWrite = true;
     state.authedUser = { id: "o1" };
-    state.scope = { permission: "write", repositoryIds: ["other-repo"] };
+    state.scope = { permission: "write", repositories: repos(["other-repo"]) };
 
     const res = await makeApp().handle(
       new Request("http://localhost/git/alice/repo/git-receive-pack", {
@@ -390,7 +403,7 @@ describe("git routes token scope enforcement", () => {
     state.repo = repo;
     state.canWrite = true;
     state.authedUser = { id: "o1" };
-    state.scope = { permission: "read", repositoryIds: null };
+    state.scope = { permission: "read", repositories: null };
 
     const res = await makeApp().handle(
       new Request(

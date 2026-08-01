@@ -1,0 +1,4 @@
+#!/bin/sh
+# Git pre-receive hook: enforce the pushing credential's ref/path bounds.
+# core.hooksPath is pointed here per-spawn by git.routes.ts for confined tokens.
+exec bun "$(dirname "$0")/preReceiveHook.ts"

@@ -1,6 +1,10 @@
 import { Elysia, t } from "elysia";
 
-import { scopeAllowsRepository, scopeAllowsWrite } from "lib/auth/tokenScope";
+import {
+  scopeAllowsRepository,
+  scopeAllowsWrite,
+  scopeBoundsForRepository,
+} from "lib/auth/tokenScope";
 import { dbPool } from "lib/db/db";
 import { isWithinLimit } from "lib/entitlements";
 import {
@@ -24,6 +28,8 @@ import {
   FEATURE_KEYS,
   billingBypassOrgIds,
 } from "lib/graphql/plugins/authorization/constants";
+
+import type { AuthenticatedGitCaller } from "lib/git";
 
 /** WWW-Authenticate header value prompting the git CLI for credentials */
 const GIT_AUTH_REALM = 'Basic realm="Arbor"';
@@ -95,6 +101,8 @@ type WriteGate =
       repository: NonNullable<
         Awaited<ReturnType<typeof resolveRepositorySummary>>
       >;
+      /** The authenticated caller, carried so the push can read its scope bounds */
+      caller: AuthenticatedGitCaller;
     }
   | { authorized: false; body: { error: string } };
 
@@ -154,7 +162,7 @@ const gateWrite = async (
     };
   }
 
-  return { authorized: true, repository };
+  return { authorized: true, repository, caller };
 };
 
 /**
@@ -558,8 +566,13 @@ const gitRoutes = new Elysia({ prefix: "/git" })
         }
       }
 
+      // Enforce the credential's ref/path bounds against the actual pushed
+      // objects via the pre-receive hook. Null bounds (unconfined, or confined
+      // only at repository level) leaves the push exactly as before
+      const bounds = scopeBoundsForRepository(gate.caller.scope, repository.id);
+
       const body = Buffer.from(await request.arrayBuffer());
-      const result = await receivePack(owner, repo, body);
+      const result = await receivePack(owner, repo, body, bounds);
 
       if (!result.success) {
         set.status = 500;
