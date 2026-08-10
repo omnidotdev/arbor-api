@@ -9,6 +9,7 @@ import {
   NoNodeIdMutationsPlugin,
   OrganizationPlugin,
   PrimaryKeyMutationsOnlyPlugin,
+  ProjectPlugin,
   PullRequestCommentPlugin,
   PullRequestPlugin,
   PullRequestReviewPlugin,
@@ -19,6 +20,11 @@ import {
   SmartTagPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
+import {
+  DependencyDiscoveryPlugin,
+  ProjectMembershipPlugin,
+  RepositoryBlastRadiusPlugin,
+} from "lib/graphql/plugins/dependencies";
 import {
   GitDiffPlugin,
   GitMutationsPlugin,
@@ -60,6 +66,7 @@ const graphilePreset: GraphileConfig.Preset = {
     NoNodeIdMutationsPlugin,
     OrganizationPlugin,
     PrimaryKeyMutationsOnlyPlugin,
+    ProjectPlugin,
     PullRequestPlugin,
     PullRequestCommentPlugin,
     PullRequestReviewPlugin,
@@ -91,6 +98,12 @@ const graphilePreset: GraphileConfig.Preset = {
     StackMutationsPlugin,
     // Merge queue: enqueue stacks and run a serial processing pass
     MergeQueueMutationsPlugin,
+    // Dependency discovery: reconcile the graph from a repository's manifest
+    DependencyDiscoveryPlugin,
+    // Blast radius: the repositories affected by a change, via reverse deps
+    RepositoryBlastRadiusPlugin,
+    // Project membership reconciled from a repository's arbor.project.json
+    ProjectMembershipPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

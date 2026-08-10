@@ -6,6 +6,10 @@ import {
   scopeBoundsForRepository,
 } from "lib/auth/tokenScope";
 import { dbPool } from "lib/db/db";
+import {
+  discoverDependencies,
+  reconcileProjectMembership,
+} from "lib/dependencies";
 import { isWithinLimit } from "lib/entitlements";
 import {
   advertiseRefs,
@@ -571,6 +575,12 @@ const gitRoutes = new Elysia({ prefix: "/git" })
       // only at repository level) leaves the push exactly as before
       const bounds = scopeBoundsForRepository(gate.caller.scope, repository.id);
 
+      // The default branch tip before the push, to detect whether this push
+      // advanced it (HEAD resolves through the default branch to a commit)
+      const headBefore = await gitService
+        .getHead(owner, repo)
+        .catch(() => null);
+
       const body = Buffer.from(await request.arrayBuffer());
       const result = await receivePack(owner, repo, body, bounds);
 
@@ -581,6 +591,28 @@ const gitRoutes = new Elysia({ prefix: "/git" })
 
       // Invalidate size cache after successful push
       invalidateRepositorySizeCache(owner, repo);
+
+      // Keep the graph self-maintaining: when a push advances the default
+      // branch, re-scan the repository's manifests and its project descriptor.
+      // Both are best-effort and fire-and-forget, so they never delay or fail
+      // the push, and each re-checks write access
+      const headAfter = await gitService.getHead(owner, repo).catch(() => null);
+      if (headAfter && headAfter !== headBefore) {
+        void discoverDependencies({
+          observer: { id: gate.caller.user.id },
+          db: dbPool,
+          input: { repositoryId: repository.id },
+        }).catch((error) =>
+          console.error("[git] auto dependency discovery failed:", error),
+        );
+        void reconcileProjectMembership({
+          observer: { id: gate.caller.user.id },
+          db: dbPool,
+          input: { repositoryId: repository.id },
+        }).catch((error) =>
+          console.error("[git] auto project membership sync failed:", error),
+        );
+      }
 
       set.headers["content-type"] =
         getServiceResultContentType("git-receive-pack");

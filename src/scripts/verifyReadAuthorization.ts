@@ -267,6 +267,15 @@ const seed = async () => {
     .returning();
   if (!relationship) throw new Error("failed to seed relationship");
 
+  // A PRIVATE repository depending on the PUBLIC one, so the public repo's blast
+  // radius (its transitive dependents) includes a repository the caller may not
+  // see. The dependent must be filtered out, not leaked through the impact view
+  await dbPool.insert(repositoryRelationshipTable).values({
+    sourceRepositoryId: privateRepo.id,
+    targetRepositoryId: publicRepo.id,
+    relationshipTypeId: relationshipType.id,
+  });
+
   await dbPool.insert(repositoryRelationshipMetadataTable).values({
     relationshipId: relationship.id,
     key: `${TAG}-key`,
@@ -311,7 +320,7 @@ const seed = async () => {
     repositoryId: privateRepo.id,
   });
 
-  return { privateRepoId: privateRepo.id };
+  return { privateRepoId: privateRepo.id, publicRepoId: publicRepo.id };
 };
 
 /**
@@ -325,6 +334,7 @@ const seed = async () => {
  */
 const cases = (
   privateRepoId: string,
+  publicRepoId: string,
 ): { name: string; document: string; mustReject?: boolean }[] => [
   {
     name: "repositories connection",
@@ -373,6 +383,12 @@ const cases = (
   {
     name: "repositoryRelationships (edge to a private repo)",
     document: `{ repositoryRelationships(first:100){ nodes{ sourceRepository{ slug } targetRepository{ slug } } } }`,
+  },
+  {
+    // blast radius follows reverse dependencies; a private repo depending on the
+    // public one must not surface as an affected repository for an anonymous view
+    name: "repositoryBlastRadius (private dependent of a public repo)",
+    document: `{ repositoryBlastRadius(repositoryId:"${publicRepoId}"){ slug name } }`,
   },
   {
     name: "repositoryRelationshipMetadata",
@@ -459,11 +475,11 @@ const cases = (
 ];
 
 const main = async () => {
-  const { privateRepoId } = await seed();
+  const { privateRepoId, publicRepoId } = await seed();
 
   let failures = 0;
 
-  for (const testCase of cases(privateRepoId)) {
+  for (const testCase of cases(privateRepoId, publicRepoId)) {
     const body = await query(testCase.document);
     const leaked = SECRETS.filter((secret) => body.includes(secret));
 

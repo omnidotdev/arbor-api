@@ -71,6 +71,10 @@ export const projectRepositoryTable = pgTable(
     repositoryId: uuid()
       .notNull()
       .references(() => repositoryTable.id, { onDelete: "cascade" }),
+    // "manual" (added through the app) or "descriptor" (reconciled from the
+    // repository's arbor.project.json). Only descriptor rows are replaced on a
+    // re-scan, so a manually added membership is never removed by the sync
+    detectionSource: text().notNull().default("manual"),
     createdAt: generateDefaultDate(),
   },
   (table) => [

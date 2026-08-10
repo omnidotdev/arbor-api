@@ -36,13 +36,25 @@ const state: {
     permission: "read" | "write";
     repositories: ReturnType<typeof repos> | null;
   };
+  // Default-branch HEAD before/after a push, to model whether it advanced
+  headBefore: string;
+  headAfter: string;
 } = {
   repo: null,
   canRead: false,
   canWrite: false,
   authedUser: null,
   scope: { permission: "write", repositories: null },
+  headBefore: "head-sha",
+  headAfter: "head-sha",
 };
+
+// getHead is called twice per receive-pack (before, then after); alternate
+let headCall = 0;
+
+// Records auto-triggered dependency discovery and project sync so a push can assert
+const discoverCalls: string[] = [];
+const reconcileCalls: string[] = [];
 
 const noopResult = { success: true, data: new Uint8Array([1, 2, 3]) };
 
@@ -56,6 +68,8 @@ mock.module("lib/git", () => ({
     getTree: async () => [],
     getFileContent: async () => "content",
     getFileRaw: async () => Buffer.from("content"),
+    getHead: async () =>
+      headCall++ % 2 === 0 ? state.headBefore : state.headAfter,
   },
   advertiseRefs: async () => noopResult,
   uploadPack: async () => noopResult,
@@ -91,6 +105,32 @@ mock.module("lib/git/storage.config", () => ({
   invalidateRepositorySizeCache: () => {},
 }));
 
+// mock.module registrations are global for the whole suite run, so this stub
+// must expose every runtime export of lib/dependencies that any module links
+// against (mcp/server and the graphql plugins import repositoryBlastRadius and
+// the pure helpers), not only the one this file exercises
+mock.module("lib/dependencies", () => ({
+  discoverDependencies: async (args: { input: { repositoryId: string } }) => {
+    discoverCalls.push(args.input.repositoryId);
+    return { internalDependencies: 0, externalDependencies: 0, error: null };
+  },
+  reconcileProjectMembership: async (args: {
+    input: { repositoryId: string };
+  }) => {
+    reconcileCalls.push(args.input.repositoryId);
+    return { linkedProjects: 0, error: null };
+  },
+  repositoryBlastRadius: async () => [],
+  computeBlastRadius: () => [],
+  parseNpmManifest: () => ({ packageManager: "npm", dependencies: [] }),
+  parseCargoManifest: () => ({ packageManager: "cargo", dependencies: [] }),
+  parseGoManifest: () => ({ packageManager: "go", dependencies: [] }),
+  parsePipManifest: () => ({ packageManager: "pip", dependencies: [] }),
+  partitionDependencies: () => ({ internal: [], external: [] }),
+  parseProjectDescriptor: () => [],
+  resolveDescriptorProjectIds: () => [],
+}));
+
 mock.module("lib/entitlements", () => ({
   isWithinLimit: async () => true,
 }));
@@ -116,6 +156,12 @@ const reset = () => {
   state.canWrite = false;
   state.authedUser = null;
   state.scope = { permission: "write", repositories: null };
+  // Default: HEAD unchanged by a push, so discovery is not auto-triggered
+  state.headBefore = "head-sha";
+  state.headAfter = "head-sha";
+  headCall = 0;
+  discoverCalls.length = 0;
+  reconcileCalls.length = 0;
 };
 
 beforeEach(reset);
@@ -284,6 +330,58 @@ describe("git routes write authorization", () => {
       }),
     );
     expect(res.status).toBe(200);
+  });
+
+  test("a push that advances the default branch auto-scans dependencies", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    state.authedUser = { id: "o1" };
+    state.canWrite = true;
+    // HEAD moved, so the default branch advanced
+    state.headBefore = "old-sha";
+    state.headAfter = "new-sha";
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/git-receive-pack", {
+        method: "POST",
+        body: new Uint8Array([0]),
+        headers: { authorization: "Bearer tok" },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(discoverCalls).toEqual(["r1"]);
+    expect(reconcileCalls).toEqual(["r1"]);
+  });
+
+  test("a push that does not move the default branch does not scan", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    state.authedUser = { id: "o1" };
+    state.canWrite = true;
+    // HEAD unchanged (e.g. a push to a feature branch)
+    state.headBefore = "same-sha";
+    state.headAfter = "same-sha";
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/git-receive-pack", {
+        method: "POST",
+        body: new Uint8Array([0]),
+        headers: { authorization: "Bearer tok" },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(discoverCalls).toEqual([]);
+    expect(reconcileCalls).toEqual([]);
   });
 
   test("private repo receive-pack anonymous => 401 (write check precedes read masking)", async () => {

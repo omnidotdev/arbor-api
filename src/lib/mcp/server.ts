@@ -12,6 +12,11 @@ import {
   stackTable,
   verificationCheckTable,
 } from "lib/db/schema";
+import {
+  discoverDependencies,
+  reconcileProjectMembership,
+  repositoryBlastRadius,
+} from "lib/dependencies";
 import { gitService } from "lib/git";
 import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
 import { pullRequestService } from "lib/pullRequest";
@@ -660,6 +665,103 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       } catch (err) {
         console.error("[MCP] create_repository failed:", err);
         return errorResult("Failed to create repository");
+      }
+    },
+  );
+
+  server.registerTool(
+    "discover_dependencies",
+    {
+      title: "Discover dependencies",
+      description:
+        "Scan a repository's package manifests (package.json, Cargo.toml, go.mod, requirements.txt) at its default branch and reconcile its dependency graph: edges to other repositories the same owner or organization holds, and external packages for the rest. Replaces previously auto-detected dependencies while leaving manually created edges intact. Requires write access to the repository",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ owner, repo }) => {
+      const gate = await gateWrite(caller, owner, repo);
+      if (!gate) return errorResult(NOT_WRITABLE_MESSAGE);
+
+      try {
+        const result = await discoverDependencies({
+          observer: { id: caller.user.id },
+          db: dbPool,
+          input: { repositoryId: gate.id },
+        });
+        return jsonResult({
+          internalDependencies: result.internalDependencies,
+          externalDependencies: result.externalDependencies,
+          note: result.error,
+        });
+      } catch (err) {
+        console.error("[MCP] discover_dependencies failed:", err);
+        return errorResult("Failed to discover dependencies");
+      }
+    },
+  );
+
+  server.registerTool(
+    "reconcile_project_membership",
+    {
+      title: "Reconcile project membership",
+      description:
+        "Apply a repository's arbor.project.json at its default branch, linking it to the projects it declares (and its owner holds) and unlinking descriptor memberships it no longer declares. Manually added memberships are left intact. Requires write access to the repository",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ owner, repo }) => {
+      const gate = await gateWrite(caller, owner, repo);
+      if (!gate) return errorResult(NOT_WRITABLE_MESSAGE);
+
+      try {
+        const result = await reconcileProjectMembership({
+          observer: { id: caller.user.id },
+          db: dbPool,
+          input: { repositoryId: gate.id },
+        });
+        return jsonResult({
+          linkedProjects: result.linkedProjects,
+          note: result.error,
+        });
+      } catch (err) {
+        console.error("[MCP] reconcile_project_membership failed:", err);
+        return errorResult("Failed to reconcile project membership");
+      }
+    },
+  );
+
+  server.registerTool(
+    "repository_blast_radius",
+    {
+      title: "Repository blast radius",
+      description:
+        "List the repositories that would be affected by a change to this repository, following the dependency graph in reverse (its transitive dependents), nearest first. Use this to scope a cross-repo change. Only repositories the caller may see are returned",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ owner, repo }) => {
+      const gate = await gateRead(caller, owner, repo);
+      if (!gate) return errorResult(NOT_FOUND_MESSAGE);
+
+      try {
+        const affected = await repositoryBlastRadius({
+          observer: { id: caller.user.id },
+          db: dbPool,
+          input: { repositoryId: gate.id },
+        });
+        return jsonResult({ affected });
+      } catch (err) {
+        console.error("[MCP] repository_blast_radius failed:", err);
+        return errorResult("Failed to compute blast radius");
       }
     },
   );

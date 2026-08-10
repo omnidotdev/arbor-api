@@ -1,0 +1,1 @@
+ALTER TABLE "project_repository" ADD COLUMN "detection_source" text DEFAULT 'manual' NOT NULL;
