@@ -12,6 +12,7 @@ import {
   stackTable,
   verificationCheckTable,
 } from "lib/db/schema";
+import { discoverDependencies } from "lib/dependencies";
 import { gitService } from "lib/git";
 import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
 import { pullRequestService } from "lib/pullRequest";
@@ -660,6 +661,40 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       } catch (err) {
         console.error("[MCP] create_repository failed:", err);
         return errorResult("Failed to create repository");
+      }
+    },
+  );
+
+  server.registerTool(
+    "discover_dependencies",
+    {
+      title: "Discover dependencies",
+      description:
+        "Scan a repository's package.json at its default branch and reconcile its dependency graph: edges to other repositories the same owner or organization holds, and external packages for the rest. Replaces previously auto-detected dependencies while leaving manually created edges intact. Requires write access to the repository",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ owner, repo }) => {
+      const gate = await gateWrite(caller, owner, repo);
+      if (!gate) return errorResult(NOT_WRITABLE_MESSAGE);
+
+      try {
+        const result = await discoverDependencies({
+          observer: { id: caller.user.id },
+          db: dbPool,
+          input: { repositoryId: gate.id },
+        });
+        return jsonResult({
+          internalDependencies: result.internalDependencies,
+          externalDependencies: result.externalDependencies,
+          note: result.error,
+        });
+      } catch (err) {
+        console.error("[MCP] discover_dependencies failed:", err);
+        return errorResult("Failed to discover dependencies");
       }
     },
   );
