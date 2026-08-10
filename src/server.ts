@@ -26,7 +26,7 @@ import graphilePreset from "lib/config/graphile.config";
 import { graphqlPgPool } from "lib/db/db";
 import { pgSubscriber } from "lib/db/pubsub";
 import { warnIfRowLevelSecurityIsBypassed } from "lib/db/rowLevelSecurity";
-import { ensureReposDirectory } from "lib/git";
+import { ensureReposDirectory, initArborGitBackend } from "lib/git";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
 import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
 import { rateLimit } from "lib/middleware/rateLimit";
@@ -174,6 +174,13 @@ const app = new Elysia({
 // Ensure git repositories directory exists
 ensureReposDirectory().catch((err) => {
   console.error("[Git] Failed to create repositories directory:", err);
+});
+
+// Establish the arbor-git backend connection when enabled (health-checked;
+// falls back to in-process git if unreachable). Not awaited: the boot path must
+// not block on an optional integration
+initArborGitBackend().catch((err) => {
+  console.error("[Git] arbor-git backend init failed:", err);
 });
 
 // Initialize search indexes if search is enabled
