@@ -154,9 +154,6 @@ const visibleChangeIds = (userId: unknown) =>
 /** The row's own primary key, for connections scoped by an id set over themselves */
 const own = (alias: unknown) => sql`${alias as never}.id`;
 
-/** Rows reaching their scope through a project */
-const viaProject = (alias: unknown) => sql`${alias as never}.project_id`;
-
 /** Rows reaching their scope through a repository relationship */
 const viaRelationship = (alias: unknown) =>
   sql`${alias as never}.relationship_id`;
@@ -196,6 +193,20 @@ const visibleRelationshipIds = (userId: unknown) => sql`
   select rr.id from repository_relationship rr
   where rr.source_repository_id in (${visibleRepositoryIds(userId)})
     and rr.target_repository_id in (${visibleRepositoryIds(userId)})`;
+
+/**
+ * Membership ids where BOTH the project and the repository are visible.
+ *
+ * A `project_repository` row carries `repository_id`, and
+ * `ProjectRepository.repository` is a single-row relation that cannot be
+ * planner-filtered, so a private repository pinned to a project the caller can
+ * see would leak its existence and name through that relation. Requiring both
+ * ends closes it, mirroring the both-ends rule the relationship graph uses.
+ */
+const visibleMembershipIds = (userId: unknown) => sql`
+  select pr.id from project_repository pr
+  where pr.project_id in (${visibleProjectIds(userId)})
+    and pr.repository_id in (${visibleRepositoryIds(userId)})`;
 
 /** Personal access token ids belonging to the caller */
 const visibleTokenIds = (userId: unknown) =>
@@ -346,7 +357,8 @@ const RepositoryReadPlugin = wrapPlans({
     repositoryCollaborators: scopeByRepository(direct),
     // the polyrepo graph. An edge is only visible when BOTH ends are
     projects: scopeByRepository(own, visibleProjectIds),
-    projectRepositories: scopeByRepository(viaProject, visibleProjectIds),
+    // a membership is only visible when BOTH its project and its repository are
+    projectRepositories: scopeByRepository(own, visibleMembershipIds),
     repositoryRelationships: scopeByRepository(own, visibleRelationshipIds),
     repositoryRelationshipMetadata: scopeByRepository(
       viaRelationship,
@@ -371,6 +383,10 @@ const RepositoryReadPlugin = wrapPlans({
   },
   User: {
     repositoriesByOwnerId: scopeToVisible,
+  },
+  Project: {
+    // the nested path the project page reads; same both-ends rule as the root
+    projectRepositories: scopeByRepository(own, visibleMembershipIds),
   },
 });
 

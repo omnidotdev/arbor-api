@@ -1,6 +1,7 @@
 export { default as NoNodeIdMutationsPlugin } from "./NoNodeIdMutations.plugin";
 export { default as OrganizationPlugin } from "./Organization.plugin";
 export { default as PrimaryKeyMutationsOnlyPlugin } from "./PrimaryKeyMutationsOnly.plugin";
+export { default as ProjectPlugin } from "./Project.plugin";
 export { default as PullRequestPlugin } from "./PullRequest.plugin";
 export { default as PullRequestCommentPlugin } from "./PullRequestComment.plugin";
 export { default as PullRequestReviewPlugin } from "./PullRequestReview.plugin";
