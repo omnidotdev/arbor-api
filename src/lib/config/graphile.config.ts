@@ -20,6 +20,7 @@ import {
   SmartTagPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
+import { DependencyDiscoveryPlugin } from "lib/graphql/plugins/dependencies";
 import {
   GitDiffPlugin,
   GitMutationsPlugin,
@@ -93,6 +94,8 @@ const graphilePreset: GraphileConfig.Preset = {
     StackMutationsPlugin,
     // Merge queue: enqueue stacks and run a serial processing pass
     MergeQueueMutationsPlugin,
+    // Dependency discovery: reconcile the graph from a repository's manifest
+    DependencyDiscoveryPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

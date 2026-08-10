@@ -14807,6 +14807,24 @@ type ProcessMergeQueuePayload {
   error: String
 }
 
+"""Input for discovering a repository's dependencies from its manifest."""
+input DiscoverDependenciesInput {
+  """The repository to scan."""
+  repositoryId: UUID!
+}
+
+"""Payload for the discoverDependencies mutation."""
+type DiscoverDependenciesPayload {
+  """The number of internal repository-to-repository edges detected."""
+  internalDependencies: Int
+
+  """The number of external (non-Arbor) package dependencies detected."""
+  externalDependencies: Int
+
+  """A non-fatal reason discovery produced nothing (e.g. no manifest)."""
+  error: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -16382,6 +16400,17 @@ type Mutation {
     """
     input: ProcessMergeQueueInput!
   ): ProcessMergeQueuePayload
+
+  """
+  Scan a repository's package manifest at its default branch and reconcile
+  its dependency graph, replacing previously auto-detected dependencies.
+  """
+  discoverDependencies(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DiscoverDependenciesInput!
+  ): DiscoverDependenciesPayload
 }
 
 """
