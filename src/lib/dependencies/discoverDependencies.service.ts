@@ -6,10 +6,19 @@ import {
   repositoryRelationshipTypeTable,
 } from "lib/db/schema";
 import { gitService } from "lib/git";
-import { parseNpmManifest, partitionDependencies } from "./dependencyDiscovery";
+import {
+  parseCargoManifest,
+  parseNpmManifest,
+  partitionDependencies,
+} from "./dependencyDiscovery";
 
 import type { dbPool } from "lib/db/db";
-import type { RepositoryCandidate } from "./dependencyDiscovery";
+import type {
+  ExternalDependency,
+  InternalEdge,
+  ParsedManifest,
+  RepositoryCandidate,
+} from "./dependencyDiscovery";
 
 /** Rows written by discovery carry this source, so a re-scan can replace only them. */
 const DETECTION_SOURCE = "manifest";
@@ -17,8 +26,17 @@ const DETECTION_SOURCE = "manifest";
 /** The system-wide relationship type auto-detected dependency edges use. */
 const DEPENDENCY_TYPE_NAME = "dependency";
 
-/** The manifest discovery reads today. Extend with cargo/go/pip alongside the parser. */
-const NPM_MANIFEST_PATH = "package.json";
+/**
+ * The manifests discovery reads at the default branch, each with its parser.
+ * Add go.mod / requirements.txt here alongside a parser to widen coverage.
+ */
+const MANIFESTS: {
+  path: string;
+  parse: (content: string) => ParsedManifest;
+}[] = [
+  { path: "package.json", parse: parseNpmManifest },
+  { path: "Cargo.toml", parse: parseCargoManifest },
+];
 
 export interface DiscoverDependenciesResult {
   internalDependencies: number;
@@ -105,30 +123,6 @@ export const discoverDependencies = async (args: {
   if (!ownerSlug)
     return { internalDependencies: 0, externalDependencies: 0, error: null };
 
-  const manifestContent = await gitService.getFileContent(
-    ownerSlug,
-    repository.slug,
-    repository.defaultBranch,
-    NPM_MANIFEST_PATH,
-  );
-  if (manifestContent === null)
-    return {
-      internalDependencies: 0,
-      externalDependencies: 0,
-      error: "No package.json found on the default branch",
-    };
-
-  let manifest: ReturnType<typeof parseNpmManifest>;
-  try {
-    manifest = parseNpmManifest(manifestContent);
-  } catch {
-    return {
-      internalDependencies: 0,
-      externalDependencies: 0,
-      error: "package.json is not valid JSON",
-    };
-  }
-
   // Candidate targets: repositories the same owner or organization holds
   const candidates: RepositoryCandidate[] = (
     await db.query.repositoryTable.findMany({
@@ -143,17 +137,54 @@ export const discoverDependencies = async (args: {
     })
   ).map((repo) => ({ id: repo.id, name: repo.name, slug: repo.slug }));
 
-  const { internal, external } = partitionDependencies(
-    manifest,
-    candidates,
-    repository.id,
-  );
+  // Read each supported manifest at the default branch and accumulate its
+  // dependencies. An internal edge is de-duplicated by target (two names could
+  // resolve to the same repository), an external dependency by package manager
+  // plus name (so npm `x` and cargo `x` stay distinct, matching the table's key)
+  const internalByTarget = new Map<string, InternalEdge>();
+  const externalByKey = new Map<string, ExternalDependency>();
+  let anyManifestFound = false;
 
-  // De-duplicate internal edges by target: two dependency names could resolve to
-  // the same repository (one by name, one by slug), which would collide on insert
-  const internalByTarget = new Map(
-    internal.map((edge) => [edge.targetRepositoryId, edge]),
-  );
+  for (const { path, parse } of MANIFESTS) {
+    const content = await gitService.getFileContent(
+      ownerSlug,
+      repository.slug,
+      repository.defaultBranch,
+      path,
+    );
+    if (content === null) continue;
+    anyManifestFound = true;
+
+    let manifest: ParsedManifest;
+    try {
+      manifest = parse(content);
+    } catch {
+      // A malformed manifest is skipped so the others still reconcile
+      continue;
+    }
+
+    const { internal, external } = partitionDependencies(
+      manifest,
+      candidates,
+      repository.id,
+    );
+    for (const edge of internal) {
+      if (!internalByTarget.has(edge.targetRepositoryId))
+        internalByTarget.set(edge.targetRepositoryId, edge);
+    }
+    for (const dependency of external) {
+      const key = `${dependency.packageManager}:${dependency.packageName}`;
+      if (!externalByKey.has(key)) externalByKey.set(key, dependency);
+    }
+  }
+
+  if (!anyManifestFound)
+    return {
+      internalDependencies: 0,
+      externalDependencies: 0,
+      error:
+        "No supported manifest (package.json, Cargo.toml) found on the default branch",
+    };
 
   await db.transaction(async (tx) => {
     await tx
@@ -190,11 +221,11 @@ export const discoverDependencies = async (args: {
         .onConflictDoNothing();
     }
 
-    if (external.length > 0) {
+    if (externalByKey.size > 0) {
       await tx
         .insert(externalDependencyTable)
         .values(
-          external.map((dependency) => ({
+          [...externalByKey.values()].map((dependency) => ({
             repositoryId: repository.id,
             packageManager: dependency.packageManager,
             packageName: dependency.packageName,
@@ -208,7 +239,7 @@ export const discoverDependencies = async (args: {
 
   return {
     internalDependencies: internalByTarget.size,
-    externalDependencies: external.length,
+    externalDependencies: externalByKey.size,
     error: null,
   };
 };

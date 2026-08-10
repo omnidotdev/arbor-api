@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { parseNpmManifest, partitionDependencies } from "./dependencyDiscovery";
+import {
+  parseCargoManifest,
+  parseNpmManifest,
+  partitionDependencies,
+} from "./dependencyDiscovery";
 
 describe("parseNpmManifest", () => {
   test("collects runtime, dev, peer, and optional dependencies", () => {
@@ -51,6 +55,65 @@ describe("parseNpmManifest", () => {
 
   test("throws on a manifest that is not valid JSON", () => {
     expect(() => parseNpmManifest("not json {")).toThrow();
+  });
+});
+
+describe("parseCargoManifest", () => {
+  test("collects normal, dev, and build dependencies", () => {
+    const manifest = parseCargoManifest(
+      [
+        "[dependencies]",
+        'serde = "1.0"',
+        "[dev-dependencies]",
+        'criterion = "0.5"',
+        "[build-dependencies]",
+        'cc = "1.0"',
+      ].join("\n"),
+    );
+
+    expect(manifest.packageManager).toBe("cargo");
+    expect(manifest.dependencies).toEqual([
+      { name: "serde", versionConstraint: "1.0" },
+      { name: "criterion", versionConstraint: "0.5" },
+      { name: "cc", versionConstraint: "1.0" },
+    ]);
+  });
+
+  test("reads the version out of a dependency given as a table", () => {
+    const manifest = parseCargoManifest(
+      '[dependencies]\ntokio = { version = "1", features = ["full"] }',
+    );
+    expect(manifest.dependencies).toEqual([
+      { name: "tokio", versionConstraint: "1" },
+    ]);
+  });
+
+  test("keeps a dependency that declares no version (git or path)", () => {
+    const manifest = parseCargoManifest(
+      '[dependencies]\nlocal = { path = "../local" }',
+    );
+    expect(manifest.dependencies).toEqual([
+      { name: "local", versionConstraint: null },
+    ]);
+  });
+
+  test("de-duplicates a crate that appears in more than one section", () => {
+    const manifest = parseCargoManifest(
+      '[dependencies]\nserde = "1.0"\n[dev-dependencies]\nserde = "1.0"',
+    );
+    expect(manifest.dependencies).toEqual([
+      { name: "serde", versionConstraint: "1.0" },
+    ]);
+  });
+
+  test("returns no dependencies when the manifest declares none", () => {
+    expect(parseCargoManifest('[package]\nname = "x"').dependencies).toEqual(
+      [],
+    );
+  });
+
+  test("throws on a manifest that is not valid TOML", () => {
+    expect(() => parseCargoManifest('key = "unterminated')).toThrow();
   });
 });
 

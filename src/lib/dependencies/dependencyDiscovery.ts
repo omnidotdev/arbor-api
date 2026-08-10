@@ -76,6 +76,53 @@ export const parseNpmManifest = (content: string): ParsedManifest => {
   return { packageManager: "npm", dependencies };
 };
 
+const CARGO_DEPENDENCY_GROUPS = [
+  "dependencies",
+  "dev-dependencies",
+  "build-dependencies",
+] as const;
+
+/**
+ * Parse a Rust `Cargo.toml` into a normalized dependency list, merging normal,
+ * dev, and build dependencies. A crate's value is either a version string or a
+ * table carrying `version` (and other keys); a table without a version (a git or
+ * path dependency) is kept with a null constraint, since it still resolves to a
+ * repository by name. The first version seen for a crate wins. Throws on input
+ * that is not valid TOML, matching a boundary parser.
+ */
+export const parseCargoManifest = (content: string): ParsedManifest => {
+  const parsed = Bun.TOML.parse(content) as Record<string, unknown>;
+
+  const dependencies: ParsedDependency[] = [];
+  const seen = new Set<string>();
+
+  for (const group of CARGO_DEPENDENCY_GROUPS) {
+    const section = parsed[group];
+    if (!section || typeof section !== "object") continue;
+
+    for (const [name, spec] of Object.entries(
+      section as Record<string, unknown>,
+    )) {
+      if (seen.has(name)) continue;
+
+      let versionConstraint: string | null;
+      if (typeof spec === "string") {
+        versionConstraint = spec;
+      } else if (spec && typeof spec === "object") {
+        const version = (spec as Record<string, unknown>).version;
+        versionConstraint = typeof version === "string" ? version : null;
+      } else {
+        continue;
+      }
+
+      seen.add(name);
+      dependencies.push({ name, versionConstraint });
+    }
+  }
+
+  return { packageManager: "cargo", dependencies };
+};
+
 /**
  * Split a manifest's dependencies into internal edges (a dependency whose name
  * matches another repository's name or slug) and external packages (everything

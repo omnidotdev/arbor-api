@@ -8,10 +8,10 @@ import type { FieldArgs } from "postgraphile/grafast";
 
 /**
  * Custom mutation to reconcile a repository's dependency graph from its package
- * manifest. It reads `package.json` at the default branch, resolves each
- * dependency to another repository the owner holds (an edge) or an external
- * package, and replaces the repository's previous manifest-detected rows. This
- * is what makes the polyrepo graph self-maintaining rather than hand-curated.
+ * manifests. It reads `package.json` and `Cargo.toml` at the default branch,
+ * resolves each dependency to another repository the owner holds (an edge) or an
+ * external package, and replaces the repository's previous manifest-detected
+ * rows. This is what makes the polyrepo graph self-maintaining, not hand-curated.
  *
  * The schema is built at boot with makeSchema, so the plan closes over
  * discoverDependencies directly. Authorization (write access to the repository)
