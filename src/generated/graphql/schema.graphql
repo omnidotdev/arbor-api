@@ -14892,6 +14892,35 @@ type ReconcileProjectMembershipPayload {
   error: String
 }
 
+"""
+One (package, version, repository) cell of a project's version-drift view.
+"""
+type VersionDriftEntry {
+  """The package manager (npm, cargo, go, pip)."""
+  packageManager: String
+
+  """The package name."""
+  packageName: String
+
+  """The version constraint this repository declares (null = unpinned)."""
+  versionConstraint: String
+
+  """The depending repository's row id."""
+  repositoryId: UUID
+
+  """The depending repository's name."""
+  name: String
+
+  """The depending repository's slug."""
+  slug: String
+
+  """The owner username, for a personal repository."""
+  ownerUsername: String
+
+  """The organization slug, for an organization repository."""
+  organizationSlug: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -15850,6 +15879,13 @@ type Query implements Node {
   repository, nearest first. Only repositories the caller may see appear.
   """
   repositoryBlastRadius(repositoryId: UUID!): [BlastRadiusRepository!]
+
+  """
+  External packages the project's repositories depend on at inconsistent
+  versions, one row per package/version/repository. Only repositories the
+  caller may see appear.
+  """
+  projectVersionDrift(projectId: UUID!): [VersionDriftEntry!]
 }
 
 """

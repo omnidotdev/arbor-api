@@ -23,6 +23,7 @@ import {
 import {
   DependencyDiscoveryPlugin,
   ProjectMembershipPlugin,
+  ProjectVersionDriftPlugin,
   RepositoryBlastRadiusPlugin,
 } from "lib/graphql/plugins/dependencies";
 import {
@@ -104,6 +105,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryBlastRadiusPlugin,
     // Project membership reconciled from a repository's arbor.project.json
     ProjectMembershipPlugin,
+    // Version drift: packages a project's repos depend on at inconsistent versions
+    ProjectVersionDriftPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

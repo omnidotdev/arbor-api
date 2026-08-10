@@ -320,7 +320,11 @@ const seed = async () => {
     repositoryId: privateRepo.id,
   });
 
-  return { privateRepoId: privateRepo.id, publicRepoId: publicRepo.id };
+  return {
+    privateRepoId: privateRepo.id,
+    publicRepoId: publicRepo.id,
+    projectId: project.id,
+  };
 };
 
 /**
@@ -335,6 +339,7 @@ const seed = async () => {
 const cases = (
   privateRepoId: string,
   publicRepoId: string,
+  projectId: string,
 ): { name: string; document: string; mustReject?: boolean }[] => [
   {
     name: "repositories connection",
@@ -389,6 +394,12 @@ const cases = (
     // public one must not surface as an affected repository for an anonymous view
     name: "repositoryBlastRadius (private dependent of a public repo)",
     document: `{ repositoryBlastRadius(repositoryId:"${publicRepoId}"){ slug name } }`,
+  },
+  {
+    // version drift over a private project's repositories must not surface to an
+    // anonymous caller (the project is private and its member repo is too)
+    name: "projectVersionDrift (private project)",
+    document: `{ projectVersionDrift(projectId:"${projectId}"){ packageName slug } }`,
   },
   {
     name: "repositoryRelationshipMetadata",
@@ -475,11 +486,11 @@ const cases = (
 ];
 
 const main = async () => {
-  const { privateRepoId, publicRepoId } = await seed();
+  const { privateRepoId, publicRepoId, projectId } = await seed();
 
   let failures = 0;
 
-  for (const testCase of cases(privateRepoId, publicRepoId)) {
+  for (const testCase of cases(privateRepoId, publicRepoId, projectId)) {
     const body = await query(testCase.document);
     const leaked = SECRETS.filter((secret) => body.includes(secret));
 
