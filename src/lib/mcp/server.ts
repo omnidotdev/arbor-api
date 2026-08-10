@@ -12,7 +12,11 @@ import {
   stackTable,
   verificationCheckTable,
 } from "lib/db/schema";
-import { discoverDependencies, repositoryBlastRadius } from "lib/dependencies";
+import {
+  discoverDependencies,
+  reconcileProjectMembership,
+  repositoryBlastRadius,
+} from "lib/dependencies";
 import { gitService } from "lib/git";
 import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
 import { pullRequestService } from "lib/pullRequest";
@@ -695,6 +699,39 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       } catch (err) {
         console.error("[MCP] discover_dependencies failed:", err);
         return errorResult("Failed to discover dependencies");
+      }
+    },
+  );
+
+  server.registerTool(
+    "reconcile_project_membership",
+    {
+      title: "Reconcile project membership",
+      description:
+        "Apply a repository's arbor.project.json at its default branch, linking it to the projects it declares (and its owner holds) and unlinking descriptor memberships it no longer declares. Manually added memberships are left intact. Requires write access to the repository",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    async ({ owner, repo }) => {
+      const gate = await gateWrite(caller, owner, repo);
+      if (!gate) return errorResult(NOT_WRITABLE_MESSAGE);
+
+      try {
+        const result = await reconcileProjectMembership({
+          observer: { id: caller.user.id },
+          db: dbPool,
+          input: { repositoryId: gate.id },
+        });
+        return jsonResult({
+          linkedProjects: result.linkedProjects,
+          note: result.error,
+        });
+      } catch (err) {
+        console.error("[MCP] reconcile_project_membership failed:", err);
+        return errorResult("Failed to reconcile project membership");
       }
     },
   );

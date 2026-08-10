@@ -22,6 +22,7 @@ import {
 } from "lib/graphql/plugins/authorization";
 import {
   DependencyDiscoveryPlugin,
+  ProjectMembershipPlugin,
   RepositoryBlastRadiusPlugin,
 } from "lib/graphql/plugins/dependencies";
 import {
@@ -101,6 +102,8 @@ const graphilePreset: GraphileConfig.Preset = {
     DependencyDiscoveryPlugin,
     // Blast radius: the repositories affected by a change, via reverse deps
     RepositoryBlastRadiusPlugin,
+    // Project membership reconciled from a repository's arbor.project.json
+    ProjectMembershipPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

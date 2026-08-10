@@ -6,23 +6,21 @@ interface Node {
   id: ID!
 }
 
-type ProjectRepository implements Node {
+type RepositoryRelationshipMetadatum implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   id: ID!
   rowId: UUID!
-  projectId: UUID!
-  repositoryId: UUID!
+  relationshipId: UUID!
+  key: String!
+  value: String!
   createdAt: Datetime!
 
-  """Reads a single `Project` that is related to this `ProjectRepository`."""
-  project: Project
-
   """
-  Reads a single `Repository` that is related to this `ProjectRepository`.
+  Reads a single `RepositoryRelationship` that is related to this `RepositoryRelationshipMetadatum`.
   """
-  repository: Repository
+  relationship: RepositoryRelationship
 }
 
 """
@@ -39,29 +37,41 @@ to unexpected results.
 """
 scalar Datetime
 
-type Project implements Node {
+type RepositoryRelationship implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   id: ID!
   rowId: UUID!
-  ownerId: UUID!
-  organizationId: UUID
-  name: String!
-  slug: String!
-  description: String
-  visibility: Visibility!
+  sourceRepositoryId: UUID!
+  targetRepositoryId: UUID!
+  relationshipTypeId: UUID!
+  detectionSource: String!
+  confidence: Float!
+  versionConstraint: String
+  branch: String
   createdAt: Datetime!
   updatedAt: Datetime!
 
-  """Reads a single `Organization` that is related to this `Project`."""
-  organization: Organization
+  """
+  Reads a single `RepositoryRelationshipType` that is related to this `RepositoryRelationship`.
+  """
+  relationshipType: RepositoryRelationshipType
 
-  """Reads a single `User` that is related to this `Project`."""
-  owner: User
+  """
+  Reads a single `Repository` that is related to this `RepositoryRelationship`.
+  """
+  sourceRepository: Repository
 
-  """Reads and enables pagination through a set of `ProjectRepository`."""
-  projectRepositories(
+  """
+  Reads a single `Repository` that is related to this `RepositoryRelationship`.
+  """
+  targetRepository: Repository
+
+  """
+  Reads and enables pagination through a set of `RepositoryRelationshipMetadatum`.
+  """
+  repositoryRelationshipMetadataByRelationshipId(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -83,21 +93,70 @@ type Project implements Node {
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: ProjectRepositoryCondition
+    condition: RepositoryRelationshipMetadatumCondition
 
     """
     A filter to be used in determining which values should be returned by the collection.
     """
-    filter: ProjectRepositoryFilter
+    filter: RepositoryRelationshipMetadatumFilter
 
-    """The method to use when ordering `ProjectRepository`."""
-    orderBy: [ProjectRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
-  ): ProjectRepositoryConnection!
+    """The method to use when ordering `RepositoryRelationshipMetadatum`."""
+    orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipMetadatumConnection!
 }
 
-enum Visibility {
-  public
-  private
+type RepositoryRelationshipType implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  name: String!
+  description: String
+  isDirected: Boolean!
+  organizationId: UUID
+  createdAt: Datetime!
+
+  """
+  Reads a single `Organization` that is related to this `RepositoryRelationshipType`.
+  """
+  organization: Organization
+
+  """
+  Reads and enables pagination through a set of `RepositoryRelationship`.
+  """
+  repositoryRelationshipsByRelationshipTypeId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipFilter
+
+    """The method to use when ordering `RepositoryRelationship`."""
+    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipConnection!
 }
 
 type Organization implements Node {
@@ -708,6 +767,11 @@ type Repository {
     """The commit SHA."""
     sha: String!
   ): Commit
+}
+
+enum Visibility {
+  public
+  private
 }
 
 type User {
@@ -4058,6 +4122,9 @@ input ProjectRepositoryFilter {
   """Filter by the object’s `createdAt` field."""
   createdAt: DatetimeFilter
 
+  """Filter by the object’s `detectionSource` field."""
+  detectionSource: StringFilter
+
   """Filter by the object’s `project` relation."""
   project: ProjectFilter
 
@@ -4092,6 +4159,7 @@ input ProjectRepositoryDistinctCountAggregateFilter {
   projectId: BigIntFilter
   repositoryId: BigIntFilter
   createdAt: BigIntFilter
+  detectionSource: BigIntFilter
 }
 
 """A filter to be used against aggregates of `Project` object types."""
@@ -4867,6 +4935,8 @@ enum RepositoryOrderBy {
   PROJECT_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
   PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
   PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_DESC
   CHANGES_COUNT_ASC
   CHANGES_COUNT_DESC
   CHANGES_SUM_POSITION_ASC
@@ -8681,6 +8751,253 @@ type ProjectConnection {
   ): [ProjectAggregates!]
 }
 
+type Project implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  ownerId: UUID!
+  organizationId: UUID
+  name: String!
+  slug: String!
+  description: String
+  visibility: Visibility!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """Reads a single `Organization` that is related to this `Project`."""
+  organization: Organization
+
+  """Reads a single `User` that is related to this `Project`."""
+  owner: User
+
+  """Reads and enables pagination through a set of `ProjectRepository`."""
+  projectRepositories(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: ProjectRepositoryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: ProjectRepositoryFilter
+
+    """The method to use when ordering `ProjectRepository`."""
+    orderBy: [ProjectRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): ProjectRepositoryConnection!
+}
+
+"""A connection to a list of `ProjectRepository` values."""
+type ProjectRepositoryConnection {
+  """A list of `ProjectRepository` objects."""
+  nodes: [ProjectRepository!]!
+
+  """
+  A list of edges which contains the `ProjectRepository` and cursor to aid in pagination.
+  """
+  edges: [ProjectRepositoryEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `ProjectRepository` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: ProjectRepositoryAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `ProjectRepository` for these aggregates.
+    """
+    groupBy: [ProjectRepositoryGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: ProjectRepositoryHavingInput
+  ): [ProjectRepositoryAggregates!]
+}
+
+type ProjectRepository implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  projectId: UUID!
+  repositoryId: UUID!
+  createdAt: Datetime!
+  detectionSource: String!
+
+  """Reads a single `Project` that is related to this `ProjectRepository`."""
+  project: Project
+
+  """
+  Reads a single `Repository` that is related to this `ProjectRepository`.
+  """
+  repository: Repository
+}
+
+"""A `ProjectRepository` edge in the connection."""
+type ProjectRepositoryEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `ProjectRepository` at the end of the edge."""
+  node: ProjectRepository!
+}
+
+type ProjectRepositoryAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: ProjectRepositoryDistinctCountAggregates
+}
+
+type ProjectRepositoryDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of projectId across the matching connection"""
+  projectId: BigInt
+
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of detectionSource across the matching connection"""
+  detectionSource: BigInt
+}
+
+"""Grouping methods for `ProjectRepository` for usage during aggregation."""
+enum ProjectRepositoryGroupBy {
+  PROJECT_ID
+  REPOSITORY_ID
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  DETECTION_SOURCE
+}
+
+"""Conditions for `ProjectRepository` aggregates."""
+input ProjectRepositoryHavingInput {
+  AND: [ProjectRepositoryHavingInput!]
+  OR: [ProjectRepositoryHavingInput!]
+  sum: ProjectRepositoryHavingSumInput
+  distinctCount: ProjectRepositoryHavingDistinctCountInput
+  min: ProjectRepositoryHavingMinInput
+  max: ProjectRepositoryHavingMaxInput
+  average: ProjectRepositoryHavingAverageInput
+  stddevSample: ProjectRepositoryHavingStddevSampleInput
+  stddevPopulation: ProjectRepositoryHavingStddevPopulationInput
+  varianceSample: ProjectRepositoryHavingVarianceSampleInput
+  variancePopulation: ProjectRepositoryHavingVariancePopulationInput
+}
+
+input ProjectRepositoryHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `ProjectRepository` object types. All fields are
+tested for equality and combined with a logical ‘and.’
+"""
+input ProjectRepositoryCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `projectId` field."""
+  projectId: UUID
+
+  """Checks for equality with the object’s `repositoryId` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `detectionSource` field."""
+  detectionSource: String
+}
+
+"""Methods to use when ordering `ProjectRepository`."""
+enum ProjectRepositoryOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  PROJECT_ID_ASC
+  PROJECT_ID_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  DETECTION_SOURCE_ASC
+  DETECTION_SOURCE_DESC
+}
+
 """A `Project` edge in the connection."""
 type ProjectEdge {
   """A cursor for use in pagination."""
@@ -8867,6 +9184,8 @@ enum ProjectOrderBy {
   PROJECT_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
   PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
   PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_DESC
 }
 
 """A connection to a list of `Agent` values."""
@@ -9623,393 +9942,6 @@ type RepositoryRelationshipConnection {
   ): [RepositoryRelationshipAggregates!]
 }
 
-type RepositoryRelationship implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  sourceRepositoryId: UUID!
-  targetRepositoryId: UUID!
-  relationshipTypeId: UUID!
-  detectionSource: String!
-  confidence: Float!
-  versionConstraint: String
-  branch: String
-  createdAt: Datetime!
-  updatedAt: Datetime!
-
-  """
-  Reads a single `RepositoryRelationshipType` that is related to this `RepositoryRelationship`.
-  """
-  relationshipType: RepositoryRelationshipType
-
-  """
-  Reads a single `Repository` that is related to this `RepositoryRelationship`.
-  """
-  sourceRepository: Repository
-
-  """
-  Reads a single `Repository` that is related to this `RepositoryRelationship`.
-  """
-  targetRepository: Repository
-
-  """
-  Reads and enables pagination through a set of `RepositoryRelationshipMetadatum`.
-  """
-  repositoryRelationshipMetadataByRelationshipId(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: RepositoryRelationshipMetadatumCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: RepositoryRelationshipMetadatumFilter
-
-    """The method to use when ordering `RepositoryRelationshipMetadatum`."""
-    orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryRelationshipMetadatumConnection!
-}
-
-type RepositoryRelationshipType implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  name: String!
-  description: String
-  isDirected: Boolean!
-  organizationId: UUID
-  createdAt: Datetime!
-
-  """
-  Reads a single `Organization` that is related to this `RepositoryRelationshipType`.
-  """
-  organization: Organization
-
-  """
-  Reads and enables pagination through a set of `RepositoryRelationship`.
-  """
-  repositoryRelationshipsByRelationshipTypeId(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: RepositoryRelationshipCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: RepositoryRelationshipFilter
-
-    """The method to use when ordering `RepositoryRelationship`."""
-    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryRelationshipConnection!
-}
-
-"""
-A condition to be used against `RepositoryRelationship` object types. All fields
-are tested for equality and combined with a logical ‘and.’
-"""
-input RepositoryRelationshipCondition {
-  """Checks for equality with the object’s `rowId` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s `sourceRepositoryId` field."""
-  sourceRepositoryId: UUID
-
-  """Checks for equality with the object’s `targetRepositoryId` field."""
-  targetRepositoryId: UUID
-
-  """Checks for equality with the object’s `relationshipTypeId` field."""
-  relationshipTypeId: UUID
-
-  """Checks for equality with the object’s `detectionSource` field."""
-  detectionSource: String
-
-  """Checks for equality with the object’s `confidence` field."""
-  confidence: Float
-
-  """Checks for equality with the object’s `versionConstraint` field."""
-  versionConstraint: String
-
-  """Checks for equality with the object’s `branch` field."""
-  branch: String
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-
-  """Checks for equality with the object’s `updatedAt` field."""
-  updatedAt: Datetime
-}
-
-"""Methods to use when ordering `RepositoryRelationship`."""
-enum RepositoryRelationshipOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  SOURCE_REPOSITORY_ID_ASC
-  SOURCE_REPOSITORY_ID_DESC
-  TARGET_REPOSITORY_ID_ASC
-  TARGET_REPOSITORY_ID_DESC
-  RELATIONSHIP_TYPE_ID_ASC
-  RELATIONSHIP_TYPE_ID_DESC
-  DETECTION_SOURCE_ASC
-  DETECTION_SOURCE_DESC
-  CONFIDENCE_ASC
-  CONFIDENCE_DESC
-  VERSION_CONSTRAINT_ASC
-  VERSION_CONSTRAINT_DESC
-  BRANCH_ASC
-  BRANCH_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-  UPDATED_AT_ASC
-  UPDATED_AT_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_DESC
-}
-
-"""A connection to a list of `RepositoryRelationshipMetadatum` values."""
-type RepositoryRelationshipMetadatumConnection {
-  """A list of `RepositoryRelationshipMetadatum` objects."""
-  nodes: [RepositoryRelationshipMetadatum!]!
-
-  """
-  A list of edges which contains the `RepositoryRelationshipMetadatum` and cursor to aid in pagination.
-  """
-  edges: [RepositoryRelationshipMetadatumEdge!]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """
-  The count of *all* `RepositoryRelationshipMetadatum` you could get from the connection.
-  """
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: RepositoryRelationshipMetadatumAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """
-    The method to use when grouping `RepositoryRelationshipMetadatum` for these aggregates.
-    """
-    groupBy: [RepositoryRelationshipMetadatumGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: RepositoryRelationshipMetadatumHavingInput
-  ): [RepositoryRelationshipMetadatumAggregates!]
-}
-
-type RepositoryRelationshipMetadatum implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  relationshipId: UUID!
-  key: String!
-  value: String!
-  createdAt: Datetime!
-
-  """
-  Reads a single `RepositoryRelationship` that is related to this `RepositoryRelationshipMetadatum`.
-  """
-  relationship: RepositoryRelationship
-}
-
-"""A `RepositoryRelationshipMetadatum` edge in the connection."""
-type RepositoryRelationshipMetadatumEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `RepositoryRelationshipMetadatum` at the end of the edge."""
-  node: RepositoryRelationshipMetadatum!
-}
-
-type RepositoryRelationshipMetadatumAggregates {
-  keys: [String]
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: RepositoryRelationshipMetadatumDistinctCountAggregates
-}
-
-type RepositoryRelationshipMetadatumDistinctCountAggregates {
-  """Distinct count of rowId across the matching connection"""
-  rowId: BigInt
-
-  """Distinct count of relationshipId across the matching connection"""
-  relationshipId: BigInt
-
-  """Distinct count of key across the matching connection"""
-  key: BigInt
-
-  """Distinct count of value across the matching connection"""
-  value: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-}
-
-"""
-Grouping methods for `RepositoryRelationshipMetadatum` for usage during aggregation.
-"""
-enum RepositoryRelationshipMetadatumGroupBy {
-  RELATIONSHIP_ID
-  KEY
-  VALUE
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for `RepositoryRelationshipMetadatum` aggregates."""
-input RepositoryRelationshipMetadatumHavingInput {
-  AND: [RepositoryRelationshipMetadatumHavingInput!]
-  OR: [RepositoryRelationshipMetadatumHavingInput!]
-  sum: RepositoryRelationshipMetadatumHavingSumInput
-  distinctCount: RepositoryRelationshipMetadatumHavingDistinctCountInput
-  min: RepositoryRelationshipMetadatumHavingMinInput
-  max: RepositoryRelationshipMetadatumHavingMaxInput
-  average: RepositoryRelationshipMetadatumHavingAverageInput
-  stddevSample: RepositoryRelationshipMetadatumHavingStddevSampleInput
-  stddevPopulation: RepositoryRelationshipMetadatumHavingStddevPopulationInput
-  varianceSample: RepositoryRelationshipMetadatumHavingVarianceSampleInput
-  variancePopulation: RepositoryRelationshipMetadatumHavingVariancePopulationInput
-}
-
-input RepositoryRelationshipMetadatumHavingSumInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingDistinctCountInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingMinInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingMaxInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingAverageInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingStddevSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingStddevPopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingVarianceSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipMetadatumHavingVariancePopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
-"""
-A condition to be used against `RepositoryRelationshipMetadatum` object types.
-All fields are tested for equality and combined with a logical ‘and.’
-"""
-input RepositoryRelationshipMetadatumCondition {
-  """Checks for equality with the object’s `rowId` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s `relationshipId` field."""
-  relationshipId: UUID
-
-  """Checks for equality with the object’s `key` field."""
-  key: String
-
-  """Checks for equality with the object’s `value` field."""
-  value: String
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-}
-
-"""Methods to use when ordering `RepositoryRelationshipMetadatum`."""
-enum RepositoryRelationshipMetadatumOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  RELATIONSHIP_ID_ASC
-  RELATIONSHIP_ID_DESC
-  KEY_ASC
-  KEY_DESC
-  VALUE_ASC
-  VALUE_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-}
-
 """A `RepositoryRelationship` edge in the connection."""
 type RepositoryRelationshipEdge {
   """A cursor for use in pagination."""
@@ -10239,166 +10171,79 @@ input RepositoryRelationshipHavingVariancePopulationInput {
   updatedAt: HavingDatetimeFilter
 }
 
-"""A connection to a list of `ProjectRepository` values."""
-type ProjectRepositoryConnection {
-  """A list of `ProjectRepository` objects."""
-  nodes: [ProjectRepository!]!
-
-  """
-  A list of edges which contains the `ProjectRepository` and cursor to aid in pagination.
-  """
-  edges: [ProjectRepositoryEdge!]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """
-  The count of *all* `ProjectRepository` you could get from the connection.
-  """
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: ProjectRepositoryAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """
-    The method to use when grouping `ProjectRepository` for these aggregates.
-    """
-    groupBy: [ProjectRepositoryGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: ProjectRepositoryHavingInput
-  ): [ProjectRepositoryAggregates!]
-}
-
-"""A `ProjectRepository` edge in the connection."""
-type ProjectRepositoryEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `ProjectRepository` at the end of the edge."""
-  node: ProjectRepository!
-}
-
-type ProjectRepositoryAggregates {
-  keys: [String]
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: ProjectRepositoryDistinctCountAggregates
-}
-
-type ProjectRepositoryDistinctCountAggregates {
-  """Distinct count of rowId across the matching connection"""
-  rowId: BigInt
-
-  """Distinct count of projectId across the matching connection"""
-  projectId: BigInt
-
-  """Distinct count of repositoryId across the matching connection"""
-  repositoryId: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-}
-
-"""Grouping methods for `ProjectRepository` for usage during aggregation."""
-enum ProjectRepositoryGroupBy {
-  PROJECT_ID
-  REPOSITORY_ID
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for `ProjectRepository` aggregates."""
-input ProjectRepositoryHavingInput {
-  AND: [ProjectRepositoryHavingInput!]
-  OR: [ProjectRepositoryHavingInput!]
-  sum: ProjectRepositoryHavingSumInput
-  distinctCount: ProjectRepositoryHavingDistinctCountInput
-  min: ProjectRepositoryHavingMinInput
-  max: ProjectRepositoryHavingMaxInput
-  average: ProjectRepositoryHavingAverageInput
-  stddevSample: ProjectRepositoryHavingStddevSampleInput
-  stddevPopulation: ProjectRepositoryHavingStddevPopulationInput
-  varianceSample: ProjectRepositoryHavingVarianceSampleInput
-  variancePopulation: ProjectRepositoryHavingVariancePopulationInput
-}
-
-input ProjectRepositoryHavingSumInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingDistinctCountInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingMinInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingMaxInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingAverageInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingStddevSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingStddevPopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingVarianceSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingVariancePopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
 """
-A condition to be used against `ProjectRepository` object types. All fields are
-tested for equality and combined with a logical ‘and.’
+A condition to be used against `RepositoryRelationship` object types. All fields
+are tested for equality and combined with a logical ‘and.’
 """
-input ProjectRepositoryCondition {
+input RepositoryRelationshipCondition {
   """Checks for equality with the object’s `rowId` field."""
   rowId: UUID
 
-  """Checks for equality with the object’s `projectId` field."""
-  projectId: UUID
+  """Checks for equality with the object’s `sourceRepositoryId` field."""
+  sourceRepositoryId: UUID
 
-  """Checks for equality with the object’s `repositoryId` field."""
-  repositoryId: UUID
+  """Checks for equality with the object’s `targetRepositoryId` field."""
+  targetRepositoryId: UUID
+
+  """Checks for equality with the object’s `relationshipTypeId` field."""
+  relationshipTypeId: UUID
+
+  """Checks for equality with the object’s `detectionSource` field."""
+  detectionSource: String
+
+  """Checks for equality with the object’s `confidence` field."""
+  confidence: Float
+
+  """Checks for equality with the object’s `versionConstraint` field."""
+  versionConstraint: String
+
+  """Checks for equality with the object’s `branch` field."""
+  branch: String
 
   """Checks for equality with the object’s `createdAt` field."""
   createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
 }
 
-"""Methods to use when ordering `ProjectRepository`."""
-enum ProjectRepositoryOrderBy {
+"""Methods to use when ordering `RepositoryRelationship`."""
+enum RepositoryRelationshipOrderBy {
   NATURAL
   PRIMARY_KEY_ASC
   PRIMARY_KEY_DESC
   ROW_ID_ASC
   ROW_ID_DESC
-  PROJECT_ID_ASC
-  PROJECT_ID_DESC
-  REPOSITORY_ID_ASC
-  REPOSITORY_ID_DESC
+  SOURCE_REPOSITORY_ID_ASC
+  SOURCE_REPOSITORY_ID_DESC
+  TARGET_REPOSITORY_ID_ASC
+  TARGET_REPOSITORY_ID_DESC
+  RELATIONSHIP_TYPE_ID_ASC
+  RELATIONSHIP_TYPE_ID_DESC
+  DETECTION_SOURCE_ASC
+  DETECTION_SOURCE_DESC
+  CONFIDENCE_ASC
+  CONFIDENCE_DESC
+  VERSION_CONSTRAINT_ASC
+  VERSION_CONSTRAINT_DESC
+  BRANCH_ASC
+  BRANCH_DESC
   CREATED_AT_ASC
   CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """A connection to a list of `MergeBatch` values."""
@@ -10975,6 +10820,179 @@ enum RepositoryRelationshipTypeOrderBy {
   REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_DESC
 }
 
+"""A connection to a list of `RepositoryRelationshipMetadatum` values."""
+type RepositoryRelationshipMetadatumConnection {
+  """A list of `RepositoryRelationshipMetadatum` objects."""
+  nodes: [RepositoryRelationshipMetadatum!]!
+
+  """
+  A list of edges which contains the `RepositoryRelationshipMetadatum` and cursor to aid in pagination.
+  """
+  edges: [RepositoryRelationshipMetadatumEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `RepositoryRelationshipMetadatum` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: RepositoryRelationshipMetadatumAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `RepositoryRelationshipMetadatum` for these aggregates.
+    """
+    groupBy: [RepositoryRelationshipMetadatumGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: RepositoryRelationshipMetadatumHavingInput
+  ): [RepositoryRelationshipMetadatumAggregates!]
+}
+
+"""A `RepositoryRelationshipMetadatum` edge in the connection."""
+type RepositoryRelationshipMetadatumEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `RepositoryRelationshipMetadatum` at the end of the edge."""
+  node: RepositoryRelationshipMetadatum!
+}
+
+type RepositoryRelationshipMetadatumAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: RepositoryRelationshipMetadatumDistinctCountAggregates
+}
+
+type RepositoryRelationshipMetadatumDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of relationshipId across the matching connection"""
+  relationshipId: BigInt
+
+  """Distinct count of key across the matching connection"""
+  key: BigInt
+
+  """Distinct count of value across the matching connection"""
+  value: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+Grouping methods for `RepositoryRelationshipMetadatum` for usage during aggregation.
+"""
+enum RepositoryRelationshipMetadatumGroupBy {
+  RELATIONSHIP_ID
+  KEY
+  VALUE
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `RepositoryRelationshipMetadatum` aggregates."""
+input RepositoryRelationshipMetadatumHavingInput {
+  AND: [RepositoryRelationshipMetadatumHavingInput!]
+  OR: [RepositoryRelationshipMetadatumHavingInput!]
+  sum: RepositoryRelationshipMetadatumHavingSumInput
+  distinctCount: RepositoryRelationshipMetadatumHavingDistinctCountInput
+  min: RepositoryRelationshipMetadatumHavingMinInput
+  max: RepositoryRelationshipMetadatumHavingMaxInput
+  average: RepositoryRelationshipMetadatumHavingAverageInput
+  stddevSample: RepositoryRelationshipMetadatumHavingStddevSampleInput
+  stddevPopulation: RepositoryRelationshipMetadatumHavingStddevPopulationInput
+  varianceSample: RepositoryRelationshipMetadatumHavingVarianceSampleInput
+  variancePopulation: RepositoryRelationshipMetadatumHavingVariancePopulationInput
+}
+
+input RepositoryRelationshipMetadatumHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `RepositoryRelationshipMetadatum` object types.
+All fields are tested for equality and combined with a logical ‘and.’
+"""
+input RepositoryRelationshipMetadatumCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `relationshipId` field."""
+  relationshipId: UUID
+
+  """Checks for equality with the object’s `key` field."""
+  key: String
+
+  """Checks for equality with the object’s `value` field."""
+  value: String
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering `RepositoryRelationshipMetadatum`."""
+enum RepositoryRelationshipMetadatumOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  RELATIONSHIP_ID_ASC
+  RELATIONSHIP_ID_DESC
+  KEY_ASC
+  KEY_DESC
+  VALUE_ASC
+  VALUE_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+}
+
 """A connection to a list of `Organization` values."""
 type OrganizationConnection {
   """A list of `Organization` objects."""
@@ -11316,49 +11334,6 @@ enum OrganizationOrderBy {
   ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_DESC
 }
 
-"""The output of our create `ProjectRepository` mutation."""
-type CreateProjectRepositoryPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `ProjectRepository` that was created by this mutation."""
-  projectRepository: ProjectRepository
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `ProjectRepository`. May be used by Relay 1."""
-  projectRepositoryEdge(
-    """The method to use when ordering `ProjectRepository`."""
-    orderBy: [ProjectRepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): ProjectRepositoryEdge
-}
-
-"""All input for the create `ProjectRepository` mutation."""
-input CreateProjectRepositoryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `ProjectRepository` to be created by this mutation."""
-  projectRepository: ProjectRepositoryInput!
-}
-
-"""An input for mutations affecting `ProjectRepository`"""
-input ProjectRepositoryInput {
-  rowId: UUID
-  projectId: UUID!
-  repositoryId: UUID!
-  createdAt: Datetime
-}
-
 """The output of our create `RepositoryRelationshipMetadatum` mutation."""
 type CreateRepositoryRelationshipMetadatumPayload {
   """
@@ -11449,6 +11424,50 @@ input OrganizationMemberInput {
   organizationId: UUID!
   roles: JSON
   syncedAt: Datetime
+}
+
+"""The output of our create `ProjectRepository` mutation."""
+type CreateProjectRepositoryPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `ProjectRepository` that was created by this mutation."""
+  projectRepository: ProjectRepository
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `ProjectRepository`. May be used by Relay 1."""
+  projectRepositoryEdge(
+    """The method to use when ordering `ProjectRepository`."""
+    orderBy: [ProjectRepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): ProjectRepositoryEdge
+}
+
+"""All input for the create `ProjectRepository` mutation."""
+input CreateProjectRepositoryInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `ProjectRepository` to be created by this mutation."""
+  projectRepository: ProjectRepositoryInput!
+}
+
+"""An input for mutations affecting `ProjectRepository`"""
+input ProjectRepositoryInput {
+  rowId: UUID
+  projectId: UUID!
+  repositoryId: UUID!
+  createdAt: Datetime
+  detectionSource: String
 }
 
 """The output of our create `MergeBatch` mutation."""
@@ -12180,54 +12199,6 @@ input PullRequestInput {
   authoredByAgentId: UUID
 }
 
-"""The output of our update `ProjectRepository` mutation."""
-type UpdateProjectRepositoryPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `ProjectRepository` that was updated by this mutation."""
-  projectRepository: ProjectRepository
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `ProjectRepository`. May be used by Relay 1."""
-  projectRepositoryEdge(
-    """The method to use when ordering `ProjectRepository`."""
-    orderBy: [ProjectRepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): ProjectRepositoryEdge
-}
-
-"""All input for the `updateProjectRepository` mutation."""
-input UpdateProjectRepositoryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `ProjectRepository` being updated.
-  """
-  patch: ProjectRepositoryPatch!
-}
-
-"""
-Represents an update to a `ProjectRepository`. Fields that are set will be updated.
-"""
-input ProjectRepositoryPatch {
-  rowId: UUID
-  projectId: UUID
-  repositoryId: UUID
-  createdAt: Datetime
-}
-
 """The output of our update `RepositoryRelationshipMetadatum` mutation."""
 type UpdateRepositoryRelationshipMetadatumPayload {
   """
@@ -12328,6 +12299,55 @@ input OrganizationMemberPatch {
   organizationId: UUID
   roles: JSON
   syncedAt: Datetime
+}
+
+"""The output of our update `ProjectRepository` mutation."""
+type UpdateProjectRepositoryPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `ProjectRepository` that was updated by this mutation."""
+  projectRepository: ProjectRepository
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `ProjectRepository`. May be used by Relay 1."""
+  projectRepositoryEdge(
+    """The method to use when ordering `ProjectRepository`."""
+    orderBy: [ProjectRepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): ProjectRepositoryEdge
+}
+
+"""All input for the `updateProjectRepository` mutation."""
+input UpdateProjectRepositoryInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `ProjectRepository` being updated.
+  """
+  patch: ProjectRepositoryPatch!
+}
+
+"""
+Represents an update to a `ProjectRepository`. Fields that are set will be updated.
+"""
+input ProjectRepositoryPatch {
+  rowId: UUID
+  projectId: UUID
+  repositoryId: UUID
+  createdAt: Datetime
+  detectionSource: String
 }
 
 """The output of our update `MergeBatch` mutation."""
@@ -13556,40 +13576,6 @@ input PullRequestPatch {
   authoredByAgentId: UUID
 }
 
-"""The output of our delete `ProjectRepository` mutation."""
-type DeleteProjectRepositoryPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `ProjectRepository` that was deleted by this mutation."""
-  projectRepository: ProjectRepository
-  deletedProjectRepositoryId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `ProjectRepository`. May be used by Relay 1."""
-  projectRepositoryEdge(
-    """The method to use when ordering `ProjectRepository`."""
-    orderBy: [ProjectRepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): ProjectRepositoryEdge
-}
-
-"""All input for the `deleteProjectRepository` mutation."""
-input DeleteProjectRepositoryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-}
-
 """The output of our delete `RepositoryRelationshipMetadatum` mutation."""
 type DeleteRepositoryRelationshipMetadatumPayload {
   """
@@ -13654,6 +13640,40 @@ type DeleteOrganizationMemberPayload {
 
 """All input for the `deleteOrganizationMember` mutation."""
 input DeleteOrganizationMemberInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
+"""The output of our delete `ProjectRepository` mutation."""
+type DeleteProjectRepositoryPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `ProjectRepository` that was deleted by this mutation."""
+  projectRepository: ProjectRepository
+  deletedProjectRepositoryId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `ProjectRepository`. May be used by Relay 1."""
+  projectRepositoryEdge(
+    """The method to use when ordering `ProjectRepository`."""
+    orderBy: [ProjectRepositoryOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): ProjectRepositoryEdge
+}
+
+"""All input for the `deleteProjectRepository` mutation."""
+input DeleteProjectRepositoryInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -14851,6 +14871,27 @@ type BlastRadiusRepository {
   depth: Int
 }
 
+"""
+Input for reconciling a repository's project memberships from its descriptor.
+"""
+input ReconcileProjectMembershipInput {
+  """The repository whose arbor.project.json to apply."""
+  repositoryId: UUID!
+}
+
+"""Payload for the reconcileProjectMembership mutation."""
+type ReconcileProjectMembershipPayload {
+  """
+  The number of projects the repository is now linked to via its descriptor.
+  """
+  linkedProjects: Int
+
+  """
+  A non-fatal reason reconciliation produced nothing (e.g. no descriptor).
+  """
+  error: String
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -14870,14 +14911,14 @@ type Query implements Node {
     id: ID!
   ): Node
 
-  """Get a single `ProjectRepository`."""
-  projectRepository(rowId: UUID!): ProjectRepository
-
   """Get a single `RepositoryRelationshipMetadatum`."""
   repositoryRelationshipMetadatum(rowId: UUID!): RepositoryRelationshipMetadatum
 
   """Get a single `OrganizationMember`."""
   organizationMember(rowId: UUID!): OrganizationMember
+
+  """Get a single `ProjectRepository`."""
+  projectRepository(rowId: UUID!): ProjectRepository
 
   """Get a single `MergeBatch`."""
   mergeBatch(rowId: UUID!): MergeBatch
@@ -14927,14 +14968,6 @@ type Query implements Node {
   """Get a single `PullRequest`."""
   pullRequest(rowId: UUID!): PullRequest
 
-  """Reads a single `ProjectRepository` using its globally unique `ID`."""
-  projectRepositoryById(
-    """
-    The globally unique `ID` to be used in selecting a single `ProjectRepository`.
-    """
-    id: ID!
-  ): ProjectRepository
-
   """
   Reads a single `RepositoryRelationshipMetadatum` using its globally unique `ID`.
   """
@@ -14952,6 +14985,14 @@ type Query implements Node {
     """
     id: ID!
   ): OrganizationMember
+
+  """Reads a single `ProjectRepository` using its globally unique `ID`."""
+  projectRepositoryById(
+    """
+    The globally unique `ID` to be used in selecting a single `ProjectRepository`.
+    """
+    id: ID!
+  ): ProjectRepository
 
   """Reads a single `MergeBatch` using its globally unique `ID`."""
   mergeBatchById(
@@ -15071,40 +15112,6 @@ type Query implements Node {
     id: ID!
   ): PullRequest
 
-  """Reads and enables pagination through a set of `ProjectRepository`."""
-  projectRepositories(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: ProjectRepositoryCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: ProjectRepositoryFilter
-
-    """The method to use when ordering `ProjectRepository`."""
-    orderBy: [ProjectRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
-  ): ProjectRepositoryConnection
-
   """
   Reads and enables pagination through a set of `RepositoryRelationshipMetadatum`.
   """
@@ -15174,6 +15181,40 @@ type Query implements Node {
     """The method to use when ordering `OrganizationMember`."""
     orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
   ): OrganizationMemberConnection
+
+  """Reads and enables pagination through a set of `ProjectRepository`."""
+  projectRepositories(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: ProjectRepositoryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: ProjectRepositoryFilter
+
+    """The method to use when ordering `ProjectRepository`."""
+    orderBy: [ProjectRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): ProjectRepositoryConnection
 
   """Reads and enables pagination through a set of `MergeBatch`."""
   mergeBatches(
@@ -15815,14 +15856,6 @@ type Query implements Node {
 The root mutation type which contains root level fields which mutate data.
 """
 type Mutation {
-  """Creates a single `ProjectRepository`."""
-  createProjectRepository(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateProjectRepositoryInput!
-  ): CreateProjectRepositoryPayload
-
   """Creates a single `RepositoryRelationshipMetadatum`."""
   createRepositoryRelationshipMetadatum(
     """
@@ -15838,6 +15871,14 @@ type Mutation {
     """
     input: CreateOrganizationMemberInput!
   ): CreateOrganizationMemberPayload
+
+  """Creates a single `ProjectRepository`."""
+  createProjectRepository(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateProjectRepositoryInput!
+  ): CreateProjectRepositoryPayload
 
   """Creates a single `MergeBatch`."""
   createMergeBatch(
@@ -15959,14 +16000,6 @@ type Mutation {
     input: CreatePullRequestInput!
   ): CreatePullRequestPayload
 
-  """Updates a single `ProjectRepository` using a unique key and a patch."""
-  updateProjectRepository(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateProjectRepositoryInput!
-  ): UpdateProjectRepositoryPayload
-
   """
   Updates a single `RepositoryRelationshipMetadatum` using a unique key and a patch.
   """
@@ -15984,6 +16017,14 @@ type Mutation {
     """
     input: UpdateOrganizationMemberInput!
   ): UpdateOrganizationMemberPayload
+
+  """Updates a single `ProjectRepository` using a unique key and a patch."""
+  updateProjectRepository(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateProjectRepositoryInput!
+  ): UpdateProjectRepositoryPayload
 
   """Updates a single `MergeBatch` using a unique key and a patch."""
   updateMergeBatch(
@@ -16127,14 +16168,6 @@ type Mutation {
     input: UpdatePullRequestInput!
   ): UpdatePullRequestPayload
 
-  """Deletes a single `ProjectRepository` using a unique key."""
-  deleteProjectRepository(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteProjectRepositoryInput!
-  ): DeleteProjectRepositoryPayload
-
   """Deletes a single `RepositoryRelationshipMetadatum` using a unique key."""
   deleteRepositoryRelationshipMetadatum(
     """
@@ -16150,6 +16183,14 @@ type Mutation {
     """
     input: DeleteOrganizationMemberInput!
   ): DeleteOrganizationMemberPayload
+
+  """Deletes a single `ProjectRepository` using a unique key."""
+  deleteProjectRepository(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteProjectRepositoryInput!
+  ): DeleteProjectRepositoryPayload
 
   """Deletes a single `MergeBatch` using a unique key."""
   deleteMergeBatch(
@@ -16443,6 +16484,18 @@ type Mutation {
     """
     input: DiscoverDependenciesInput!
   ): DiscoverDependenciesPayload
+
+  """
+  Apply a repository's arbor.project.json, linking it to the projects it
+  declares (and its owner holds) and unlinking descriptor memberships it no
+  longer declares. Manually added memberships are left untouched.
+  """
+  reconcileProjectMembership(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: ReconcileProjectMembershipInput!
+  ): ReconcileProjectMembershipPayload
 }
 
 """

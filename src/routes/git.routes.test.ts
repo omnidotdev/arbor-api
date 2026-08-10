@@ -52,8 +52,9 @@ const state: {
 // getHead is called twice per receive-pack (before, then after); alternate
 let headCall = 0;
 
-// Records auto-triggered dependency discovery so a push can assert on it
+// Records auto-triggered dependency discovery and project sync so a push can assert
 const discoverCalls: string[] = [];
+const reconcileCalls: string[] = [];
 
 const noopResult = { success: true, data: new Uint8Array([1, 2, 3]) };
 
@@ -113,10 +114,21 @@ mock.module("lib/dependencies", () => ({
     discoverCalls.push(args.input.repositoryId);
     return { internalDependencies: 0, externalDependencies: 0, error: null };
   },
+  reconcileProjectMembership: async (args: {
+    input: { repositoryId: string };
+  }) => {
+    reconcileCalls.push(args.input.repositoryId);
+    return { linkedProjects: 0, error: null };
+  },
   repositoryBlastRadius: async () => [],
   computeBlastRadius: () => [],
   parseNpmManifest: () => ({ packageManager: "npm", dependencies: [] }),
+  parseCargoManifest: () => ({ packageManager: "cargo", dependencies: [] }),
+  parseGoManifest: () => ({ packageManager: "go", dependencies: [] }),
+  parsePipManifest: () => ({ packageManager: "pip", dependencies: [] }),
   partitionDependencies: () => ({ internal: [], external: [] }),
+  parseProjectDescriptor: () => [],
+  resolveDescriptorProjectIds: () => [],
 }));
 
 mock.module("lib/entitlements", () => ({
@@ -149,6 +161,7 @@ const reset = () => {
   state.headAfter = "head-sha";
   headCall = 0;
   discoverCalls.length = 0;
+  reconcileCalls.length = 0;
 };
 
 beforeEach(reset);
@@ -342,6 +355,7 @@ describe("git routes write authorization", () => {
 
     expect(res.status).toBe(200);
     expect(discoverCalls).toEqual(["r1"]);
+    expect(reconcileCalls).toEqual(["r1"]);
   });
 
   test("a push that does not move the default branch does not scan", async () => {
@@ -367,6 +381,7 @@ describe("git routes write authorization", () => {
 
     expect(res.status).toBe(200);
     expect(discoverCalls).toEqual([]);
+    expect(reconcileCalls).toEqual([]);
   });
 
   test("private repo receive-pack anonymous => 401 (write check precedes read masking)", async () => {
