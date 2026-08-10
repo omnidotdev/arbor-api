@@ -10,4 +10,5 @@ export { default as RepositoryCollaboratorPlugin } from "./RepositoryCollaborato
 export { default as RepositoryReadPlugin } from "./RepositoryRead.plugin";
 export { default as RepositoryRelationshipPlugin } from "./RepositoryRelationship.plugin";
 export { default as SmartTagPlugin } from "./SmartTag.plugin";
+export { default as TopicPlugin } from "./Topic.plugin";
 export { default as UserPlugin } from "./User.plugin";

@@ -183,6 +183,22 @@ const visibleProjectIds = (userId: unknown) => sql`
   )`;
 
 /**
+ * Topic ids the caller may see.
+ *
+ * A topic is a cross-repository change set; like a project it groups private
+ * work, so visibility is ownership or membership of the owning organization,
+ * with no public topic.
+ */
+const visibleTopicIds = (userId: unknown) => sql`
+  select t.id from topic t where (
+    t.owner_id = ${userId as never}
+    or exists (
+      select 1 from organization_member om
+      where om.organization_id = t.organization_id and om.user_id = ${userId as never}
+    )
+  )`;
+
+/**
  * Relationship ids where BOTH ends are visible.
  *
  * The dependency graph is the product, so an edge leaks the existence of a
@@ -207,6 +223,18 @@ const visibleMembershipIds = (userId: unknown) => sql`
   select pr.id from project_repository pr
   where pr.project_id in (${visibleProjectIds(userId)})
     and pr.repository_id in (${visibleRepositoryIds(userId)})`;
+
+/**
+ * Topic-membership ids where BOTH the topic and the pull request are visible.
+ *
+ * A topic membership carries a pull_request_id, and a private pull request (one
+ * in a repository the caller cannot see) must not leak through it, so both the
+ * topic and the pull request's repository must be visible.
+ */
+const visibleTopicMembershipIds = (userId: unknown) => sql`
+  select tpr.id from topic_pull_request tpr
+  where tpr.topic_id in (${visibleTopicIds(userId)})
+    and tpr.pull_request_id in (${visiblePullRequestIds(userId)})`;
 
 /** Personal access token ids belonging to the caller */
 const visibleTokenIds = (userId: unknown) =>
@@ -359,6 +387,10 @@ const RepositoryReadPlugin = wrapPlans({
     projects: scopeByRepository(own, visibleProjectIds),
     // a membership is only visible when BOTH its project and its repository are
     projectRepositories: scopeByRepository(own, visibleMembershipIds),
+    // cross-repo topics, scoped like projects; a membership needs both the topic
+    // and the pull request visible, so a private PR never leaks through it
+    topics: scopeByRepository(own, visibleTopicIds),
+    topicPullRequests: scopeByRepository(own, visibleTopicMembershipIds),
     repositoryRelationships: scopeByRepository(own, visibleRelationshipIds),
     repositoryRelationshipMetadata: scopeByRepository(
       viaRelationship,
