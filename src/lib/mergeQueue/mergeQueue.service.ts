@@ -3,6 +3,7 @@ import { asc, eq, sql } from "drizzle-orm";
 import { dbPool } from "lib/db/db";
 import { mergeQueueEntryTable } from "lib/db/schema";
 import { stackService } from "lib/stack";
+import { classifyRequiredChecks } from "./queueGate";
 
 /**
  * Why an enqueue could not proceed.
@@ -27,12 +28,14 @@ export type EnqueueStackOutcome =
  * How a single queue entry ended after one processing pass.
  *
  * - merged: every open change of the entry's stack landed, entry marked merged
- * - blocked: a change's gate was not green or an outcome was not ok, so the
- *   entry is left queued for a later pass (never evicted here)
+ * - blocked: a change's gate is not yet green (a required check still pending)
+ *   or an outcome was transient, so the entry is left queued for a later pass
+ * - evicted: a required check on a blocking change has definitively failed, so
+ *   the entry cannot land as-is and is removed from the queue rather than retried
  * - skipped: the entry is not a stack entry, so this serial processor left it
  *   untouched
  */
-type EntryProcessStatus = "merged" | "blocked" | "skipped";
+type EntryProcessStatus = "merged" | "blocked" | "evicted" | "skipped";
 
 /**
  * Per-entry result of a processing pass.
@@ -76,9 +79,11 @@ const ACTIVE_ENTRY_STATES = ["queued", "testing", "optimistic"] as const;
  * never throwing). The processor here only sequences those calls and records
  * queue state, so it can never corrupt a repository.
  *
- * The current processor is a plain serial loop. Speculative batching and
- * bisection (the merge_batch model) are a deliberate follow-up and not yet
- * implemented.
+ * The processor is a serial loop that lands what it safely can and now evicts an
+ * entry whose blocking change has a definitively failed required check (the
+ * bisection outcome), so a permanently-red change no longer occupies the queue
+ * forever. Speculative batching over a shared CI run (the merge_batch model)
+ * needs an external CI signal on the speculative branch and remains a follow-up.
  */
 export const mergeQueueService = {
   /**
@@ -185,6 +190,8 @@ export const mergeQueueService = {
       let blocked = false;
       let blockDetail: string | undefined;
       let blockingChecks: string[] | undefined;
+      let blockingChangeId: string | undefined;
+      let blockReason: string | undefined;
 
       for (const change of changes) {
         // Already-landed or dropped changes do not block the entry
@@ -199,16 +206,42 @@ export const mergeQueueService = {
           continue;
         }
 
-        // First change that will not land: stop the entry and leave it queued.
-        // A merely-not-yet-green gate is not an eviction; the entry is retried
-        // on a later pass
+        // First change that will not land: stop the entry
         blocked = true;
         blockDetail = mergeBlockDetail(outcome.reason);
         blockingChecks = outcome.blockingChecks;
+        blockingChangeId = change.id;
+        blockReason = outcome.reason;
         break;
       }
 
       if (blocked) {
+        // A gate block is only an eviction when a required check has definitively
+        // failed. A pending check, or a transient reason (parent still landing,
+        // repository briefly unavailable, a git error), leaves the entry queued
+        // to retry, never evicted
+        const evict =
+          blockReason === "not-mergeable" &&
+          blockingChangeId !== undefined &&
+          (await classifyBlockingChangeGate(blockingChangeId)) === "failed";
+
+        if (evict) {
+          await dbPool
+            .update(mergeQueueEntryTable)
+            .set({ state: "evicted", updatedAt: new Date().toISOString() })
+            .where(eq(mergeQueueEntryTable.id, entry.id));
+
+          results.push({
+            entryId: entry.id,
+            stackId: entry.stackId,
+            status: "evicted",
+            mergedChangeIds,
+            detail: "A required check failed",
+            blockingChecks,
+          });
+          continue;
+        }
+
         results.push({
           entryId: entry.id,
           stackId: entry.stackId,
@@ -237,6 +270,19 @@ export const mergeQueueService = {
     return { ok: true, repositoryId, results };
   },
 };
+
+/**
+ * Classify a blocking change's required verification checks so the processor can
+ * tell a definitive failure (evict) from a still-pending gate (retry). Reads the
+ * change's checks and defers the verdict to the pure classifier.
+ */
+async function classifyBlockingChangeGate(changeId: string) {
+  const checks = await dbPool.query.verificationCheckTable.findMany({
+    where: (table, { eq }) => eq(table.changeId, changeId),
+    columns: { status: true, required: true },
+  });
+  return classifyRequiredChecks(checks);
+}
 
 /**
  * Map a merge failure reason to a generic, queue-facing detail string.
