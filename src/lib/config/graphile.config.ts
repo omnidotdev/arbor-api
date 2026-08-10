@@ -20,7 +20,10 @@ import {
   SmartTagPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
-import { DependencyDiscoveryPlugin } from "lib/graphql/plugins/dependencies";
+import {
+  DependencyDiscoveryPlugin,
+  RepositoryBlastRadiusPlugin,
+} from "lib/graphql/plugins/dependencies";
 import {
   GitDiffPlugin,
   GitMutationsPlugin,
@@ -96,6 +99,8 @@ const graphilePreset: GraphileConfig.Preset = {
     MergeQueueMutationsPlugin,
     // Dependency discovery: reconcile the graph from a repository's manifest
     DependencyDiscoveryPlugin,
+    // Blast radius: the repositories affected by a change, via reverse deps
+    RepositoryBlastRadiusPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,

@@ -12,7 +12,7 @@ import {
   stackTable,
   verificationCheckTable,
 } from "lib/db/schema";
-import { discoverDependencies } from "lib/dependencies";
+import { discoverDependencies, repositoryBlastRadius } from "lib/dependencies";
 import { gitService } from "lib/git";
 import { pullRequestCommentTopic } from "lib/graphql/plugins/subscriptions/topic";
 import { pullRequestService } from "lib/pullRequest";
@@ -695,6 +695,36 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
       } catch (err) {
         console.error("[MCP] discover_dependencies failed:", err);
         return errorResult("Failed to discover dependencies");
+      }
+    },
+  );
+
+  server.registerTool(
+    "repository_blast_radius",
+    {
+      title: "Repository blast radius",
+      description:
+        "List the repositories that would be affected by a change to this repository, following the dependency graph in reverse (its transitive dependents), nearest first. Use this to scope a cross-repo change. Only repositories the caller may see are returned",
+      inputSchema: {
+        owner: z.string().describe("Owner username"),
+        repo: z.string().describe("Repository slug"),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    async ({ owner, repo }) => {
+      const gate = await gateRead(caller, owner, repo);
+      if (!gate) return errorResult(NOT_FOUND_MESSAGE);
+
+      try {
+        const affected = await repositoryBlastRadius({
+          observer: { id: caller.user.id },
+          db: dbPool,
+          input: { repositoryId: gate.id },
+        });
+        return jsonResult({ affected });
+      } catch (err) {
+        console.error("[MCP] repository_blast_radius failed:", err);
+        return errorResult("Failed to compute blast radius");
       }
     },
   );

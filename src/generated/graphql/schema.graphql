@@ -14825,6 +14825,32 @@ type DiscoverDependenciesPayload {
   error: String
 }
 
+"""
+A repository affected by a change to another repository, with its shortest
+dependency distance from it.
+"""
+type BlastRadiusRepository {
+  """The affected repository's row id."""
+  repositoryId: UUID
+
+  """The affected repository's name."""
+  name: String
+
+  """The affected repository's slug."""
+  slug: String
+
+  """The owner username, for a personal repository."""
+  ownerUsername: String
+
+  """The organization slug, for an organization repository."""
+  organizationSlug: String
+
+  """
+  Dependency distance from the changed repository (1 = a direct dependent).
+  """
+  depth: Int
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -15777,6 +15803,12 @@ type Query implements Node {
 
   """Whether a change can merge, from its required verification checks."""
   stackMergeability(changeId: UUID!): StackMergeabilityResult
+
+  """
+  The repositories transitively affected by a change to the given
+  repository, nearest first. Only repositories the caller may see appear.
+  """
+  repositoryBlastRadius(repositoryId: UUID!): [BlastRadiusRepository!]
 }
 
 """
