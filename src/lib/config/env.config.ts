@@ -39,6 +39,11 @@ export const {
   // to roll GRAPHQL_DATABASE_URL back to the privileged role, which the check
   // would otherwise refuse to start under
   ALLOW_RLS_BYPASS,
+  // arbor-git backend (Rust/gitoxide gRPC daemon). Off by default: when
+  // USE_ARBOR_GIT is "true" and GIT_SERVICE_URL is set and reachable, git
+  // operations are delegated to arbor-git; otherwise the in-process path is used
+  USE_ARBOR_GIT,
+  GIT_SERVICE_URL,
 } = process.env;
 
 export const isDevEnv = NODE_ENV === "development",
@@ -48,6 +53,13 @@ export const isDevEnv = NODE_ENV === "development",
 
 /** Whether search indexing is enabled */
 export const isSearchEnabled = !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
+
+/**
+ * Whether delegating git to the arbor-git backend is requested. Requires both
+ * the flag on and a service URL; actual use is gated further by a boot-time
+ * health check (graceful degradation to the in-process path if unreachable).
+ */
+export const useArborGit = USE_ARBOR_GIT === "true" && !!GIT_SERVICE_URL;
 
 /**
  * Connection string for GraphQL query execution.
