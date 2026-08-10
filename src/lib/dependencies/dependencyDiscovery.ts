@@ -124,6 +124,86 @@ export const parseCargoManifest = (content: string): ParsedManifest => {
 };
 
 /**
+ * Parse a Go `go.mod` into a normalized dependency list. Both the single-line
+ * `require path version` form and the `require ( ... )` block are read; the
+ * module path is the dependency name and the semantic version its constraint.
+ * A trailing `// indirect` (or any) comment is stripped. Go module paths rarely
+ * match an Arbor repository name, so these mostly land as external packages.
+ */
+export const parseGoManifest = (content: string): ParsedManifest => {
+  const dependencies: ParsedDependency[] = [];
+  const seen = new Set<string>();
+  let inBlock = false;
+
+  const record = (path: string, version: string | undefined) => {
+    if (!path || !version || seen.has(path)) return;
+    seen.add(path);
+    dependencies.push({ name: path, versionConstraint: version });
+  };
+
+  for (const rawLine of content.split("\n")) {
+    const line = rawLine.split("//")[0]?.trim() ?? "";
+    if (!line) continue;
+
+    if (inBlock) {
+      if (line === ")") {
+        inBlock = false;
+        continue;
+      }
+      const [path, version] = line.split(/\s+/);
+      record(path ?? "", version);
+      continue;
+    }
+
+    if (line === "require (") {
+      inBlock = true;
+      continue;
+    }
+    if (line.startsWith("require ")) {
+      const [, path, version] = line.split(/\s+/);
+      record(path ?? "", version);
+    }
+  }
+
+  return { packageManager: "go", dependencies };
+};
+
+// Leading package token in a requirements.txt line: a name, optional extras
+const PIP_LINE = /^([A-Za-z0-9][A-Za-z0-9._-]*)\s*(?:\[[^\]]*\])?\s*(.*)$/;
+
+/**
+ * Parse a Python `requirements.txt` into a normalized dependency list. Each
+ * requirement contributes its distribution name and version specifier (the
+ * `==2.0`, `>=1,<2` clause, or null when unpinned); extras (`pkg[redis]`) and
+ * environment markers (`; python_version >= "3.8"`) are dropped, and comment,
+ * blank, option (`-e`, `-r`, `--hash`), and VCS/URL lines are skipped.
+ */
+export const parsePipManifest = (content: string): ParsedManifest => {
+  const dependencies: ParsedDependency[] = [];
+  const seen = new Set<string>();
+
+  for (const rawLine of content.split("\n")) {
+    const line = (rawLine.split("#")[0] ?? "").trim();
+    if (!line || line.startsWith("-") || line.includes("://")) continue;
+
+    const match = PIP_LINE.exec(line);
+    if (!match) continue;
+    const name = match[1];
+    if (!name || seen.has(name)) continue;
+
+    // Drop an environment marker, then keep the version specifier or null
+    const specifier = (match[2] ?? "").split(";")[0]?.trim() ?? "";
+    seen.add(name);
+    dependencies.push({
+      name,
+      versionConstraint: specifier.length > 0 ? specifier : null,
+    });
+  }
+
+  return { packageManager: "pip", dependencies };
+};
+
+/**
  * Split a manifest's dependencies into internal edges (a dependency whose name
  * matches another repository's name or slug) and external packages (everything
  * else). A repository never resolves to itself, so a package sharing the repo's

@@ -8,7 +8,9 @@ import {
 import { gitService } from "lib/git";
 import {
   parseCargoManifest,
+  parseGoManifest,
   parseNpmManifest,
+  parsePipManifest,
   partitionDependencies,
 } from "./dependencyDiscovery";
 
@@ -28,7 +30,7 @@ const DEPENDENCY_TYPE_NAME = "dependency";
 
 /**
  * The manifests discovery reads at the default branch, each with its parser.
- * Add go.mod / requirements.txt here alongside a parser to widen coverage.
+ * Add another ecosystem here alongside a parser to widen coverage.
  */
 const MANIFESTS: {
   path: string;
@@ -36,6 +38,8 @@ const MANIFESTS: {
 }[] = [
   { path: "package.json", parse: parseNpmManifest },
   { path: "Cargo.toml", parse: parseCargoManifest },
+  { path: "go.mod", parse: parseGoManifest },
+  { path: "requirements.txt", parse: parsePipManifest },
 ];
 
 export interface DiscoverDependenciesResult {
@@ -183,7 +187,7 @@ export const discoverDependencies = async (args: {
       internalDependencies: 0,
       externalDependencies: 0,
       error:
-        "No supported manifest (package.json, Cargo.toml) found on the default branch",
+        "No supported package manifest (package.json, Cargo.toml, go.mod, requirements.txt) found on the default branch",
     };
 
   await db.transaction(async (tx) => {

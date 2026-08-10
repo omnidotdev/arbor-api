@@ -2,7 +2,9 @@ import { describe, expect, test } from "bun:test";
 
 import {
   parseCargoManifest,
+  parseGoManifest,
   parseNpmManifest,
+  parsePipManifest,
   partitionDependencies,
 } from "./dependencyDiscovery";
 
@@ -114,6 +116,74 @@ describe("parseCargoManifest", () => {
 
   test("throws on a manifest that is not valid TOML", () => {
     expect(() => parseCargoManifest('key = "unterminated')).toThrow();
+  });
+});
+
+describe("parseGoManifest", () => {
+  test("collects a require block and a single-line require, ignoring module/go", () => {
+    const manifest = parseGoManifest(
+      [
+        "module example.com/m",
+        "go 1.21",
+        "require github.com/pkg/errors v0.9.1",
+        "require (",
+        "\tgolang.org/x/sync v0.5.0",
+        "\tgolang.org/x/text v0.14.0 // indirect",
+        ")",
+      ].join("\n"),
+    );
+
+    expect(manifest.packageManager).toBe("go");
+    expect(manifest.dependencies).toEqual([
+      { name: "github.com/pkg/errors", versionConstraint: "v0.9.1" },
+      { name: "golang.org/x/sync", versionConstraint: "v0.5.0" },
+      { name: "golang.org/x/text", versionConstraint: "v0.14.0" },
+    ]);
+  });
+
+  test("returns no dependencies when none are required", () => {
+    expect(
+      parseGoManifest("module example.com/m\ngo 1.21").dependencies,
+    ).toEqual([]);
+  });
+});
+
+describe("parsePipManifest", () => {
+  test("parses pinned, ranged, and unversioned requirements", () => {
+    const manifest = parsePipManifest(
+      ["requests==2.31.0", "Flask>=2.0,<3.0", "urllib3"].join("\n"),
+    );
+
+    expect(manifest.packageManager).toBe("pip");
+    expect(manifest.dependencies).toEqual([
+      { name: "requests", versionConstraint: "==2.31.0" },
+      { name: "Flask", versionConstraint: ">=2.0,<3.0" },
+      { name: "urllib3", versionConstraint: null },
+    ]);
+  });
+
+  test("strips extras and environment markers from the name and version", () => {
+    const manifest = parsePipManifest(
+      'celery[redis]==5.3.0 ; python_version >= "3.8"',
+    );
+    expect(manifest.dependencies).toEqual([
+      { name: "celery", versionConstraint: "==5.3.0" },
+    ]);
+  });
+
+  test("skips comments, blank lines, and option or VCS lines", () => {
+    const manifest = parsePipManifest(
+      [
+        "# a comment",
+        "",
+        "-e git+https://example.com/x.git",
+        "-r other.txt",
+        "requests==2.31.0  # inline comment",
+      ].join("\n"),
+    );
+    expect(manifest.dependencies).toEqual([
+      { name: "requests", versionConstraint: "==2.31.0" },
+    ]);
   });
 });
 

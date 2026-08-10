@@ -670,7 +670,7 @@ export const createArborMcpServer = (caller: McpCaller): McpServer => {
     {
       title: "Discover dependencies",
       description:
-        "Scan a repository's package.json and Cargo.toml at its default branch and reconcile its dependency graph: edges to other repositories the same owner or organization holds, and external packages for the rest. Replaces previously auto-detected dependencies while leaving manually created edges intact. Requires write access to the repository",
+        "Scan a repository's package manifests (package.json, Cargo.toml, go.mod, requirements.txt) at its default branch and reconcile its dependency graph: edges to other repositories the same owner or organization holds, and external packages for the rest. Replaces previously auto-detected dependencies while leaving manually created edges intact. Requires write access to the repository",
       inputSchema: {
         owner: z.string().describe("Owner username"),
         repo: z.string().describe("Repository slug"),
