@@ -350,6 +350,47 @@ export const getCommitLogViaBackend = (
     call.on("error", (error: unknown) => reject(error));
   });
 
+/** A changed file as arbor-git returns it from GetDiff (status is an enum string). */
+export interface BackendDiffEntry {
+  path: string;
+  status: string;
+  oldPath?: string;
+  oldOid: string;
+  newOid: string;
+  additions: number;
+  deletions: number;
+  isBinary: boolean;
+}
+
+/** Stream the changed files between two refs through the backend (GetDiff). */
+export const getDiffViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  baseRef: string,
+  headRef: string,
+): Promise<BackendDiffEntry[]> =>
+  new Promise((resolve, reject) => {
+    const call = (
+      client as unknown as {
+        getDiff: (request: unknown) => {
+          on: (event: string, handler: (arg: unknown) => void) => void;
+        };
+      }
+    ).getDiff({
+      repository: { owner, name: repo },
+      baseRef,
+      headRef,
+    });
+
+    const entries: BackendDiffEntry[] = [];
+    call.on("data", (entry: unknown) =>
+      entries.push(entry as BackendDiffEntry),
+    );
+    call.on("end", () => resolve(entries));
+    call.on("error", (error: unknown) => reject(error));
+  });
+
 /** A tree entry as arbor-git returns it (mode/type are enum strings). */
 export interface BackendTreeEntry {
   name: string;

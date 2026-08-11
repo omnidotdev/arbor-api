@@ -8,12 +8,24 @@ import {
   getBlobViaBackend,
   getCommitLogViaBackend,
   getCommitViaBackend,
+  getDiffViaBackend,
   getTreeViaBackend,
   isArborGitEnabled,
   listRefsViaBackend,
   resolveRefViaBackend,
   setDefaultBranchViaBackend,
 } from "./grpcClient";
+
+/** arbor-git DiffStatus enum -> the status getChangedFiles returns. */
+const BACKEND_DIFF_STATUS: Record<string, DiffStatus> = {
+  DIFF_STATUS_ADDED: "ADDED",
+  DIFF_STATUS_DELETED: "DELETED",
+  DIFF_STATUS_MODIFIED: "MODIFIED",
+  DIFF_STATUS_RENAMED: "RENAMED",
+  DIFF_STATUS_COPIED: "COPIED",
+  DIFF_STATUS_TYPE_CHANGED: "TYPE_CHANGED",
+};
+
 import { getRepositoryPath } from "./storage.config";
 
 import type { Client } from "@grpc/grpc-js";
@@ -1178,6 +1190,32 @@ export const gitService = {
     baseRef: string | null,
     headRef: string,
   ): Promise<ChangedFile[]> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        const entries = await getDiffViaBackend(
+          client,
+          owner,
+          repo,
+          baseRef ?? "",
+          headRef,
+        );
+        return entries.map((entry) => ({
+          path: entry.path,
+          oldPath: entry.oldPath ?? null,
+          status: BACKEND_DIFF_STATUS[entry.status] ?? "MODIFIED",
+          oldOid: entry.oldOid || null,
+          newOid: entry.newOid || null,
+          isBinary: entry.isBinary,
+          isImage: isImagePath(entry.path),
+          additions: entry.additions,
+          deletions: entry.deletions,
+        }));
+      } catch {
+        return [];
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
