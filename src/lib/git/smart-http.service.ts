@@ -210,16 +210,12 @@ export async function receivePack(
   userId = "",
 ): Promise<{ data: Buffer; success: boolean }> {
   const client = getArborGitClient();
-  // Only unconfined pushes route to the backend. A confined token keeps the
-  // in-process path so its pre-receive credential boundary hook still enforces
-  // ref/path limits against the actual pushed objects (arbor-git has no hook)
-  if (
-    isArborGitEnabled() &&
-    client &&
-    Buffer.isBuffer(input) &&
-    bounds === null
-  ) {
-    return receivePackViaBackend(client, owner, repo, userId, input);
+  // Confined and unconfined pushes both route to the backend: the token's bounds
+  // travel in the init and arbor-git enforces them against the actual pushed
+  // objects via its own pre-receive boundary hook. The in-process path remains
+  // the fallback when the backend is off
+  if (isArborGitEnabled() && client && Buffer.isBuffer(input)) {
+    return receivePackViaBackend(client, owner, repo, userId, input, bounds);
   }
   return executeGitService(owner, repo, "git-receive-pack", input, bounds);
 }

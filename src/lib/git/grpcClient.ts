@@ -6,6 +6,7 @@ import { loadSync } from "@grpc/proto-loader";
 import { GIT_SERVICE_URL, useArborGit } from "lib/config/env.config";
 
 import type { Client } from "@grpc/grpc-js";
+import type { ScopeBounds } from "./receivePackGuard";
 
 /**
  * gRPC client for the arbor-git backend (the Rust/gitoxide daemon).
@@ -533,9 +534,11 @@ export const getBlobViaBackend = (
 /**
  * Serve git-receive-pack (push) through the backend, mirroring uploadPackViaBackend
  * over the ReceivePack stream. `userId` is carried in the init for the backend's
- * own record. Only unconfined pushes are routed here; a token confined to
- * specific refs/paths keeps the in-process path so its pre-receive boundary hook
- * still runs (arbor-git does not carry that hook).
+ * own record. When `bounds` is provided the token's ref/path confinement travels
+ * in the init and the backend enforces it against the actual pushed objects via
+ * its pre-receive boundary hook, so a confined push is safe to route here; null
+ * bounds is an unconfined push. A `null` pattern list in a dimension leaves it
+ * unconfined, matching the in-process `ScopeBounds` shape.
  */
 export const receivePackViaBackend = (
   client: Client,
@@ -543,6 +546,7 @@ export const receivePackViaBackend = (
   repo: string,
   userId: string,
   input: Buffer,
+  bounds: ScopeBounds | null = null,
 ): Promise<{ data: Buffer; success: boolean }> =>
   new Promise((resolve) => {
     const call = (
@@ -568,7 +572,16 @@ export const receivePackViaBackend = (
       resolve({ data: Buffer.concat(chunks), success: false });
     });
 
-    call.write({ init: { repository: { owner, name: repo }, userId } });
+    call.write({
+      init: {
+        repository: { owner, name: repo },
+        userId,
+        refConfined: bounds?.refPatterns != null,
+        refPatterns: bounds?.refPatterns ?? [],
+        pathConfined: bounds?.pathPatterns != null,
+        pathPatterns: bounds?.pathPatterns ?? [],
+      },
+    });
     call.write({ data: input });
     call.end();
   });
