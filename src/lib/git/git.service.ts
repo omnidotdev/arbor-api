@@ -538,6 +538,80 @@ export const gitService = {
     ref: string,
     path = "",
   ): Promise<TreeEntryCommit[]> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        const entries = await this.getTree(owner, repo, ref, path);
+        if (entries.length === 0) return [];
+
+        const prefix = path ? `${path.replace(/\/+$/, "")}/` : "";
+        const pending = new Map<
+          string,
+          { basename: string; fullPath: string; isDir: boolean }
+        >();
+        for (const entry of entries) {
+          pending.set(entry.path, {
+            basename: entry.path,
+            fullPath: `${prefix}${entry.path}`,
+            isDir: entry.type === "tree",
+          });
+        }
+
+        const assigned: TreeEntryCommit[] = [];
+        // Full history, newest-first (limit 0 = unlimited)
+        const commits = await getCommitLogViaBackend(
+          client,
+          owner,
+          repo,
+          ref,
+          0,
+          0,
+        );
+
+        for (const commit of commits) {
+          if (pending.size === 0) break;
+
+          // Empty base for a root commit -> diff against the empty tree
+          const parentOid = commit.parentOids?.[0] ?? "";
+          const changed = await getDiffViaBackend(
+            client,
+            owner,
+            repo,
+            parentOid,
+            commit.oid,
+          );
+          if (changed.length === 0) continue;
+
+          const changedPaths = changed.map((entry) => entry.path);
+          const changedSet = new Set(changedPaths);
+          const headline = commit.message.split("\n")[0]?.trim() ?? "";
+          const committedDate = new Date(
+            Number(commit.committer?.timestamp ?? 0) * 1000,
+          ).toISOString();
+
+          for (const [key, meta] of pending) {
+            const touched = meta.isDir
+              ? changedPaths.some((p) => p.startsWith(`${meta.fullPath}/`))
+              : changedSet.has(meta.fullPath);
+            if (!touched) continue;
+
+            assigned.push({
+              path: meta.basename,
+              commitOid: commit.oid,
+              messageHeadline: headline,
+              committedDate,
+              authorName: commit.author?.name ?? "",
+            });
+            pending.delete(key);
+          }
+        }
+
+        return assigned;
+      } catch {
+        return [];
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
