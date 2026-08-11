@@ -1,4 +1,5 @@
 export * from "./agent.table";
+export * from "./branchProtectionRule.table";
 export * from "./mergeQueue.table";
 export * from "./organization.table";
 export * from "./personalAccessToken.table";

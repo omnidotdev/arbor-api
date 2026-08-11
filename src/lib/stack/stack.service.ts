@@ -1,5 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 
+import { evaluateBranchProtection } from "lib/branchProtection/branchProtection";
 import { dbPool } from "lib/db/db";
 import { changeTable, stackTable } from "lib/db/schema";
 import { gitService, repositoryService } from "lib/git";
@@ -27,6 +28,7 @@ type MergeChangeErrorReason =
   | "not-found"
   | "not-open"
   | "not-mergeable"
+  | "branch-protected"
   | "parent-unmerged"
   | "repository-unavailable"
   | "git-error";
@@ -82,6 +84,25 @@ async function resolveOwnerSlug(repository: {
   });
 
   return owner?.username ?? null;
+}
+
+/**
+ * Distinct approving reviewers on a change's linked pull request (0 when the
+ * change has no pull request, so a rule requiring approvals blocks until one is
+ * opened and approved). Counts distinct reviewers so a single reviewer's repeated
+ * approval is not double-counted.
+ */
+async function countApprovals(pullRequestId: string | null): Promise<number> {
+  if (!pullRequestId) return 0;
+  const reviews = await dbPool.query.pullRequestReviewTable.findMany({
+    where: (table, { and, eq: eqOp }) =>
+      and(
+        eqOp(table.pullRequestId, pullRequestId),
+        eqOp(table.state, "approved"),
+      ),
+    columns: { reviewerId: true },
+  });
+  return new Set(reviews.map((review) => review.reviewerId)).size;
 }
 
 /**
@@ -179,6 +200,35 @@ export const stackService = {
         reason: "not-mergeable",
         blockingChecks: mergeability.blockingChecks,
       };
+    }
+
+    // Gate on the target branch's protection rules (per-branch policy on top of
+    // the per-change check gate above; empty by default, so unprotected repos are
+    // unaffected). Required checks are already satisfied to reach here, so this
+    // enforces the additional per-branch conditions, chiefly required approvals
+    const rules = await dbPool.query.branchProtectionRuleTable.findMany({
+      where: (table, { eq: eqOp }) =>
+        eqOp(table.repositoryId, change.repositoryId),
+      columns: {
+        refPattern: true,
+        requiredApprovals: true,
+        requirePassingChecks: true,
+      },
+    });
+    if (rules.length > 0) {
+      const approvals = await countApprovals(change.pullRequestId);
+      const protection = evaluateBranchProtection(
+        rules,
+        change.stack.baseBranch,
+        { approvals, checkVerdict: "passed" },
+      );
+      if (!protection.allowed) {
+        return {
+          ok: false,
+          reason: "branch-protected",
+          blockingChecks: protection.reasons,
+        };
+      }
     }
 
     // Only the bottom unmerged change may land: its parent must be absent or

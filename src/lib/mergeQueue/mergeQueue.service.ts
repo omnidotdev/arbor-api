@@ -294,6 +294,8 @@ function mergeBlockDetail(reason: string): string {
   switch (reason) {
     case "not-mergeable":
       return "Waiting on required checks";
+    case "branch-protected":
+      return "Blocked by branch protection";
     case "parent-unmerged":
       return "Waiting on the change below to land";
     case "not-open":
