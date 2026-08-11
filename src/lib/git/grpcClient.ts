@@ -97,6 +97,70 @@ export const isArborGitEnabled = (): boolean => backendEnabled;
 /** The connected GitService client, or null when the backend is not in use. */
 export const getArborGitClient = (): Client | null => backendClient;
 
+/** Helper for a unary GitService call that resolves a boolean from one response field. */
+const unaryBool = (
+  client: Client,
+  method: string,
+  request: unknown,
+  field: string,
+): Promise<boolean> =>
+  new Promise((resolve) => {
+    (
+      client as unknown as Record<
+        string,
+        (
+          request: unknown,
+          callback: (
+            error: Error | null,
+            response?: Record<string, unknown>,
+          ) => void,
+        ) => void
+      >
+    )[method]?.(request, (error, response) => {
+      resolve(!error && Boolean(response?.[field]));
+    });
+  });
+
+/** Create a bare repository in the backend (InitRepository). */
+export const initRepositoryViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  defaultBranch: string,
+): Promise<boolean> =>
+  unaryBool(
+    client,
+    "initRepository",
+    { repository: { owner, name: repo }, defaultBranch },
+    "created",
+  );
+
+/** Delete a repository from the backend (DeleteRepository). */
+export const deleteRepositoryViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+): Promise<boolean> =>
+  unaryBool(
+    client,
+    "deleteRepository",
+    { repository: { owner, name: repo } },
+    "deleted",
+  );
+
+/** Whether a repository exists in the backend (RepositoryExists). */
+export const repositoryExistsViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+): Promise<boolean> =>
+  unaryBool(
+    client,
+    "repositoryExists",
+    { repository: { owner, name: repo } },
+    "exists",
+  );
+
 /** A reference as arbor-git returns it (camelCased by the proto loader). */
 export interface BackendRef {
   name: string;

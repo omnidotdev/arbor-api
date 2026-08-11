@@ -5,6 +5,13 @@ import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 
 import {
+  deleteRepositoryViaBackend,
+  getArborGitClient,
+  initRepositoryViaBackend,
+  isArborGitEnabled,
+  repositoryExistsViaBackend,
+} from "./grpcClient";
+import {
   ensureOwnerDirectory,
   getRepositoryPath,
   gitStorageConfig,
@@ -20,6 +27,16 @@ export const repositoryService = {
    * Initialize a new bare repository.
    */
   async init(owner: string, repo: string): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return initRepositoryViaBackend(
+        client,
+        owner,
+        repo,
+        gitStorageConfig.defaultBranch,
+      );
+    }
+
     const dir = getRepositoryPath(owner, repo);
 
     try {
@@ -45,6 +62,11 @@ export const repositoryService = {
    * Check if a repository exists on disk.
    */
   async exists(owner: string, repo: string): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return repositoryExistsViaBackend(client, owner, repo);
+    }
+
     const dir = getRepositoryPath(owner, repo);
 
     try {
@@ -60,6 +82,11 @@ export const repositoryService = {
    * Delete a repository from disk.
    */
   async delete(owner: string, repo: string): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return deleteRepositoryViaBackend(client, owner, repo);
+    }
+
     const dir = getRepositoryPath(owner, repo);
 
     try {
