@@ -7,7 +7,9 @@ import { join } from "node:path";
 import {
   checkArborGitHealth,
   createGitServiceClient,
+  getTreeViaBackend,
   listRefsViaBackend,
+  receivePackViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 
@@ -118,5 +120,27 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     expect(main).toBeDefined();
     expect(main?.oid).toBe(oid);
     expect(main?.isDefault).toBe(true);
+  });
+
+  test("reads the root tree through the backend", async () => {
+    const entries = await getTreeViaBackend(client!, OWNER, REPO, "main", "");
+    const file = entries.find((entry) => entry.name === "f.txt");
+
+    expect(file).toBeDefined();
+    expect(file?.type).toBe("TREE_ENTRY_TYPE_BLOB");
+  });
+
+  test("receive-pack round-trips through the backend", async () => {
+    // an empty push (just a flush) exercises the ReceivePack transport without
+    // needing a hand-built packfile; the upload-pack test already proves data flow
+    const result = await receivePackViaBackend(
+      client!,
+      OWNER,
+      REPO,
+      "user-1",
+      Buffer.from("0000"),
+    );
+
+    expect(result.success).toBe(true);
   });
 });
