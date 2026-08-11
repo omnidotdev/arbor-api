@@ -17,6 +17,7 @@ import {
   receivePackViaBackend,
   repositoryExistsViaBackend,
   resolveRefViaBackend,
+  setDefaultBranchViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 
@@ -170,6 +171,16 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     const bytes = await getBlobViaBackend(client!, OWNER, REPO, file!.oid);
 
     expect(bytes.toString("utf8")).toBe("hi");
+  });
+
+  test("sets the default branch through the backend", async () => {
+    expect(await setDefaultBranchViaBackend(client!, OWNER, REPO, "main")).toBe(
+      true,
+    );
+    // a nonexistent branch is refused (RefNotFound -> false)
+    expect(
+      await setDefaultBranchViaBackend(client!, OWNER, REPO, "ghost"),
+    ).toBe(false);
   });
 
   test("creates, checks, and deletes a repository through the backend", async () => {
