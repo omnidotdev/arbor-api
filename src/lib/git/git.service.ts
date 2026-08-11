@@ -5,12 +5,47 @@ import git, { TREE } from "isomorphic-git";
 
 import {
   getArborGitClient,
+  getBlobViaBackend,
   getCommitLogViaBackend,
   getTreeViaBackend,
   isArborGitEnabled,
   listRefsViaBackend,
 } from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
+
+import type { Client } from "@grpc/grpc-js";
+
+/**
+ * Resolve a file's bytes at a ref through the backend: navigate to the blob via
+ * GetTree on its parent path, then stream it with GetBlob. Returns null when the
+ * path is not a blob, matching the in-process getFileContent/getFileRaw.
+ */
+const resolveBlobViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  ref: string,
+  path: string,
+): Promise<Buffer | null> => {
+  const parts = path.split("/").filter(Boolean);
+  const fileName = parts.pop();
+  if (!fileName) return null;
+
+  const entries = await getTreeViaBackend(
+    client,
+    owner,
+    repo,
+    ref,
+    parts.join("/"),
+  );
+  const entry = entries.find(
+    (candidate) =>
+      candidate.name === fileName && candidate.type === "TREE_ENTRY_TYPE_BLOB",
+  );
+  if (!entry) return null;
+
+  return getBlobViaBackend(client, owner, repo, entry.oid);
+};
 
 /** arbor-git TreeEntryMode enum -> git mode string. */
 const BACKEND_TREE_MODE: Record<string, string> = {
@@ -542,6 +577,22 @@ export const gitService = {
     ref: string,
     path: string,
   ): Promise<string | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        const bytes = await resolveBlobViaBackend(
+          client,
+          owner,
+          repo,
+          ref,
+          path,
+        );
+        return bytes === null ? null : new TextDecoder().decode(bytes);
+      } catch {
+        return null;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -592,6 +643,15 @@ export const gitService = {
     ref: string,
     path: string,
   ): Promise<Uint8Array | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        return await resolveBlobViaBackend(client, owner, repo, ref, path);
+      } catch {
+        return null;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {

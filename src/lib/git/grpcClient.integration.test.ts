@@ -7,6 +7,7 @@ import { join } from "node:path";
 import {
   checkArborGitHealth,
   createGitServiceClient,
+  getBlobViaBackend,
   getCommitLogViaBackend,
   getTreeViaBackend,
   listRefsViaBackend,
@@ -144,6 +145,14 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
 
     expect(file).toBeDefined();
     expect(file?.type).toBe("TREE_ENTRY_TYPE_BLOB");
+  });
+
+  test("reads a blob's bytes through the backend", async () => {
+    const entries = await getTreeViaBackend(client!, OWNER, REPO, "main", "");
+    const file = entries.find((entry) => entry.name === "f.txt");
+    const bytes = await getBlobViaBackend(client!, OWNER, REPO, file!.oid);
+
+    expect(bytes.toString("utf8")).toBe("hi");
   });
 
   test("receive-pack round-trips through the backend", async () => {
