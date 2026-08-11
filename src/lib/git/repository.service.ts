@@ -10,6 +10,7 @@ import {
   getRepositoryInfoViaBackend,
   initRepositoryViaBackend,
   isArborGitEnabled,
+  renameRepositoryViaBackend,
   repositoryExistsViaBackend,
 } from "./grpcClient";
 import {
@@ -120,6 +121,11 @@ export const repositoryService = {
   ): Promise<boolean> {
     // Nothing to move when the slug is unchanged
     if (oldSlug === newSlug) return true;
+
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return renameRepositoryViaBackend(client, owner, oldSlug, newSlug);
+    }
 
     const oldPath = getRepositoryPath(owner, oldSlug);
     const newPath = getRepositoryPath(owner, newSlug);
