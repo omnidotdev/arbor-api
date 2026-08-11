@@ -96,3 +96,45 @@ export const isArborGitEnabled = (): boolean => backendEnabled;
 
 /** The connected GitService client, or null when the backend is not in use. */
 export const getArborGitClient = (): Client | null => backendClient;
+
+/**
+ * Serve git-upload-pack (clone/fetch) through the backend. Opens the bidirectional
+ * UploadPack stream, sends the repository then the client's request bytes, and
+ * concatenates the streamed response into a single buffer, matching the shape the
+ * in-process `uploadPack` returns. On a stream error it resolves `success: false`
+ * so the caller can fall back rather than throw.
+ */
+export const uploadPackViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  input: Buffer,
+): Promise<{ data: Buffer; success: boolean }> =>
+  new Promise((resolve) => {
+    const call = (
+      client as unknown as {
+        uploadPack: () => {
+          write: (message: unknown) => void;
+          end: () => void;
+          on: (event: string, handler: (arg: unknown) => void) => void;
+        };
+      }
+    ).uploadPack();
+
+    const chunks: Buffer[] = [];
+    call.on("data", (response: unknown) => {
+      const data = (response as { data?: Buffer | Uint8Array }).data;
+      if (data && data.length > 0) chunks.push(Buffer.from(data));
+    });
+    call.on("end", () =>
+      resolve({ data: Buffer.concat(chunks), success: true }),
+    );
+    call.on("error", (error: unknown) => {
+      console.error("[arbor-git] upload_pack stream failed:", error);
+      resolve({ data: Buffer.concat(chunks), success: false });
+    });
+
+    call.write({ init: { repository: { owner, name: repo } } });
+    call.write({ data: input });
+    call.end();
+  });
