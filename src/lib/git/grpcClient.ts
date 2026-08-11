@@ -194,6 +194,29 @@ export const listRefsViaBackend = (
     });
   });
 
+/** Resolve a ref (branch/tag/SHA/HEAD) to a commit oid through the backend, or null. */
+export const resolveRefViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  ref: string,
+): Promise<string | null> =>
+  new Promise((resolve) => {
+    (
+      client as unknown as {
+        resolveRef: (
+          request: unknown,
+          callback: (error: Error | null, response?: { oid?: string }) => void,
+        ) => void;
+      }
+    ).resolveRef(
+      { repository: { owner, name: repo }, ref },
+      (error, response) => {
+        resolve(error || !response?.oid ? null : response.oid);
+      },
+    );
+  });
+
 /** A commit signature as arbor-git returns it (timestamp is a string with longs:String). */
 export interface BackendSignature {
   name: string;
@@ -209,6 +232,29 @@ export interface BackendCommit {
   committer?: BackendSignature;
   parentOids?: string[];
 }
+
+/** Read a single commit by oid through the backend (GetCommit), or null. */
+export const getCommitViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  oid: string,
+): Promise<BackendCommit | null> =>
+  new Promise((resolve) => {
+    (
+      client as unknown as {
+        getCommit: (
+          request: unknown,
+          callback: (error: Error | null, response?: BackendCommit) => void,
+        ) => void;
+      }
+    ).getCommit(
+      { repository: { owner, name: repo }, oid },
+      (error, response) => {
+        resolve(error || !response?.oid ? null : response);
+      },
+    );
+  });
 
 /**
  * Read commit history through the backend (GetCommitLog server stream). Skips

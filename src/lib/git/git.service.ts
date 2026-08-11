@@ -7,13 +7,33 @@ import {
   getArborGitClient,
   getBlobViaBackend,
   getCommitLogViaBackend,
+  getCommitViaBackend,
   getTreeViaBackend,
   isArborGitEnabled,
   listRefsViaBackend,
+  resolveRefViaBackend,
 } from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
 
 import type { Client } from "@grpc/grpc-js";
+import type { BackendCommit } from "./grpcClient";
+
+/** Map a commit as arbor-git returns it to the CommitInfo shape. */
+const mapBackendCommit = (commit: BackendCommit): CommitInfo => ({
+  sha: commit.oid,
+  message: commit.message,
+  author: {
+    name: commit.author?.name ?? "",
+    email: commit.author?.email ?? "",
+    timestamp: Number(commit.author?.timestamp ?? 0),
+  },
+  committer: {
+    name: commit.committer?.name ?? "",
+    email: commit.committer?.email ?? "",
+    timestamp: Number(commit.committer?.timestamp ?? 0),
+  },
+  parents: commit.parentOids ?? [],
+});
 
 /**
  * Resolve a file's bytes at a ref through the backend: navigate to the blob via
@@ -274,6 +294,11 @@ export const gitService = {
    * Get the current HEAD commit SHA.
    */
   async getHead(owner: string, repo: string): Promise<string | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return resolveRefViaBackend(client, owner, repo, "HEAD");
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -292,6 +317,11 @@ export const gitService = {
     repo: string,
     ref: string,
   ): Promise<string | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return resolveRefViaBackend(client, owner, repo, ref);
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -316,6 +346,12 @@ export const gitService = {
     repo: string,
     sha: string,
   ): Promise<CommitInfo | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const commit = await getCommitViaBackend(client, owner, repo, sha);
+      return commit ? mapBackendCommit(commit) : null;
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -368,21 +404,7 @@ export const gitService = {
           depth,
           skip,
         );
-        return commits.map((commit) => ({
-          sha: commit.oid,
-          message: commit.message,
-          author: {
-            name: commit.author?.name ?? "",
-            email: commit.author?.email ?? "",
-            timestamp: Number(commit.author?.timestamp ?? 0),
-          },
-          committer: {
-            name: commit.committer?.name ?? "",
-            email: commit.committer?.email ?? "",
-            timestamp: Number(commit.committer?.timestamp ?? 0),
-          },
-          parents: commit.parentOids ?? [],
-        }));
+        return commits.map(mapBackendCommit);
       } catch {
         return [];
       }

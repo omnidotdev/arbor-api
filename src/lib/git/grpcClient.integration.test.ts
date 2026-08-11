@@ -10,11 +10,13 @@ import {
   deleteRepositoryViaBackend,
   getBlobViaBackend,
   getCommitLogViaBackend,
+  getCommitViaBackend,
   getTreeViaBackend,
   initRepositoryViaBackend,
   listRefsViaBackend,
   receivePackViaBackend,
   repositoryExistsViaBackend,
+  resolveRefViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 
@@ -125,6 +127,18 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     expect(main).toBeDefined();
     expect(main?.oid).toBe(oid);
     expect(main?.isDefault).toBe(true);
+  });
+
+  test("resolves a ref and reads a commit through the backend", async () => {
+    const resolved = await resolveRefViaBackend(client!, OWNER, REPO, "main");
+    expect(resolved).toBe(oid);
+
+    const head = await resolveRefViaBackend(client!, OWNER, REPO, "HEAD");
+    expect(head).toBe(oid);
+
+    const commit = await getCommitViaBackend(client!, OWNER, REPO, oid);
+    expect(commit?.oid).toBe(oid);
+    expect(commit?.author?.name).toBe("t");
   });
 
   test("reads commit history through the backend", async () => {
