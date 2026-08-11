@@ -175,6 +175,51 @@ export const renameRepositoryViaBackend = (
     "renamed",
   );
 
+/**
+ * Land a stacked change onto a target branch through the backend (MergeChange).
+ * Returns the resulting tip and the mode, or null on error so the caller can
+ * surface a generic failure. The backend takes the change's tree wholesale,
+ * matching the in-process stack-landing semantics.
+ */
+export const mergeChangeViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  commitOid: string,
+  targetBranch: string,
+  author: { name: string; email: string },
+  message: string,
+): Promise<{ sha: string; mode: string } | null> =>
+  new Promise((resolve) => {
+    (
+      client as unknown as {
+        mergeChange: (
+          request: unknown,
+          callback: (
+            error: Error | null,
+            response?: { sha?: string; mode?: string },
+          ) => void,
+        ) => void;
+      }
+    ).mergeChange(
+      {
+        repository: { owner, name: repo },
+        commitOid,
+        targetBranch,
+        authorName: author.name,
+        authorEmail: author.email,
+        message,
+      },
+      (error, response) => {
+        resolve(
+          error || !response?.sha
+            ? null
+            : { sha: response.sha, mode: response.mode ?? "" },
+        );
+      },
+    );
+  });
+
 /** Point HEAD at a branch in the backend (SetDefaultBranch). */
 export const setDefaultBranchViaBackend = (
   client: Client,
