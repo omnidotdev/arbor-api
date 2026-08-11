@@ -4,6 +4,8 @@ import { evaluateBranchProtection } from "lib/branchProtection/branchProtection"
 import { dbPool } from "lib/db/db";
 import { changeTable, stackTable } from "lib/db/schema";
 import { gitService, repositoryService } from "lib/git";
+import events from "lib/providers";
+import { extractIssueReferences } from "lib/references/issueReferences";
 
 import type { SelectChange } from "lib/db/schema";
 
@@ -327,6 +329,27 @@ export const stackService = {
         .set({ updatedAt: now })
         .where(eq(stackTable.id, change.stackId));
     }
+
+    // Emit a merged event carrying any issue/task references the change links, so
+    // Backfeed (feedback) and Runa (tasks) can close their loop. Fire-and-forget
+    // so it never affects the merge outcome
+    const references = extractIssueReferences(
+      `${change.title}\n${change.description ?? ""}`,
+    );
+    events
+      .emit({
+        type: "arbor.change.merged",
+        data: {
+          changeId,
+          repositoryId: change.repositoryId,
+          pullRequestId: change.pullRequestId ?? null,
+          title: change.title,
+          references,
+        },
+        organizationId: change.repositoryId,
+        subject: changeId,
+      })
+      .catch((err) => console.warn("[arbor] Event emit failed", err));
 
     return {
       ok: true,
