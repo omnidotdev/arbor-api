@@ -55,6 +55,8 @@ let headCall = 0;
 // Records auto-triggered dependency discovery and project sync so a push can assert
 const discoverCalls: string[] = [];
 const reconcileCalls: string[] = [];
+// CloudEvents emitted during a request (a successful push emits one)
+const emittedEvents: { type: string; data?: unknown }[] = [];
 
 const noopResult = { success: true, data: new Uint8Array([1, 2, 3]) };
 
@@ -135,6 +137,17 @@ mock.module("lib/entitlements", () => ({
   isWithinLimit: async () => true,
 }));
 
+// Capture emitted CloudEvents (a push emits arbor.repository.pushed). billing is
+// exported by lib/providers too, so the whole-module stub must expose it
+mock.module("lib/providers", () => ({
+  default: {
+    emit: async (event: { type: string; data?: unknown }) => {
+      emittedEvents.push(event);
+    },
+  },
+  billing: {},
+}));
+
 mock.module("lib/db/db", () => ({
   dbPool: {},
 }));
@@ -162,6 +175,7 @@ const reset = () => {
   headCall = 0;
   discoverCalls.length = 0;
   reconcileCalls.length = 0;
+  emittedEvents.length = 0;
 };
 
 beforeEach(reset);
@@ -330,6 +344,40 @@ describe("git routes write authorization", () => {
       }),
     );
     expect(res.status).toBe(200);
+  });
+
+  test("git-receive-pack emits arbor.repository.pushed on a successful push", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    state.authedUser = { id: "o1" };
+    state.canWrite = true;
+    // model the default branch advancing
+    state.headBefore = "old-sha";
+    state.headAfter = "new-sha";
+
+    await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/git-receive-pack", {
+        method: "POST",
+        body: new Uint8Array([0]),
+        headers: { authorization: "Bearer tok" },
+      }),
+    );
+
+    const pushed = emittedEvents.find(
+      (event) => event.type === "arbor.repository.pushed",
+    );
+    expect(pushed).toBeDefined();
+    expect(pushed?.data).toMatchObject({
+      repositoryId: "r1",
+      owner: "alice",
+      name: "repo",
+      tip: "new-sha",
+      advancedDefaultBranch: true,
+    });
   });
 
   test("a push that advances the default branch auto-scans dependencies", async () => {

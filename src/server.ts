@@ -64,6 +64,12 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
       source: "omni.arbor",
       description: "Pull request merged",
     },
+    {
+      name: "arbor.repository.pushed",
+      source: "omni.arbor",
+      description:
+        "A push landed; consumers trigger deploys or close feedback/task loops",
+    },
   ]).catch((err) => {
     console.warn("[Events] Schema registration failed:", err);
   });

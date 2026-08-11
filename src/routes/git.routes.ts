@@ -32,6 +32,7 @@ import {
   FEATURE_KEYS,
   billingBypassOrgIds,
 } from "lib/graphql/plugins/authorization/constants";
+import events from "lib/providers";
 
 import type { AuthenticatedGitCaller } from "lib/git";
 
@@ -603,7 +604,32 @@ const gitRoutes = new Elysia({ prefix: "/git" })
       // Both are best-effort and fire-and-forget, so they never delay or fail
       // the push, and each re-checks write access
       const headAfter = await gitService.getHead(owner, repo).catch(() => null);
-      if (headAfter && headAfter !== headBefore) {
+      const advancedDefaultBranch = Boolean(
+        headAfter && headAfter !== headBefore,
+      );
+
+      // Emit a push signal so consumers react without polling: fractal-operator
+      // triggers an immediate change-detection (instant Arbor-sourced deploys),
+      // and Backfeed/Runa can close their feedback/task loop. Fire-and-forget so
+      // it never delays or fails the push
+      events
+        .emit({
+          type: "arbor.repository.pushed",
+          data: {
+            repositoryId: repository.id,
+            owner,
+            name: repo,
+            tip: headAfter,
+            previousTip: headBefore,
+            advancedDefaultBranch,
+            pushedBy: gate.caller.user.id,
+          },
+          organizationId: repository.organizationId || gate.caller.user.id,
+          subject: repository.id,
+        })
+        .catch((err) => console.warn("[arbor] Event emit failed", err));
+
+      if (advancedDefaultBranch) {
         void discoverDependencies({
           observer: { id: gate.caller.user.id },
           db: dbPool,
