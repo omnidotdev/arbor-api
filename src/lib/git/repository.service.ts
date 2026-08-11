@@ -7,6 +7,7 @@ import http from "isomorphic-git/http/node";
 import {
   deleteRepositoryViaBackend,
   getArborGitClient,
+  getRepositoryInfoViaBackend,
   initRepositoryViaBackend,
   isArborGitEnabled,
   repositoryExistsViaBackend,
@@ -205,6 +206,27 @@ export const repositoryService = {
     branchCount: number;
     tagCount: number;
   }> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const info = await getRepositoryInfoViaBackend(client, owner, repo);
+      if (!info) {
+        return {
+          exists: false,
+          isEmpty: true,
+          defaultBranch: null,
+          branchCount: 0,
+          tagCount: 0,
+        };
+      }
+      return {
+        exists: true,
+        isEmpty: info.commitCount === 0,
+        defaultBranch: info.defaultBranch || null,
+        branchCount: info.branchCount,
+        tagCount: info.tagCount,
+      };
+    }
+
     const dir = getRepositoryPath(owner, repo);
 
     const exists = await this.exists(owner, repo);

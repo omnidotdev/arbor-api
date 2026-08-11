@@ -11,6 +11,7 @@ import {
   getBlobViaBackend,
   getCommitLogViaBackend,
   getCommitViaBackend,
+  getRepositoryInfoViaBackend,
   getTreeViaBackend,
   initRepositoryViaBackend,
   listRefsViaBackend,
@@ -171,6 +172,13 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     const bytes = await getBlobViaBackend(client!, OWNER, REPO, file!.oid);
 
     expect(bytes.toString("utf8")).toBe("hi");
+  });
+
+  test("reads repository info through the backend", async () => {
+    const info = await getRepositoryInfoViaBackend(client!, OWNER, REPO);
+    expect(info?.defaultBranch).toBe("main");
+    expect(info?.branchCount).toBe(1);
+    expect(info?.tagCount).toBe(0);
   });
 
   test("sets the default branch through the backend", async () => {

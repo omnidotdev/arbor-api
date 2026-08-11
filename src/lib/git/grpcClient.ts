@@ -175,6 +175,40 @@ export const setDefaultBranchViaBackend = (
     "success",
   );
 
+/** Repository info as arbor-git returns it (GetRepositoryInfo). */
+export interface BackendRepositoryInfo {
+  defaultBranch: string;
+  branchCount: number;
+  tagCount: number;
+  commitCount: number;
+  headOid: string;
+}
+
+/** Read repository info (default branch, counts) through the backend, or null. */
+export const getRepositoryInfoViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+): Promise<BackendRepositoryInfo | null> =>
+  new Promise((resolve) => {
+    (
+      client as unknown as {
+        getRepositoryInfo: (
+          request: unknown,
+          callback: (
+            error: Error | null,
+            response?: BackendRepositoryInfo,
+          ) => void,
+        ) => void;
+      }
+    ).getRepositoryInfo(
+      { repository: { owner, name: repo } },
+      (error, response) => {
+        resolve(error || !response ? null : response);
+      },
+    );
+  });
+
 /** A reference as arbor-git returns it (camelCased by the proto loader). */
 export interface BackendRef {
   name: string;
