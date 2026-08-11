@@ -45,6 +45,10 @@ RUN mkdir -p /var/lib/arbor && chown -R bun:bun /var/lib/arbor
 USER bun
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/build ./build
+# The gRPC client loads the vendored proto at runtime relative to the bundle
+# (import.meta.dir -> /app/build), but the bundler emits only JS. Ship the proto
+# next to server.js so arbor-git delegation can initialize.
+COPY --from=builder /app/src/lib/git/proto ./build/proto
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/tsconfig.json ./
 COPY --from=builder /app/src ./src
