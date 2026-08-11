@@ -16,6 +16,7 @@ import {
   initRepositoryViaBackend,
   listRefsViaBackend,
   receivePackViaBackend,
+  renameRepositoryViaBackend,
   repositoryExistsViaBackend,
   resolveRefViaBackend,
   setDefaultBranchViaBackend,
@@ -207,6 +208,22 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     expect(await repositoryExistsViaBackend(client!, OWNER, "lifecycle")).toBe(
       false,
     );
+  });
+
+  test("renames a repository through the backend", async () => {
+    expect(
+      await initRepositoryViaBackend(client!, OWNER, "before", "main"),
+    ).toBe(true);
+    expect(
+      await renameRepositoryViaBackend(client!, OWNER, "before", "after"),
+    ).toBe(true);
+    expect(await repositoryExistsViaBackend(client!, OWNER, "before")).toBe(
+      false,
+    );
+    expect(await repositoryExistsViaBackend(client!, OWNER, "after")).toBe(
+      true,
+    );
+    await deleteRepositoryViaBackend(client!, OWNER, "after");
   });
 
   test("receive-pack round-trips through the backend", async () => {

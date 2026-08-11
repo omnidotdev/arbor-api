@@ -161,6 +161,20 @@ export const repositoryExistsViaBackend = (
     "exists",
   );
 
+/** Rename a repository within its owner in the backend (RenameRepository). */
+export const renameRepositoryViaBackend = (
+  client: Client,
+  owner: string,
+  oldName: string,
+  newName: string,
+): Promise<boolean> =>
+  unaryBool(
+    client,
+    "renameRepository",
+    { repository: { owner, name: oldName }, newName },
+    "renamed",
+  );
+
 /** Point HEAD at a branch in the backend (SetDefaultBranch). */
 export const setDefaultBranchViaBackend = (
   client: Client,
