@@ -5,10 +5,27 @@ import git, { TREE } from "isomorphic-git";
 
 import {
   getArborGitClient,
+  getTreeViaBackend,
   isArborGitEnabled,
   listRefsViaBackend,
 } from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
+
+/** arbor-git TreeEntryMode enum -> git mode string. */
+const BACKEND_TREE_MODE: Record<string, string> = {
+  TREE_ENTRY_MODE_FILE: "100644",
+  TREE_ENTRY_MODE_EXECUTABLE: "100755",
+  TREE_ENTRY_MODE_SYMLINK: "120000",
+  TREE_ENTRY_MODE_TREE: "040000",
+  TREE_ENTRY_MODE_SUBMODULE: "160000",
+};
+
+/** arbor-git TreeEntryType enum -> the type getTree returns. */
+const BACKEND_TREE_TYPE: Record<string, "blob" | "tree" | "commit"> = {
+  TREE_ENTRY_TYPE_BLOB: "blob",
+  TREE_ENTRY_TYPE_TREE: "tree",
+  TREE_ENTRY_TYPE_COMMIT: "commit",
+};
 
 import type { ReadCommitResult, WalkerEntry } from "isomorphic-git";
 
@@ -342,6 +359,21 @@ export const gitService = {
     ref: string,
     path = "",
   ): Promise<TreeEntry[]> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        const entries = await getTreeViaBackend(client, owner, repo, ref, path);
+        return entries.map((entry) => ({
+          path: entry.name,
+          mode: BACKEND_TREE_MODE[entry.mode] ?? "100644",
+          type: BACKEND_TREE_TYPE[entry.type] ?? "blob",
+          oid: entry.oid,
+        }));
+      } catch {
+        return [];
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {

@@ -582,7 +582,13 @@ const gitRoutes = new Elysia({ prefix: "/git" })
         .catch(() => null);
 
       const body = Buffer.from(await request.arrayBuffer());
-      const result = await receivePack(owner, repo, body, bounds);
+      const result = await receivePack(
+        owner,
+        repo,
+        body,
+        bounds,
+        gate.caller.user.id,
+      );
 
       if (!result.success) {
         set.status = 500;

@@ -130,6 +130,87 @@ export const listRefsViaBackend = (
     });
   });
 
+/** A tree entry as arbor-git returns it (mode/type are enum strings). */
+export interface BackendTreeEntry {
+  name: string;
+  oid: string;
+  /** TreeEntryMode enum, e.g. "TREE_ENTRY_MODE_FILE". */
+  mode: string;
+  /** TreeEntryType enum, e.g. "TREE_ENTRY_TYPE_BLOB". */
+  type: string;
+}
+
+/** Read a tree at a ref and path through the backend (GetTree unary call). */
+export const getTreeViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  ref: string,
+  path: string,
+): Promise<BackendTreeEntry[]> =>
+  new Promise((resolve, reject) => {
+    (
+      client as unknown as {
+        getTree: (
+          request: unknown,
+          callback: (
+            error: Error | null,
+            response?: { entries?: BackendTreeEntry[] },
+          ) => void,
+        ) => void;
+      }
+    ).getTree(
+      { repository: { owner, name: repo }, ref, path, recursive: false },
+      (error, response) => {
+        if (error) reject(error);
+        else resolve(response?.entries ?? []);
+      },
+    );
+  });
+
+/**
+ * Serve git-receive-pack (push) through the backend, mirroring uploadPackViaBackend
+ * over the ReceivePack stream. `userId` is carried in the init for the backend's
+ * own record. Only unconfined pushes are routed here; a token confined to
+ * specific refs/paths keeps the in-process path so its pre-receive boundary hook
+ * still runs (arbor-git does not carry that hook).
+ */
+export const receivePackViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  userId: string,
+  input: Buffer,
+): Promise<{ data: Buffer; success: boolean }> =>
+  new Promise((resolve) => {
+    const call = (
+      client as unknown as {
+        receivePack: () => {
+          write: (message: unknown) => void;
+          end: () => void;
+          on: (event: string, handler: (arg: unknown) => void) => void;
+        };
+      }
+    ).receivePack();
+
+    const chunks: Buffer[] = [];
+    call.on("data", (response: unknown) => {
+      const data = (response as { data?: Buffer | Uint8Array }).data;
+      if (data && data.length > 0) chunks.push(Buffer.from(data));
+    });
+    call.on("end", () =>
+      resolve({ data: Buffer.concat(chunks), success: true }),
+    );
+    call.on("error", (error: unknown) => {
+      console.error("[arbor-git] receive_pack stream failed:", error);
+      resolve({ data: Buffer.concat(chunks), success: false });
+    });
+
+    call.write({ init: { repository: { owner, name: repo }, userId } });
+    call.write({ data: input });
+    call.end();
+  });
+
 /**
  * Serve git-upload-pack (clone/fetch) through the backend. Opens the bidirectional
  * UploadPack stream, sends the repository then the client's request bytes, and

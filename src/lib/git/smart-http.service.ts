@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import {
   getArborGitClient,
   isArborGitEnabled,
+  receivePackViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
@@ -180,7 +181,20 @@ export async function receivePack(
   repo: string,
   input: Buffer | Readable,
   bounds: ScopeBounds | null = null,
+  userId = "",
 ): Promise<{ data: Buffer; success: boolean }> {
+  const client = getArborGitClient();
+  // Only unconfined pushes route to the backend. A confined token keeps the
+  // in-process path so its pre-receive credential boundary hook still enforces
+  // ref/path limits against the actual pushed objects (arbor-git has no hook)
+  if (
+    isArborGitEnabled() &&
+    client &&
+    Buffer.isBuffer(input) &&
+    bounds === null
+  ) {
+    return receivePackViaBackend(client, owner, repo, userId, input);
+  }
   return executeGitService(owner, repo, "git-receive-pack", input, bounds);
 }
 
