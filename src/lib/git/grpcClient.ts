@@ -161,6 +161,20 @@ export const repositoryExistsViaBackend = (
     "exists",
   );
 
+/** Point HEAD at a branch in the backend (SetDefaultBranch). */
+export const setDefaultBranchViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  branch: string,
+): Promise<boolean> =>
+  unaryBool(
+    client,
+    "setDefaultBranch",
+    { repository: { owner, name: repo }, branch },
+    "success",
+  );
+
 /** A reference as arbor-git returns it (camelCased by the proto loader). */
 export interface BackendRef {
   name: string;

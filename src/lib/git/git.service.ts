@@ -12,6 +12,7 @@ import {
   isArborGitEnabled,
   listRefsViaBackend,
   resolveRefViaBackend,
+  setDefaultBranchViaBackend,
 } from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
 
@@ -867,6 +868,11 @@ export const gitService = {
     repo: string,
     branch: string,
   ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return setDefaultBranchViaBackend(client, owner, repo, branch);
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
