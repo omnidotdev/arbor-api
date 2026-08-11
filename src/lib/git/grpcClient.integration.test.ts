@@ -7,11 +7,14 @@ import { join } from "node:path";
 import {
   checkArborGitHealth,
   createGitServiceClient,
+  deleteRepositoryViaBackend,
   getBlobViaBackend,
   getCommitLogViaBackend,
   getTreeViaBackend,
+  initRepositoryViaBackend,
   listRefsViaBackend,
   receivePackViaBackend,
+  repositoryExistsViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 
@@ -153,6 +156,24 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     const bytes = await getBlobViaBackend(client!, OWNER, REPO, file!.oid);
 
     expect(bytes.toString("utf8")).toBe("hi");
+  });
+
+  test("creates, checks, and deletes a repository through the backend", async () => {
+    expect(await repositoryExistsViaBackend(client!, OWNER, "lifecycle")).toBe(
+      false,
+    );
+    expect(
+      await initRepositoryViaBackend(client!, OWNER, "lifecycle", "main"),
+    ).toBe(true);
+    expect(await repositoryExistsViaBackend(client!, OWNER, "lifecycle")).toBe(
+      true,
+    );
+    expect(await deleteRepositoryViaBackend(client!, OWNER, "lifecycle")).toBe(
+      true,
+    );
+    expect(await repositoryExistsViaBackend(client!, OWNER, "lifecycle")).toBe(
+      false,
+    );
   });
 
   test("receive-pack round-trips through the backend", async () => {
