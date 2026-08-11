@@ -11,6 +11,7 @@ import {
   getBlobViaBackend,
   getCommitLogViaBackend,
   getCommitViaBackend,
+  getDiffViaBackend,
   getRepositoryInfoViaBackend,
   getTreeViaBackend,
   initRepositoryViaBackend,
@@ -173,6 +174,16 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     const bytes = await getBlobViaBackend(client!, OWNER, REPO, file!.oid);
 
     expect(bytes.toString("utf8")).toBe("hi");
+  });
+
+  test("diffs a commit against the empty base through the backend", async () => {
+    // empty base -> the root commit adds f.txt
+    const entries = await getDiffViaBackend(client!, OWNER, REPO, "", "main");
+    const file = entries.find((entry) => entry.path === "f.txt");
+
+    expect(file).toBeDefined();
+    expect(file?.status).toBe("DIFF_STATUS_ADDED");
+    expect(file?.isBinary).toBe(false);
   });
 
   test("reads repository info through the backend", async () => {
