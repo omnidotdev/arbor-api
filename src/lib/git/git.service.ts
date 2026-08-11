@@ -787,6 +787,14 @@ export const gitService = {
    * List all tags.
    */
   async listTags(owner: string, repo: string): Promise<TagInfo[]> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const refs = await listRefsViaBackend(client, owner, repo);
+      return refs
+        .filter((ref) => ref.type === "REF_TYPE_TAG")
+        .map((ref) => ({ name: ref.shortName, sha: ref.oid }));
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
