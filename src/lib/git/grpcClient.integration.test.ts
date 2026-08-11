@@ -7,6 +7,7 @@ import { join } from "node:path";
 import {
   checkArborGitHealth,
   createGitServiceClient,
+  getCommitLogViaBackend,
   getTreeViaBackend,
   listRefsViaBackend,
   receivePackViaBackend,
@@ -120,6 +121,21 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     expect(main).toBeDefined();
     expect(main?.oid).toBe(oid);
     expect(main?.isDefault).toBe(true);
+  });
+
+  test("reads commit history through the backend", async () => {
+    const commits = await getCommitLogViaBackend(
+      client!,
+      OWNER,
+      REPO,
+      "main",
+      20,
+      0,
+    );
+
+    expect(commits.length).toBe(1);
+    expect(commits[0]?.oid).toBe(oid);
+    expect(commits[0]?.author?.name).toBe("t");
   });
 
   test("reads the root tree through the backend", async () => {
