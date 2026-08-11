@@ -2,6 +2,11 @@ import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  getArborGitClient,
+  isArborGitEnabled,
+  uploadPackViaBackend,
+} from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
 
 import type { Readable } from "node:stream";
@@ -144,12 +149,21 @@ export async function advertiseRefs(
 
 /**
  * Execute git-upload-pack (for clone/fetch/pull).
+ *
+ * When the arbor-git backend is enabled and the input is a buffered request (the
+ * smart-HTTP POST body), this is delegated to arbor-git over gRPC; otherwise it
+ * runs the in-process `git-upload-pack`. The auth/visibility gate in front of
+ * this call is unchanged either way.
  */
 export async function uploadPack(
   owner: string,
   repo: string,
   input: Buffer | Readable,
 ): Promise<{ data: Buffer; success: boolean }> {
+  const client = getArborGitClient();
+  if (isArborGitEnabled() && client && Buffer.isBuffer(input)) {
+    return uploadPackViaBackend(client, owner, repo, input);
+  }
   return executeGitService(owner, repo, "git-upload-pack", input);
 }
 
