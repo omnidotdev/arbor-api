@@ -16,6 +16,7 @@ import {
   getTreeViaBackend,
   initRepositoryViaBackend,
   listRefsViaBackend,
+  mergeChangeViaBackend,
   receivePackViaBackend,
   renameRepositoryViaBackend,
   repositoryExistsViaBackend,
@@ -191,6 +192,21 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     expect(info?.defaultBranch).toBe("main");
     expect(info?.branchCount).toBe(1);
     expect(info?.tagCount).toBe(0);
+  });
+
+  test("lands a change through the backend (already-merged path)", async () => {
+    // the tip is already contained in main, so landing it is a no-op advance
+    const result = await mergeChangeViaBackend(
+      client!,
+      OWNER,
+      REPO,
+      oid,
+      "main",
+      { name: "t", email: "t@t" },
+      "land",
+    );
+    expect(result?.mode).toBe("already-merged");
+    expect(result?.sha).toBe(oid);
   });
 
   test("sets the default branch through the backend", async () => {

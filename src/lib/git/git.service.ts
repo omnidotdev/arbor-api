@@ -12,6 +12,7 @@ import {
   getTreeViaBackend,
   isArborGitEnabled,
   listRefsViaBackend,
+  mergeChangeViaBackend,
   resolveRefViaBackend,
   setDefaultBranchViaBackend,
 } from "./grpcClient";
@@ -1166,6 +1167,24 @@ export const gitService = {
     mode: "fast-forward" | "merge-commit" | "already-merged" | null;
     error?: string;
   }> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const result = await mergeChangeViaBackend(
+        client,
+        owner,
+        repo,
+        commitOid,
+        targetBranch,
+        author,
+        message,
+      );
+      if (!result) return { sha: null, mode: null, error: "merge failed" };
+      return {
+        sha: result.sha,
+        mode: result.mode as "fast-forward" | "merge-commit" | "already-merged",
+      };
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
     const ref = `refs/heads/${targetBranch}`;
 
