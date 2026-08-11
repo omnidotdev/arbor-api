@@ -94,6 +94,20 @@ describe("receivePackViaBackend confinement mapping", () => {
     expect(init?.pathPatterns).toEqual([]);
   });
 
+  test("carries the repository's protected-branch patterns in the init", async () => {
+    const { client, getInit } = captureInit();
+
+    await receivePackViaBackend(client, "o", "r", "u", Buffer.from("x"), null, [
+      "main",
+      "release/*",
+    ]);
+
+    const init = getInit();
+    // protection travels independently of token confinement
+    expect(init?.refConfined).toBe(false);
+    expect(init?.protectedRefPatterns).toEqual(["main", "release/*"]);
+  });
+
   test("an empty pattern list still confines (fails closed)", async () => {
     const { client, getInit } = captureInit();
     const bounds: ScopeBounds = { refPatterns: [], pathPatterns: ["src/**"] };

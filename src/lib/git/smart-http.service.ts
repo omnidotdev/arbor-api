@@ -208,16 +208,32 @@ export async function receivePack(
   input: Buffer | Readable,
   bounds: ScopeBounds | null = null,
   userId = "",
+  protectedRefPatterns: string[] = [],
 ): Promise<{ data: Buffer; success: boolean }> {
   const client = getArborGitClient();
   // Confined and unconfined pushes both route to the backend: the token's bounds
-  // travel in the init and arbor-git enforces them against the actual pushed
-  // objects via its own pre-receive boundary hook. The in-process path remains
-  // the fallback when the backend is off
+  // and the repository's protected branches travel in the init and arbor-git
+  // enforces them against the actual pushed objects via its own pre-receive
+  // boundary hook. The in-process path remains the fallback when the backend is off
   if (isArborGitEnabled() && client && Buffer.isBuffer(input)) {
-    return receivePackViaBackend(client, owner, repo, userId, input, bounds);
+    return receivePackViaBackend(
+      client,
+      owner,
+      repo,
+      userId,
+      input,
+      bounds,
+      protectedRefPatterns,
+    );
   }
-  return executeGitService(owner, repo, "git-receive-pack", input, bounds);
+  return executeGitService(
+    owner,
+    repo,
+    "git-receive-pack",
+    input,
+    bounds,
+    protectedRefPatterns,
+  );
 }
 
 /**
@@ -229,18 +245,21 @@ async function executeGitService(
   service: GitService,
   input: Buffer | Readable,
   bounds: ScopeBounds | null = null,
+  protectedRefPatterns: string[] = [],
 ): Promise<{ data: Buffer; success: boolean }> {
   const repoPath = getRepositoryPath(owner, repo);
 
   return new Promise((resolve) => {
-    // When a push is confined, run receive-pack through `git -c core.hooksPath`
-    // so the credential boundary hook fires. `-c` applies config to the very
-    // process running the hook, which is the only form honored here (an
-    // env-provided core.hooksPath is ignored). Unconfined pushes and every fetch
-    // spawn the plumbing binary directly, exactly as before
-    const confined = service === "git-receive-pack" && bounds !== null;
-    const command = confined ? "git" : service;
-    const args = confined
+    // Run receive-pack through `git -c core.hooksPath` when there is anything to
+    // enforce (a confined token OR protected branches) so the boundary hook fires.
+    // `-c` applies config to the very process running the hook, which is the only
+    // form honored here (an env-provided core.hooksPath is ignored). Pushes with
+    // nothing to enforce and every fetch spawn the plumbing binary directly
+    const enforce =
+      service === "git-receive-pack" &&
+      (bounds !== null || protectedRefPatterns.length > 0);
+    const command = enforce ? "git" : service;
+    const args = enforce
       ? [
           "-c",
           `core.hooksPath=${HOOKS_DIR}`,
@@ -255,6 +274,12 @@ async function executeGitService(
         ...process.env,
         GIT_PROTOCOL: "version=2",
         ...buildReceivePackHookEnv(bounds),
+        ...(protectedRefPatterns.length > 0
+          ? {
+              ARBOR_PROTECTED_REF_PATTERNS:
+                JSON.stringify(protectedRefPatterns),
+            }
+          : {}),
       },
     });
 

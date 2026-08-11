@@ -112,10 +112,15 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
   });
 
   test("fetches a packfile through the backend", async () => {
+    // protocol v2 fetch (the backend serves upload-pack under version=2): command,
+    // delimiter, then want/done, then flush
     const request = Buffer.concat([
-      pktLine(`want ${oid} multi_ack ofs-delta agent=arbor-api-test\n`),
-      Buffer.from("0000"),
+      pktLine("command=fetch\n"),
+      pktLine("object-format=sha1\n"),
+      Buffer.from("0001"),
+      pktLine(`want ${oid}\n`),
       pktLine("done\n"),
+      Buffer.from("0000"),
     ]);
 
     const result = await uploadPackViaBackend(client!, OWNER, REPO, request);
