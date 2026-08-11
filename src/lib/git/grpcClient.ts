@@ -475,6 +475,37 @@ export const getTreeViaBackend = (
   });
 
 /** Read a blob's bytes by oid through the backend (GetBlob server stream). */
+/**
+ * Fetch the Smart-HTTP ref advertisement from the backend (AdvertiseRefs). Returns
+ * the raw `--advertise-refs` bytes (the caller prepends the `# service=` line), or
+ * null on error so the caller can fall back to the in-process git CLI. `service`
+ * is the plumbing name (`upload-pack` / `receive-pack`), not the `git-` form.
+ */
+export const advertiseRefsViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  service: "upload-pack" | "receive-pack",
+): Promise<Buffer | null> =>
+  new Promise((resolve) => {
+    (
+      client as unknown as {
+        advertiseRefs: (
+          request: unknown,
+          callback: (
+            error: Error | null,
+            response?: { data?: Buffer | Uint8Array },
+          ) => void,
+        ) => void;
+      }
+    ).advertiseRefs(
+      { repository: { owner, name: repo }, service },
+      (error, response) => {
+        resolve(error || !response?.data ? null : Buffer.from(response.data));
+      },
+    );
+  });
+
 export const getBlobViaBackend = (
   client: Client,
   owner: string,

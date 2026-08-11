@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  advertiseRefsViaBackend,
   getArborGitClient,
   isArborGitEnabled,
   receivePackViaBackend,
@@ -102,6 +103,31 @@ export async function advertiseRefs(
   repo: string,
   service: GitService,
 ): Promise<{ data: Buffer; success: boolean }> {
+  const client = getArborGitClient();
+  if (isArborGitEnabled() && client) {
+    // the backend returns the raw `--advertise-refs` bytes; assemble the same
+    // announcement + flush the in-process path builds below so the wire response
+    // is identical. `service` is `git-upload-pack`/`git-receive-pack`; the backend
+    // wants the bare plumbing name
+    const gitOutput = await advertiseRefsViaBackend(
+      client,
+      owner,
+      repo,
+      service.replace(/^git-/, "") as "upload-pack" | "receive-pack",
+    );
+    if (gitOutput) {
+      return {
+        data: Buffer.concat([
+          Buffer.from(pktLine(`# service=${service}`)),
+          Buffer.from(PKT_FLUSH),
+          gitOutput,
+        ]),
+        success: true,
+      };
+    }
+    // backend error: fall through to the in-process advertisement
+  }
+
   const repoPath = getRepositoryPath(owner, repo);
 
   return new Promise((resolve) => {
