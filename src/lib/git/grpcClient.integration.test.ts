@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
+  advertiseRefsViaBackend,
   checkArborGitHealth,
   createGitServiceClient,
   deleteRepositoryViaBackend,
@@ -192,6 +193,30 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
     expect(info?.defaultBranch).toBe("main");
     expect(info?.branchCount).toBe(1);
     expect(info?.tagCount).toBe(0);
+  });
+
+  test("advertises refs through the backend", async () => {
+    // receive-pack has no protocol v2, so its advertisement lists refs inline
+    const recv = await advertiseRefsViaBackend(
+      client!,
+      OWNER,
+      REPO,
+      "receive-pack",
+    );
+    expect(recv).not.toBeNull();
+    const recvText = recv!.toString("utf8");
+    expect(recvText.includes("refs/heads/main")).toBe(true);
+    expect(recvText.includes(oid)).toBe(true);
+
+    // upload-pack advertises under v2 (capabilities, not inline refs)
+    const up = await advertiseRefsViaBackend(
+      client!,
+      OWNER,
+      REPO,
+      "upload-pack",
+    );
+    expect(up).not.toBeNull();
+    expect(up!.length).toBeGreaterThan(0);
   });
 
   test("lands a change through the backend (already-merged path)", async () => {
