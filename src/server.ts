@@ -70,6 +70,12 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
       description:
         "A push landed; consumers trigger deploys or close feedback/task loops",
     },
+    {
+      name: "arbor.change.merged",
+      source: "omni.arbor",
+      description:
+        "A change landed, carrying linked issue/task references for Backfeed/Runa",
+    },
   ]).catch((err) => {
     console.warn("[Events] Schema registration failed:", err);
   });
