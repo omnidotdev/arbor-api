@@ -6,21 +6,23 @@ interface Node {
   id: ID!
 }
 
-type RepositoryRelationshipMetadatum implements Node {
+type TopicPullRequest implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   id: ID!
   rowId: UUID!
-  relationshipId: UUID!
-  key: String!
-  value: String!
+  topicId: UUID!
+  pullRequestId: UUID!
   createdAt: Datetime!
 
   """
-  Reads a single `RepositoryRelationship` that is related to this `RepositoryRelationshipMetadatum`.
+  Reads a single `PullRequest` that is related to this `TopicPullRequest`.
   """
-  relationship: RepositoryRelationship
+  pullRequest: PullRequest
+
+  """Reads a single `Topic` that is related to this `TopicPullRequest`."""
+  topic: Topic
 }
 
 """
@@ -37,41 +39,42 @@ to unexpected results.
 """
 scalar Datetime
 
-type RepositoryRelationship implements Node {
+type PullRequest implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   id: ID!
   rowId: UUID!
-  sourceRepositoryId: UUID!
-  targetRepositoryId: UUID!
-  relationshipTypeId: UUID!
-  detectionSource: String!
-  confidence: Float!
-  versionConstraint: String
-  branch: String
+  number: Int!
+  repositoryId: UUID!
+  authorId: UUID!
+  title: String!
+  description: String
+  state: String!
+  sourceBranch: String!
+  targetBranch: String!
+  mergeCommitSha: String
+  mergedAt: Datetime
+  mergedById: UUID
+  closedAt: Datetime
   createdAt: Datetime!
   updatedAt: Datetime!
+  authoredByAgentId: UUID
 
-  """
-  Reads a single `RepositoryRelationshipType` that is related to this `RepositoryRelationship`.
-  """
-  relationshipType: RepositoryRelationshipType
+  """Reads a single `User` that is related to this `PullRequest`."""
+  author: User
 
-  """
-  Reads a single `Repository` that is related to this `RepositoryRelationship`.
-  """
-  sourceRepository: Repository
+  """Reads a single `Agent` that is related to this `PullRequest`."""
+  authoredByAgent: Agent
 
-  """
-  Reads a single `Repository` that is related to this `RepositoryRelationship`.
-  """
-  targetRepository: Repository
+  """Reads a single `User` that is related to this `PullRequest`."""
+  mergedBy: User
 
-  """
-  Reads and enables pagination through a set of `RepositoryRelationshipMetadatum`.
-  """
-  repositoryRelationshipMetadataByRelationshipId(
+  """Reads a single `Repository` that is related to this `PullRequest`."""
+  repository: Repository
+
+  """Reads and enables pagination through a set of `PullRequestComment`."""
+  pullRequestComments(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -93,92 +96,174 @@ type RepositoryRelationship implements Node {
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: RepositoryRelationshipMetadatumCondition
+    condition: PullRequestCommentCondition
 
     """
     A filter to be used in determining which values should be returned by the collection.
     """
-    filter: RepositoryRelationshipMetadatumFilter
+    filter: PullRequestCommentFilter
 
-    """The method to use when ordering `RepositoryRelationshipMetadatum`."""
-    orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryRelationshipMetadatumConnection!
+    """The method to use when ordering `PullRequestComment`."""
+    orderBy: [PullRequestCommentOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PullRequestCommentConnection!
+
+  """Reads and enables pagination through a set of `PullRequestReview`."""
+  pullRequestReviews(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PullRequestReviewCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PullRequestReviewFilter
+
+    """The method to use when ordering `PullRequestReview`."""
+    orderBy: [PullRequestReviewOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PullRequestReviewConnection!
+
+  """Reads and enables pagination through a set of `Change`."""
+  changes(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: ChangeCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: ChangeFilter
+
+    """The method to use when ordering `Change`."""
+    orderBy: [ChangeOrderBy!] = [PRIMARY_KEY_ASC]
+  ): ChangeConnection!
+
+  """Reads and enables pagination through a set of `MergeQueueEntry`."""
+  mergeQueueEntries(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: MergeQueueEntryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: MergeQueueEntryFilter
+
+    """The method to use when ordering `MergeQueueEntry`."""
+    orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): MergeQueueEntryConnection!
+
+  """Reads and enables pagination through a set of `TopicPullRequest`."""
+  topicPullRequests(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: TopicPullRequestCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: TopicPullRequestFilter
+
+    """The method to use when ordering `TopicPullRequest`."""
+    orderBy: [TopicPullRequestOrderBy!] = [PRIMARY_KEY_ASC]
+  ): TopicPullRequestConnection!
+
+  """
+  The files changed by this pull request (merge-base of target and source
+  to the source tip).
+  """
+  changedFiles: [ChangedFile!]!
+
+  """The old and new content for a single changed file."""
+  fileDiff(path: String!): FileDiffContent
 }
 
-type RepositoryRelationshipType implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
+type User {
   rowId: UUID!
   name: String!
-  description: String
-  isDirected: Boolean!
-  organizationId: UUID
-  createdAt: Datetime!
-
-  """
-  Reads a single `Organization` that is related to this `RepositoryRelationshipType`.
-  """
-  organization: Organization
-
-  """
-  Reads and enables pagination through a set of `RepositoryRelationship`.
-  """
-  repositoryRelationshipsByRelationshipTypeId(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: RepositoryRelationshipCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: RepositoryRelationshipFilter
-
-    """The method to use when ordering `RepositoryRelationship`."""
-    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryRelationshipConnection!
-}
-
-type Organization implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  description: String
   avatarUrl: String
   createdAt: Datetime!
   updatedAt: Datetime!
-  idpOrganizationId: String!
-  subscriptionId: String
-  billingAccountId: String
-  deletedAt: Datetime
-  deletionReason: String
-  name: String
-  slug: String
+  username: String!
+  bio: String
 
   """Reads and enables pagination through a set of `Repository`."""
-  repositories(
+  repositoriesByOwnerId(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -212,9 +297,9 @@ type Organization implements Node {
   ): RepositoryConnection!
 
   """
-  Reads and enables pagination through a set of `RepositoryRelationshipType`.
+  Reads and enables pagination through a set of `RepositoryCollaborator`.
   """
-  repositoryRelationshipTypes(
+  repositoryCollaborators(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -236,19 +321,155 @@ type Organization implements Node {
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: RepositoryRelationshipTypeCondition
+    condition: RepositoryCollaboratorCondition
 
     """
     A filter to be used in determining which values should be returned by the collection.
     """
-    filter: RepositoryRelationshipTypeFilter
+    filter: RepositoryCollaboratorFilter
 
-    """The method to use when ordering `RepositoryRelationshipType`."""
-    orderBy: [RepositoryRelationshipTypeOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryRelationshipTypeConnection!
+    """The method to use when ordering `RepositoryCollaborator`."""
+    orderBy: [RepositoryCollaboratorOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryCollaboratorConnection!
+
+  """Reads and enables pagination through a set of `PullRequestComment`."""
+  authoredPullRequestComments(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PullRequestCommentCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PullRequestCommentFilter
+
+    """The method to use when ordering `PullRequestComment`."""
+    orderBy: [PullRequestCommentOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PullRequestCommentConnection!
+
+  """Reads and enables pagination through a set of `PullRequestReview`."""
+  reviewedPullRequestReviews(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PullRequestReviewCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PullRequestReviewFilter
+
+    """The method to use when ordering `PullRequestReview`."""
+    orderBy: [PullRequestReviewOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PullRequestReviewConnection!
+
+  """Reads and enables pagination through a set of `PullRequest`."""
+  authoredPullRequests(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PullRequestCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PullRequestFilter
+
+    """The method to use when ordering `PullRequest`."""
+    orderBy: [PullRequestOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PullRequestConnection!
+
+  """Reads and enables pagination through a set of `PullRequest`."""
+  pullRequestsByMergedById(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: PullRequestCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: PullRequestFilter
+
+    """The method to use when ordering `PullRequest`."""
+    orderBy: [PullRequestOrderBy!] = [PRIMARY_KEY_ASC]
+  ): PullRequestConnection!
 
   """Reads and enables pagination through a set of `Project`."""
-  projects(
+  projectsByOwnerId(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -282,7 +503,7 @@ type Organization implements Node {
   ): ProjectConnection!
 
   """Reads and enables pagination through a set of `Agent`."""
-  agents(
+  agentsByOwnerId(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -314,6 +535,40 @@ type Organization implements Node {
     """The method to use when ordering `Agent`."""
     orderBy: [AgentOrderBy!] = [PRIMARY_KEY_ASC]
   ): AgentConnection!
+
+  """Reads and enables pagination through a set of `Stack`."""
+  authoredStacks(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: StackCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: StackFilter
+
+    """The method to use when ordering `Stack`."""
+    orderBy: [StackOrderBy!] = [PRIMARY_KEY_ASC]
+  ): StackConnection!
 
   """Reads and enables pagination through a set of `OrganizationMember`."""
   organizationMembers(
@@ -348,6 +603,40 @@ type Organization implements Node {
     """The method to use when ordering `OrganizationMember`."""
     orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
   ): OrganizationMemberConnection!
+
+  """Reads and enables pagination through a set of `Topic`."""
+  topicsByOwnerId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: TopicCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: TopicFilter
+
+    """The method to use when ordering `Topic`."""
+    orderBy: [TopicOrderBy!] = [PRIMARY_KEY_ASC]
+  ): TopicConnection!
 }
 
 """A connection to a list of `Repository` values."""
@@ -774,17 +1063,26 @@ enum Visibility {
   private
 }
 
-type User {
+type Organization implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
   rowId: UUID!
-  name: String!
+  description: String
   avatarUrl: String
   createdAt: Datetime!
   updatedAt: Datetime!
-  username: String!
-  bio: String
+  idpOrganizationId: String!
+  subscriptionId: String
+  billingAccountId: String
+  deletedAt: Datetime
+  deletionReason: String
+  name: String
+  slug: String
 
   """Reads and enables pagination through a set of `Repository`."""
-  repositoriesByOwnerId(
+  repositories(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -818,9 +1116,9 @@ type User {
   ): RepositoryConnection!
 
   """
-  Reads and enables pagination through a set of `RepositoryCollaborator`.
+  Reads and enables pagination through a set of `RepositoryRelationshipType`.
   """
-  repositoryCollaborators(
+  repositoryRelationshipTypes(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -842,155 +1140,19 @@ type User {
     """
     A condition to be used in determining which values should be returned by the collection.
     """
-    condition: RepositoryCollaboratorCondition
+    condition: RepositoryRelationshipTypeCondition
 
     """
     A filter to be used in determining which values should be returned by the collection.
     """
-    filter: RepositoryCollaboratorFilter
+    filter: RepositoryRelationshipTypeFilter
 
-    """The method to use when ordering `RepositoryCollaborator`."""
-    orderBy: [RepositoryCollaboratorOrderBy!] = [PRIMARY_KEY_ASC]
-  ): RepositoryCollaboratorConnection!
-
-  """Reads and enables pagination through a set of `PullRequestComment`."""
-  authoredPullRequestComments(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PullRequestCommentCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PullRequestCommentFilter
-
-    """The method to use when ordering `PullRequestComment`."""
-    orderBy: [PullRequestCommentOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PullRequestCommentConnection!
-
-  """Reads and enables pagination through a set of `PullRequestReview`."""
-  reviewedPullRequestReviews(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PullRequestReviewCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PullRequestReviewFilter
-
-    """The method to use when ordering `PullRequestReview`."""
-    orderBy: [PullRequestReviewOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PullRequestReviewConnection!
-
-  """Reads and enables pagination through a set of `PullRequest`."""
-  authoredPullRequests(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PullRequestCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PullRequestFilter
-
-    """The method to use when ordering `PullRequest`."""
-    orderBy: [PullRequestOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PullRequestConnection!
-
-  """Reads and enables pagination through a set of `PullRequest`."""
-  pullRequestsByMergedById(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PullRequestCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PullRequestFilter
-
-    """The method to use when ordering `PullRequest`."""
-    orderBy: [PullRequestOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PullRequestConnection!
+    """The method to use when ordering `RepositoryRelationshipType`."""
+    orderBy: [RepositoryRelationshipTypeOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipTypeConnection!
 
   """Reads and enables pagination through a set of `Project`."""
-  projectsByOwnerId(
+  projects(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -1024,7 +1186,7 @@ type User {
   ): ProjectConnection!
 
   """Reads and enables pagination through a set of `Agent`."""
-  agentsByOwnerId(
+  agents(
     """Only read the first `n` values of the set."""
     first: Int
 
@@ -1056,40 +1218,6 @@ type User {
     """The method to use when ordering `Agent`."""
     orderBy: [AgentOrderBy!] = [PRIMARY_KEY_ASC]
   ): AgentConnection!
-
-  """Reads and enables pagination through a set of `Stack`."""
-  authoredStacks(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: StackCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: StackFilter
-
-    """The method to use when ordering `Stack`."""
-    orderBy: [StackOrderBy!] = [PRIMARY_KEY_ASC]
-  ): StackConnection!
 
   """Reads and enables pagination through a set of `OrganizationMember`."""
   organizationMembers(
@@ -1124,6 +1252,40 @@ type User {
     """The method to use when ordering `OrganizationMember`."""
     orderBy: [OrganizationMemberOrderBy!] = [PRIMARY_KEY_ASC]
   ): OrganizationMemberConnection!
+
+  """Reads and enables pagination through a set of `Topic`."""
+  topics(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: TopicCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: TopicFilter
+
+    """The method to use when ordering `Topic`."""
+    orderBy: [TopicOrderBy!] = [PRIMARY_KEY_ASC]
+  ): TopicConnection!
 }
 
 """A location in a connection that can be used for resuming pagination."""
@@ -1733,6 +1895,12 @@ input UserFilter {
   """Some related `organizationMembers` exist."""
   organizationMembersExist: Boolean
 
+  """Filter by the object’s `topicsByOwnerId` relation."""
+  topicsByOwnerId: UserToManyTopicFilter
+
+  """Some related `topicsByOwnerId` exist."""
+  topicsByOwnerIdExist: Boolean
+
   """Checks for all expressions in this list."""
   and: [UserFilter!]
 
@@ -2082,6 +2250,12 @@ input PullRequestFilter {
 
   """Some related `mergeQueueEntries` exist."""
   mergeQueueEntriesExist: Boolean
+
+  """Filter by the object’s `topicPullRequests` relation."""
+  topicPullRequests: PullRequestToManyTopicPullRequestFilter
+
+  """Some related `topicPullRequests` exist."""
+  topicPullRequestsExist: Boolean
 
   """Filter by the object’s `author` relation."""
   author: UserFilter
@@ -3574,6 +3748,12 @@ input OrganizationFilter {
   """Some related `organizationMembers` exist."""
   organizationMembersExist: Boolean
 
+  """Filter by the object’s `topics` relation."""
+  topics: OrganizationToManyTopicFilter
+
+  """Some related `topics` exist."""
+  topicsExist: Boolean
+
   """Checks for all expressions in this list."""
   and: [OrganizationFilter!]
 
@@ -4311,6 +4491,181 @@ input OrganizationMemberDistinctCountAggregateFilter {
 }
 
 """
+A filter to be used against many `Topic` object types. All fields are combined with a logical ‘and.’
+"""
+input OrganizationToManyTopicFilter {
+  """
+  Every related `Topic` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: TopicFilter
+
+  """
+  Some related `Topic` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: TopicFilter
+
+  """
+  No related `Topic` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: TopicFilter
+
+  """Aggregates across related `Topic` match the filter criteria."""
+  aggregates: TopicAggregatesFilter
+}
+
+"""
+A filter to be used against `Topic` object types. All fields are combined with a logical ‘and.’
+"""
+input TopicFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `ownerId` field."""
+  ownerId: UUIDFilter
+
+  """Filter by the object’s `organizationId` field."""
+  organizationId: UUIDFilter
+
+  """Filter by the object’s `title` field."""
+  title: StringFilter
+
+  """Filter by the object’s `description` field."""
+  description: StringFilter
+
+  """Filter by the object’s `status` field."""
+  status: StringFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `topicPullRequests` relation."""
+  topicPullRequests: TopicToManyTopicPullRequestFilter
+
+  """Some related `topicPullRequests` exist."""
+  topicPullRequestsExist: Boolean
+
+  """Filter by the object’s `organization` relation."""
+  organization: OrganizationFilter
+
+  """A related `organization` exists."""
+  organizationExists: Boolean
+
+  """Filter by the object’s `owner` relation."""
+  owner: UserFilter
+
+  """Checks for all expressions in this list."""
+  and: [TopicFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [TopicFilter!]
+
+  """Negates the expression."""
+  not: TopicFilter
+}
+
+"""
+A filter to be used against many `TopicPullRequest` object types. All fields are combined with a logical ‘and.’
+"""
+input TopicToManyTopicPullRequestFilter {
+  """
+  Every related `TopicPullRequest` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: TopicPullRequestFilter
+
+  """
+  Some related `TopicPullRequest` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: TopicPullRequestFilter
+
+  """
+  No related `TopicPullRequest` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: TopicPullRequestFilter
+
+  """
+  Aggregates across related `TopicPullRequest` match the filter criteria.
+  """
+  aggregates: TopicPullRequestAggregatesFilter
+}
+
+"""
+A filter to be used against `TopicPullRequest` object types. All fields are combined with a logical ‘and.’
+"""
+input TopicPullRequestFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `topicId` field."""
+  topicId: UUIDFilter
+
+  """Filter by the object’s `pullRequestId` field."""
+  pullRequestId: UUIDFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `pullRequest` relation."""
+  pullRequest: PullRequestFilter
+
+  """Filter by the object’s `topic` relation."""
+  topic: TopicFilter
+
+  """Checks for all expressions in this list."""
+  and: [TopicPullRequestFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [TopicPullRequestFilter!]
+
+  """Negates the expression."""
+  not: TopicPullRequestFilter
+}
+
+"""
+A filter to be used against aggregates of `TopicPullRequest` object types.
+"""
+input TopicPullRequestAggregatesFilter {
+  """
+  A filter that must pass for the relevant `TopicPullRequest` object to be included within the aggregate.
+  """
+  filter: TopicPullRequestFilter
+
+  """Distinct count aggregate over matching `TopicPullRequest` objects."""
+  distinctCount: TopicPullRequestDistinctCountAggregateFilter
+}
+
+input TopicPullRequestDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  topicId: BigIntFilter
+  pullRequestId: BigIntFilter
+  createdAt: BigIntFilter
+}
+
+"""A filter to be used against aggregates of `Topic` object types."""
+input TopicAggregatesFilter {
+  """
+  A filter that must pass for the relevant `Topic` object to be included within the aggregate.
+  """
+  filter: TopicFilter
+
+  """Distinct count aggregate over matching `Topic` objects."""
+  distinctCount: TopicDistinctCountAggregateFilter
+}
+
+input TopicDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  ownerId: BigIntFilter
+  organizationId: BigIntFilter
+  title: BigIntFilter
+  description: BigIntFilter
+  status: BigIntFilter
+  createdAt: BigIntFilter
+  updatedAt: BigIntFilter
+}
+
+"""
 A filter to be used against many `MergeQueueEntry` object types. All fields are combined with a logical ‘and.’
 """
 input PullRequestToManyMergeQueueEntryFilter {
@@ -4331,6 +4686,31 @@ input PullRequestToManyMergeQueueEntryFilter {
 
   """Aggregates across related `MergeQueueEntry` match the filter criteria."""
   aggregates: MergeQueueEntryAggregatesFilter
+}
+
+"""
+A filter to be used against many `TopicPullRequest` object types. All fields are combined with a logical ‘and.’
+"""
+input PullRequestToManyTopicPullRequestFilter {
+  """
+  Every related `TopicPullRequest` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: TopicPullRequestFilter
+
+  """
+  Some related `TopicPullRequest` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: TopicPullRequestFilter
+
+  """
+  No related `TopicPullRequest` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: TopicPullRequestFilter
+
+  """
+  Aggregates across related `TopicPullRequest` match the filter criteria.
+  """
+  aggregates: TopicPullRequestAggregatesFilter
 }
 
 """
@@ -4473,6 +4853,29 @@ input UserToManyOrganizationMemberFilter {
   Aggregates across related `OrganizationMember` match the filter criteria.
   """
   aggregates: OrganizationMemberAggregatesFilter
+}
+
+"""
+A filter to be used against many `Topic` object types. All fields are combined with a logical ‘and.’
+"""
+input UserToManyTopicFilter {
+  """
+  Every related `Topic` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: TopicFilter
+
+  """
+  Some related `Topic` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: TopicFilter
+
+  """
+  No related `Topic` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: TopicFilter
+
+  """Aggregates across related `Topic` match the filter criteria."""
+  aggregates: TopicAggregatesFilter
 }
 
 """
@@ -5073,72 +5476,263 @@ enum RepositoryOrderBy {
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PATH_PATTERNS_DESC
 }
 
-"""A connection to a list of `RepositoryCollaborator` values."""
-type RepositoryCollaboratorConnection {
-  """A list of `RepositoryCollaborator` objects."""
-  nodes: [RepositoryCollaborator!]!
+"""A connection to a list of `RepositoryRelationshipType` values."""
+type RepositoryRelationshipTypeConnection {
+  """A list of `RepositoryRelationshipType` objects."""
+  nodes: [RepositoryRelationshipType!]!
 
   """
-  A list of edges which contains the `RepositoryCollaborator` and cursor to aid in pagination.
+  A list of edges which contains the `RepositoryRelationshipType` and cursor to aid in pagination.
   """
-  edges: [RepositoryCollaboratorEdge!]!
+  edges: [RepositoryRelationshipTypeEdge!]!
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
   """
-  The count of *all* `RepositoryCollaborator` you could get from the connection.
+  The count of *all* `RepositoryRelationshipType` you could get from the connection.
   """
   totalCount: Int!
 
   """
   Aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  aggregates: RepositoryCollaboratorAggregates
+  aggregates: RepositoryRelationshipTypeAggregates
 
   """
   Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
   groupedAggregates(
     """
-    The method to use when grouping `RepositoryCollaborator` for these aggregates.
+    The method to use when grouping `RepositoryRelationshipType` for these aggregates.
     """
-    groupBy: [RepositoryCollaboratorGroupBy!]!
+    groupBy: [RepositoryRelationshipTypeGroupBy!]!
 
     """Conditions on the grouped aggregates."""
-    having: RepositoryCollaboratorHavingInput
-  ): [RepositoryCollaboratorAggregates!]
+    having: RepositoryRelationshipTypeHavingInput
+  ): [RepositoryRelationshipTypeAggregates!]
 }
 
-type RepositoryCollaborator implements Node {
+type RepositoryRelationshipType implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   id: ID!
-  repositoryId: UUID!
-  userId: UUID!
-  permission: Permission!
+  rowId: UUID!
+  name: String!
+  description: String
+  isDirected: Boolean!
+  organizationId: UUID
+  createdAt: Datetime!
+
+  """
+  Reads a single `Organization` that is related to this `RepositoryRelationshipType`.
+  """
+  organization: Organization
+
+  """
+  Reads and enables pagination through a set of `RepositoryRelationship`.
+  """
+  repositoryRelationshipsByRelationshipTypeId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipFilter
+
+    """The method to use when ordering `RepositoryRelationship`."""
+    orderBy: [RepositoryRelationshipOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipConnection!
+}
+
+"""A connection to a list of `RepositoryRelationship` values."""
+type RepositoryRelationshipConnection {
+  """A list of `RepositoryRelationship` objects."""
+  nodes: [RepositoryRelationship!]!
+
+  """
+  A list of edges which contains the `RepositoryRelationship` and cursor to aid in pagination.
+  """
+  edges: [RepositoryRelationshipEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `RepositoryRelationship` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: RepositoryRelationshipAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `RepositoryRelationship` for these aggregates.
+    """
+    groupBy: [RepositoryRelationshipGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: RepositoryRelationshipHavingInput
+  ): [RepositoryRelationshipAggregates!]
+}
+
+type RepositoryRelationship implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  sourceRepositoryId: UUID!
+  targetRepositoryId: UUID!
+  relationshipTypeId: UUID!
+  detectionSource: String!
+  confidence: Float!
+  versionConstraint: String
+  branch: String
   createdAt: Datetime!
   updatedAt: Datetime!
 
   """
-  Reads a single `Repository` that is related to this `RepositoryCollaborator`.
+  Reads a single `RepositoryRelationshipType` that is related to this `RepositoryRelationship`.
   """
-  repository: Repository
+  relationshipType: RepositoryRelationshipType
 
   """
-  Reads a single `User` that is related to this `RepositoryCollaborator`.
+  Reads a single `Repository` that is related to this `RepositoryRelationship`.
   """
-  user: User
+  sourceRepository: Repository
+
+  """
+  Reads a single `Repository` that is related to this `RepositoryRelationship`.
+  """
+  targetRepository: Repository
+
+  """
+  Reads and enables pagination through a set of `RepositoryRelationshipMetadatum`.
+  """
+  repositoryRelationshipMetadataByRelationshipId(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: RepositoryRelationshipMetadatumCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: RepositoryRelationshipMetadatumFilter
+
+    """The method to use when ordering `RepositoryRelationshipMetadatum`."""
+    orderBy: [RepositoryRelationshipMetadatumOrderBy!] = [PRIMARY_KEY_ASC]
+  ): RepositoryRelationshipMetadatumConnection!
 }
 
-"""A `RepositoryCollaborator` edge in the connection."""
-type RepositoryCollaboratorEdge {
+"""A connection to a list of `RepositoryRelationshipMetadatum` values."""
+type RepositoryRelationshipMetadatumConnection {
+  """A list of `RepositoryRelationshipMetadatum` objects."""
+  nodes: [RepositoryRelationshipMetadatum!]!
+
+  """
+  A list of edges which contains the `RepositoryRelationshipMetadatum` and cursor to aid in pagination.
+  """
+  edges: [RepositoryRelationshipMetadatumEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `RepositoryRelationshipMetadatum` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: RepositoryRelationshipMetadatumAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `RepositoryRelationshipMetadatum` for these aggregates.
+    """
+    groupBy: [RepositoryRelationshipMetadatumGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: RepositoryRelationshipMetadatumHavingInput
+  ): [RepositoryRelationshipMetadatumAggregates!]
+}
+
+type RepositoryRelationshipMetadatum implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  relationshipId: UUID!
+  key: String!
+  value: String!
+  createdAt: Datetime!
+
+  """
+  Reads a single `RepositoryRelationship` that is related to this `RepositoryRelationshipMetadatum`.
+  """
+  relationship: RepositoryRelationship
+}
+
+"""A `RepositoryRelationshipMetadatum` edge in the connection."""
+type RepositoryRelationshipMetadatumEdge {
   """A cursor for use in pagination."""
   cursor: Cursor
 
-  """The `RepositoryCollaborator` at the end of the edge."""
-  node: RepositoryCollaborator!
+  """The `RepositoryRelationshipMetadatum` at the end of the edge."""
+  node: RepositoryRelationshipMetadatum!
 }
 
 """Information about pagination in a connection."""
@@ -5156,65 +5750,61 @@ type PageInfo {
   endCursor: Cursor
 }
 
-type RepositoryCollaboratorAggregates {
+type RepositoryRelationshipMetadatumAggregates {
   keys: [String]
 
   """
   Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  distinctCount: RepositoryCollaboratorDistinctCountAggregates
+  distinctCount: RepositoryRelationshipMetadatumDistinctCountAggregates
 }
 
-type RepositoryCollaboratorDistinctCountAggregates {
-  """Distinct count of repositoryId across the matching connection"""
-  repositoryId: BigInt
+type RepositoryRelationshipMetadatumDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
 
-  """Distinct count of userId across the matching connection"""
-  userId: BigInt
+  """Distinct count of relationshipId across the matching connection"""
+  relationshipId: BigInt
 
-  """Distinct count of permission across the matching connection"""
-  permission: BigInt
+  """Distinct count of key across the matching connection"""
+  key: BigInt
+
+  """Distinct count of value across the matching connection"""
+  value: BigInt
 
   """Distinct count of createdAt across the matching connection"""
   createdAt: BigInt
-
-  """Distinct count of updatedAt across the matching connection"""
-  updatedAt: BigInt
 }
 
 """
-Grouping methods for `RepositoryCollaborator` for usage during aggregation.
+Grouping methods for `RepositoryRelationshipMetadatum` for usage during aggregation.
 """
-enum RepositoryCollaboratorGroupBy {
-  REPOSITORY_ID
-  USER_ID
-  PERMISSION
+enum RepositoryRelationshipMetadatumGroupBy {
+  RELATIONSHIP_ID
+  KEY
+  VALUE
   CREATED_AT
   CREATED_AT_TRUNCATED_TO_HOUR
   CREATED_AT_TRUNCATED_TO_DAY
-  UPDATED_AT
-  UPDATED_AT_TRUNCATED_TO_HOUR
-  UPDATED_AT_TRUNCATED_TO_DAY
 }
 
-"""Conditions for `RepositoryCollaborator` aggregates."""
-input RepositoryCollaboratorHavingInput {
-  AND: [RepositoryCollaboratorHavingInput!]
-  OR: [RepositoryCollaboratorHavingInput!]
-  sum: RepositoryCollaboratorHavingSumInput
-  distinctCount: RepositoryCollaboratorHavingDistinctCountInput
-  min: RepositoryCollaboratorHavingMinInput
-  max: RepositoryCollaboratorHavingMaxInput
-  average: RepositoryCollaboratorHavingAverageInput
-  stddevSample: RepositoryCollaboratorHavingStddevSampleInput
-  stddevPopulation: RepositoryCollaboratorHavingStddevPopulationInput
-  varianceSample: RepositoryCollaboratorHavingVarianceSampleInput
-  variancePopulation: RepositoryCollaboratorHavingVariancePopulationInput
+"""Conditions for `RepositoryRelationshipMetadatum` aggregates."""
+input RepositoryRelationshipMetadatumHavingInput {
+  AND: [RepositoryRelationshipMetadatumHavingInput!]
+  OR: [RepositoryRelationshipMetadatumHavingInput!]
+  sum: RepositoryRelationshipMetadatumHavingSumInput
+  distinctCount: RepositoryRelationshipMetadatumHavingDistinctCountInput
+  min: RepositoryRelationshipMetadatumHavingMinInput
+  max: RepositoryRelationshipMetadatumHavingMaxInput
+  average: RepositoryRelationshipMetadatumHavingAverageInput
+  stddevSample: RepositoryRelationshipMetadatumHavingStddevSampleInput
+  stddevPopulation: RepositoryRelationshipMetadatumHavingStddevPopulationInput
+  varianceSample: RepositoryRelationshipMetadatumHavingVarianceSampleInput
+  variancePopulation: RepositoryRelationshipMetadatumHavingVariancePopulationInput
 }
 
-input RepositoryCollaboratorHavingSumInput {
+input RepositoryRelationshipMetadatumHavingSumInput {
   createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
 }
 
 input HavingDatetimeFilter {
@@ -5226,59 +5816,333 @@ input HavingDatetimeFilter {
   lessThanOrEqualTo: Datetime
 }
 
-input RepositoryCollaboratorHavingDistinctCountInput {
+input RepositoryRelationshipMetadatumHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipMetadatumHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `RepositoryRelationshipMetadatum` object types.
+All fields are tested for equality and combined with a logical ‘and.’
+"""
+input RepositoryRelationshipMetadatumCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `relationshipId` field."""
+  relationshipId: UUID
+
+  """Checks for equality with the object’s `key` field."""
+  key: String
+
+  """Checks for equality with the object’s `value` field."""
+  value: String
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering `RepositoryRelationshipMetadatum`."""
+enum RepositoryRelationshipMetadatumOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  RELATIONSHIP_ID_ASC
+  RELATIONSHIP_ID_DESC
+  KEY_ASC
+  KEY_DESC
+  VALUE_ASC
+  VALUE_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+}
+
+"""A `RepositoryRelationship` edge in the connection."""
+type RepositoryRelationshipEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `RepositoryRelationship` at the end of the edge."""
+  node: RepositoryRelationship!
+}
+
+type RepositoryRelationshipAggregates {
+  keys: [String]
+
+  """
+  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  sum: RepositoryRelationshipSumAggregates
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: RepositoryRelationshipDistinctCountAggregates
+
+  """
+  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  min: RepositoryRelationshipMinAggregates
+
+  """
+  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  max: RepositoryRelationshipMaxAggregates
+
+  """
+  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  average: RepositoryRelationshipAverageAggregates
+
+  """
+  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevSample: RepositoryRelationshipStddevSampleAggregates
+
+  """
+  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevPopulation: RepositoryRelationshipStddevPopulationAggregates
+
+  """
+  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  varianceSample: RepositoryRelationshipVarianceSampleAggregates
+
+  """
+  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  variancePopulation: RepositoryRelationshipVariancePopulationAggregates
+}
+
+type RepositoryRelationshipSumAggregates {
+  """Sum of confidence across the matching connection"""
+  confidence: Float!
+}
+
+type RepositoryRelationshipDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of sourceRepositoryId across the matching connection"""
+  sourceRepositoryId: BigInt
+
+  """Distinct count of targetRepositoryId across the matching connection"""
+  targetRepositoryId: BigInt
+
+  """Distinct count of relationshipTypeId across the matching connection"""
+  relationshipTypeId: BigInt
+
+  """Distinct count of detectionSource across the matching connection"""
+  detectionSource: BigInt
+
+  """Distinct count of confidence across the matching connection"""
+  confidence: BigInt
+
+  """Distinct count of versionConstraint across the matching connection"""
+  versionConstraint: BigInt
+
+  """Distinct count of branch across the matching connection"""
+  branch: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+type RepositoryRelationshipMinAggregates {
+  """Minimum of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipMaxAggregates {
+  """Maximum of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipAverageAggregates {
+  """Mean average of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipStddevSampleAggregates {
+  """Sample standard deviation of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipStddevPopulationAggregates {
+  """
+  Population standard deviation of confidence across the matching connection
+  """
+  confidence: Float
+}
+
+type RepositoryRelationshipVarianceSampleAggregates {
+  """Sample variance of confidence across the matching connection"""
+  confidence: Float
+}
+
+type RepositoryRelationshipVariancePopulationAggregates {
+  """Population variance of confidence across the matching connection"""
+  confidence: Float
+}
+
+"""
+Grouping methods for `RepositoryRelationship` for usage during aggregation.
+"""
+enum RepositoryRelationshipGroupBy {
+  SOURCE_REPOSITORY_ID
+  TARGET_REPOSITORY_ID
+  RELATIONSHIP_TYPE_ID
+  DETECTION_SOURCE
+  CONFIDENCE
+  VERSION_CONSTRAINT
+  BRANCH
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `RepositoryRelationship` aggregates."""
+input RepositoryRelationshipHavingInput {
+  AND: [RepositoryRelationshipHavingInput!]
+  OR: [RepositoryRelationshipHavingInput!]
+  sum: RepositoryRelationshipHavingSumInput
+  distinctCount: RepositoryRelationshipHavingDistinctCountInput
+  min: RepositoryRelationshipHavingMinInput
+  max: RepositoryRelationshipHavingMaxInput
+  average: RepositoryRelationshipHavingAverageInput
+  stddevSample: RepositoryRelationshipHavingStddevSampleInput
+  stddevPopulation: RepositoryRelationshipHavingStddevPopulationInput
+  varianceSample: RepositoryRelationshipHavingVarianceSampleInput
+  variancePopulation: RepositoryRelationshipHavingVariancePopulationInput
+}
+
+input RepositoryRelationshipHavingSumInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryCollaboratorHavingMinInput {
+input HavingFloatFilter {
+  equalTo: Float
+  notEqualTo: Float
+  greaterThan: Float
+  greaterThanOrEqualTo: Float
+  lessThan: Float
+  lessThanOrEqualTo: Float
+}
+
+input RepositoryRelationshipHavingDistinctCountInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryCollaboratorHavingMaxInput {
+input RepositoryRelationshipHavingMinInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryCollaboratorHavingAverageInput {
+input RepositoryRelationshipHavingMaxInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryCollaboratorHavingStddevSampleInput {
+input RepositoryRelationshipHavingAverageInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryCollaboratorHavingStddevPopulationInput {
+input RepositoryRelationshipHavingStddevSampleInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryCollaboratorHavingVarianceSampleInput {
+input RepositoryRelationshipHavingStddevPopulationInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryCollaboratorHavingVariancePopulationInput {
+input RepositoryRelationshipHavingVarianceSampleInput {
+  confidence: HavingFloatFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipHavingVariancePopulationInput {
+  confidence: HavingFloatFilter
   createdAt: HavingDatetimeFilter
   updatedAt: HavingDatetimeFilter
 }
 
 """
-A condition to be used against `RepositoryCollaborator` object types. All fields
+A condition to be used against `RepositoryRelationship` object types. All fields
 are tested for equality and combined with a logical ‘and.’
 """
-input RepositoryCollaboratorCondition {
-  """Checks for equality with the object’s `repositoryId` field."""
-  repositoryId: UUID
+input RepositoryRelationshipCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
 
-  """Checks for equality with the object’s `userId` field."""
-  userId: UUID
+  """Checks for equality with the object’s `sourceRepositoryId` field."""
+  sourceRepositoryId: UUID
 
-  """Checks for equality with the object’s `permission` field."""
-  permission: Permission
+  """Checks for equality with the object’s `targetRepositoryId` field."""
+  targetRepositoryId: UUID
+
+  """Checks for equality with the object’s `relationshipTypeId` field."""
+  relationshipTypeId: UUID
+
+  """Checks for equality with the object’s `detectionSource` field."""
+  detectionSource: String
+
+  """Checks for equality with the object’s `confidence` field."""
+  confidence: Float
+
+  """Checks for equality with the object’s `versionConstraint` field."""
+  versionConstraint: String
+
+  """Checks for equality with the object’s `branch` field."""
+  branch: String
 
   """Checks for equality with the object’s `createdAt` field."""
   createdAt: Datetime
@@ -5287,264 +6151,729 @@ input RepositoryCollaboratorCondition {
   updatedAt: Datetime
 }
 
-"""Methods to use when ordering `RepositoryCollaborator`."""
-enum RepositoryCollaboratorOrderBy {
+"""Methods to use when ordering `RepositoryRelationship`."""
+enum RepositoryRelationshipOrderBy {
   NATURAL
   PRIMARY_KEY_ASC
   PRIMARY_KEY_DESC
-  REPOSITORY_ID_ASC
-  REPOSITORY_ID_DESC
-  USER_ID_ASC
-  USER_ID_DESC
-  PERMISSION_ASC
-  PERMISSION_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  SOURCE_REPOSITORY_ID_ASC
+  SOURCE_REPOSITORY_ID_DESC
+  TARGET_REPOSITORY_ID_ASC
+  TARGET_REPOSITORY_ID_DESC
+  RELATIONSHIP_TYPE_ID_ASC
+  RELATIONSHIP_TYPE_ID_DESC
+  DETECTION_SOURCE_ASC
+  DETECTION_SOURCE_DESC
+  CONFIDENCE_ASC
+  CONFIDENCE_DESC
+  VERSION_CONSTRAINT_ASC
+  VERSION_CONSTRAINT_DESC
+  BRANCH_ASC
+  BRANCH_DESC
   CREATED_AT_ASC
   CREATED_AT_DESC
   UPDATED_AT_ASC
   UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_DESC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
-"""A connection to a list of `PullRequestComment` values."""
-type PullRequestCommentConnection {
-  """A list of `PullRequestComment` objects."""
-  nodes: [PullRequestComment!]!
+"""A `RepositoryRelationshipType` edge in the connection."""
+type RepositoryRelationshipTypeEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `RepositoryRelationshipType` at the end of the edge."""
+  node: RepositoryRelationshipType!
+}
+
+type RepositoryRelationshipTypeAggregates {
+  keys: [String]
 
   """
-  A list of edges which contains the `PullRequestComment` and cursor to aid in pagination.
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  edges: [PullRequestCommentEdge!]!
+  distinctCount: RepositoryRelationshipTypeDistinctCountAggregates
+}
+
+type RepositoryRelationshipTypeDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of name across the matching connection"""
+  name: BigInt
+
+  """Distinct count of description across the matching connection"""
+  description: BigInt
+
+  """Distinct count of isDirected across the matching connection"""
+  isDirected: BigInt
+
+  """Distinct count of organizationId across the matching connection"""
+  organizationId: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""
+Grouping methods for `RepositoryRelationshipType` for usage during aggregation.
+"""
+enum RepositoryRelationshipTypeGroupBy {
+  NAME
+  DESCRIPTION
+  IS_DIRECTED
+  ORGANIZATION_ID
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `RepositoryRelationshipType` aggregates."""
+input RepositoryRelationshipTypeHavingInput {
+  AND: [RepositoryRelationshipTypeHavingInput!]
+  OR: [RepositoryRelationshipTypeHavingInput!]
+  sum: RepositoryRelationshipTypeHavingSumInput
+  distinctCount: RepositoryRelationshipTypeHavingDistinctCountInput
+  min: RepositoryRelationshipTypeHavingMinInput
+  max: RepositoryRelationshipTypeHavingMaxInput
+  average: RepositoryRelationshipTypeHavingAverageInput
+  stddevSample: RepositoryRelationshipTypeHavingStddevSampleInput
+  stddevPopulation: RepositoryRelationshipTypeHavingStddevPopulationInput
+  varianceSample: RepositoryRelationshipTypeHavingVarianceSampleInput
+  variancePopulation: RepositoryRelationshipTypeHavingVariancePopulationInput
+}
+
+input RepositoryRelationshipTypeHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input RepositoryRelationshipTypeHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `RepositoryRelationshipType` object types. All
+fields are tested for equality and combined with a logical ‘and.’
+"""
+input RepositoryRelationshipTypeCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `name` field."""
+  name: String
+
+  """Checks for equality with the object’s `description` field."""
+  description: String
+
+  """Checks for equality with the object’s `isDirected` field."""
+  isDirected: Boolean
+
+  """Checks for equality with the object’s `organizationId` field."""
+  organizationId: UUID
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering `RepositoryRelationshipType`."""
+enum RepositoryRelationshipTypeOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  NAME_ASC
+  NAME_DESC
+  DESCRIPTION_ASC
+  DESCRIPTION_DESC
+  IS_DIRECTED_ASC
+  IS_DIRECTED_DESC
+  ORGANIZATION_ID_ASC
+  ORGANIZATION_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_ASC
+  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_DESC
+}
+
+"""A connection to a list of `Project` values."""
+type ProjectConnection {
+  """A list of `Project` objects."""
+  nodes: [Project!]!
+
+  """
+  A list of edges which contains the `Project` and cursor to aid in pagination.
+  """
+  edges: [ProjectEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Project` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: ProjectAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping `Project` for these aggregates."""
+    groupBy: [ProjectGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: ProjectHavingInput
+  ): [ProjectAggregates!]
+}
+
+type Project implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  ownerId: UUID!
+  organizationId: UUID
+  name: String!
+  slug: String!
+  description: String
+  visibility: Visibility!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """Reads a single `Organization` that is related to this `Project`."""
+  organization: Organization
+
+  """Reads a single `User` that is related to this `Project`."""
+  owner: User
+
+  """Reads and enables pagination through a set of `ProjectRepository`."""
+  projectRepositories(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: ProjectRepositoryCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: ProjectRepositoryFilter
+
+    """The method to use when ordering `ProjectRepository`."""
+    orderBy: [ProjectRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
+  ): ProjectRepositoryConnection!
+}
+
+"""A connection to a list of `ProjectRepository` values."""
+type ProjectRepositoryConnection {
+  """A list of `ProjectRepository` objects."""
+  nodes: [ProjectRepository!]!
+
+  """
+  A list of edges which contains the `ProjectRepository` and cursor to aid in pagination.
+  """
+  edges: [ProjectRepositoryEdge!]!
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
   """
-  The count of *all* `PullRequestComment` you could get from the connection.
+  The count of *all* `ProjectRepository` you could get from the connection.
   """
   totalCount: Int!
 
   """
   Aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  aggregates: PullRequestCommentAggregates
+  aggregates: ProjectRepositoryAggregates
 
   """
   Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
   groupedAggregates(
     """
-    The method to use when grouping `PullRequestComment` for these aggregates.
+    The method to use when grouping `ProjectRepository` for these aggregates.
     """
-    groupBy: [PullRequestCommentGroupBy!]!
+    groupBy: [ProjectRepositoryGroupBy!]!
 
     """Conditions on the grouped aggregates."""
-    having: PullRequestCommentHavingInput
-  ): [PullRequestCommentAggregates!]
+    having: ProjectRepositoryHavingInput
+  ): [ProjectRepositoryAggregates!]
 }
 
-type PullRequestComment implements Node {
+type ProjectRepository implements Node {
   """
   A globally unique identifier. Can be used in various places throughout the system to identify this single value.
   """
   id: ID!
   rowId: UUID!
-  pullRequestId: UUID!
-  authorId: UUID!
-  body: String!
-  path: String
-  line: Int
-  side: String
-  commitSha: String
-  replyToId: UUID
-  createdAt: Datetime!
-  updatedAt: Datetime!
-
-  """Reads a single `User` that is related to this `PullRequestComment`."""
-  author: User
-
-  """
-  Reads a single `PullRequest` that is related to this `PullRequestComment`.
-  """
-  pullRequest: PullRequest
-}
-
-type PullRequest implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  number: Int!
+  projectId: UUID!
   repositoryId: UUID!
-  authorId: UUID!
-  title: String!
-  description: String
-  state: String!
-  sourceBranch: String!
-  targetBranch: String!
-  mergeCommitSha: String
-  mergedAt: Datetime
-  mergedById: UUID
-  closedAt: Datetime
   createdAt: Datetime!
-  updatedAt: Datetime!
-  authoredByAgentId: UUID
+  detectionSource: String!
 
-  """Reads a single `User` that is related to this `PullRequest`."""
-  author: User
+  """Reads a single `Project` that is related to this `ProjectRepository`."""
+  project: Project
 
-  """Reads a single `Agent` that is related to this `PullRequest`."""
-  authoredByAgent: Agent
-
-  """Reads a single `User` that is related to this `PullRequest`."""
-  mergedBy: User
-
-  """Reads a single `Repository` that is related to this `PullRequest`."""
+  """
+  Reads a single `Repository` that is related to this `ProjectRepository`.
+  """
   repository: Repository
+}
 
-  """Reads and enables pagination through a set of `PullRequestComment`."""
-  pullRequestComments(
-    """Only read the first `n` values of the set."""
-    first: Int
+"""A `ProjectRepository` edge in the connection."""
+type ProjectRepositoryEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
 
-    """Only read the last `n` values of the set."""
-    last: Int
+  """The `ProjectRepository` at the end of the edge."""
+  node: ProjectRepository!
+}
 
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PullRequestCommentCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PullRequestCommentFilter
-
-    """The method to use when ordering `PullRequestComment`."""
-    orderBy: [PullRequestCommentOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PullRequestCommentConnection!
-
-  """Reads and enables pagination through a set of `PullRequestReview`."""
-  pullRequestReviews(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: PullRequestReviewCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: PullRequestReviewFilter
-
-    """The method to use when ordering `PullRequestReview`."""
-    orderBy: [PullRequestReviewOrderBy!] = [PRIMARY_KEY_ASC]
-  ): PullRequestReviewConnection!
-
-  """Reads and enables pagination through a set of `Change`."""
-  changes(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: ChangeCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: ChangeFilter
-
-    """The method to use when ordering `Change`."""
-    orderBy: [ChangeOrderBy!] = [PRIMARY_KEY_ASC]
-  ): ChangeConnection!
-
-  """Reads and enables pagination through a set of `MergeQueueEntry`."""
-  mergeQueueEntries(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: MergeQueueEntryCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: MergeQueueEntryFilter
-
-    """The method to use when ordering `MergeQueueEntry`."""
-    orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
-  ): MergeQueueEntryConnection!
+type ProjectRepositoryAggregates {
+  keys: [String]
 
   """
-  The files changed by this pull request (merge-base of target and source
-  to the source tip).
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  changedFiles: [ChangedFile!]!
+  distinctCount: ProjectRepositoryDistinctCountAggregates
+}
 
-  """The old and new content for a single changed file."""
-  fileDiff(path: String!): FileDiffContent
+type ProjectRepositoryDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of projectId across the matching connection"""
+  projectId: BigInt
+
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of detectionSource across the matching connection"""
+  detectionSource: BigInt
+}
+
+"""Grouping methods for `ProjectRepository` for usage during aggregation."""
+enum ProjectRepositoryGroupBy {
+  PROJECT_ID
+  REPOSITORY_ID
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  DETECTION_SOURCE
+}
+
+"""Conditions for `ProjectRepository` aggregates."""
+input ProjectRepositoryHavingInput {
+  AND: [ProjectRepositoryHavingInput!]
+  OR: [ProjectRepositoryHavingInput!]
+  sum: ProjectRepositoryHavingSumInput
+  distinctCount: ProjectRepositoryHavingDistinctCountInput
+  min: ProjectRepositoryHavingMinInput
+  max: ProjectRepositoryHavingMaxInput
+  average: ProjectRepositoryHavingAverageInput
+  stddevSample: ProjectRepositoryHavingStddevSampleInput
+  stddevPopulation: ProjectRepositoryHavingStddevPopulationInput
+  varianceSample: ProjectRepositoryHavingVarianceSampleInput
+  variancePopulation: ProjectRepositoryHavingVariancePopulationInput
+}
+
+input ProjectRepositoryHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input ProjectRepositoryHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `ProjectRepository` object types. All fields are
+tested for equality and combined with a logical ‘and.’
+"""
+input ProjectRepositoryCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `projectId` field."""
+  projectId: UUID
+
+  """Checks for equality with the object’s `repositoryId` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `detectionSource` field."""
+  detectionSource: String
+}
+
+"""Methods to use when ordering `ProjectRepository`."""
+enum ProjectRepositoryOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  PROJECT_ID_ASC
+  PROJECT_ID_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  DETECTION_SOURCE_ASC
+  DETECTION_SOURCE_DESC
+}
+
+"""A `Project` edge in the connection."""
+type ProjectEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Project` at the end of the edge."""
+  node: Project!
+}
+
+type ProjectAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: ProjectDistinctCountAggregates
+}
+
+type ProjectDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of ownerId across the matching connection"""
+  ownerId: BigInt
+
+  """Distinct count of organizationId across the matching connection"""
+  organizationId: BigInt
+
+  """Distinct count of name across the matching connection"""
+  name: BigInt
+
+  """Distinct count of slug across the matching connection"""
+  slug: BigInt
+
+  """Distinct count of description across the matching connection"""
+  description: BigInt
+
+  """Distinct count of visibility across the matching connection"""
+  visibility: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+"""Grouping methods for `Project` for usage during aggregation."""
+enum ProjectGroupBy {
+  OWNER_ID
+  ORGANIZATION_ID
+  NAME
+  SLUG
+  DESCRIPTION
+  VISIBILITY
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `Project` aggregates."""
+input ProjectHavingInput {
+  AND: [ProjectHavingInput!]
+  OR: [ProjectHavingInput!]
+  sum: ProjectHavingSumInput
+  distinctCount: ProjectHavingDistinctCountInput
+  min: ProjectHavingMinInput
+  max: ProjectHavingMaxInput
+  average: ProjectHavingAverageInput
+  stddevSample: ProjectHavingStddevSampleInput
+  stddevPopulation: ProjectHavingStddevPopulationInput
+  varianceSample: ProjectHavingVarianceSampleInput
+  variancePopulation: ProjectHavingVariancePopulationInput
+}
+
+input ProjectHavingSumInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingMinInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input ProjectHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `Project` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input ProjectCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `ownerId` field."""
+  ownerId: UUID
+
+  """Checks for equality with the object’s `organizationId` field."""
+  organizationId: UUID
+
+  """Checks for equality with the object’s `name` field."""
+  name: String
+
+  """Checks for equality with the object’s `slug` field."""
+  slug: String
+
+  """Checks for equality with the object’s `description` field."""
+  description: String
+
+  """Checks for equality with the object’s `visibility` field."""
+  visibility: Visibility
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering `Project`."""
+enum ProjectOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  ORGANIZATION_ID_ASC
+  ORGANIZATION_ID_DESC
+  NAME_ASC
+  NAME_DESC
+  SLUG_ASC
+  SLUG_DESC
+  DESCRIPTION_ASC
+  DESCRIPTION_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  PROJECT_REPOSITORIES_COUNT_ASC
+  PROJECT_REPOSITORIES_COUNT_DESC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_ROW_ID_ASC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_ROW_ID_DESC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_PROJECT_ID_ASC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_PROJECT_ID_DESC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_ASC
+  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_DESC
+}
+
+"""A connection to a list of `Agent` values."""
+type AgentConnection {
+  """A list of `Agent` objects."""
+  nodes: [Agent!]!
+
+  """
+  A list of edges which contains the `Agent` and cursor to aid in pagination.
+  """
+  edges: [AgentEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Agent` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: AgentAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping `Agent` for these aggregates."""
+    groupBy: [AgentGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: AgentHavingInput
+  ): [AgentAggregates!]
 }
 
 type Agent implements Node {
@@ -6209,6 +7538,16 @@ enum PullRequestOrderBy {
   MERGE_QUEUE_ENTRIES_VARIANCE_SAMPLE_POSITION_DESC
   MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_ASC
   MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_DESC
+  TOPIC_PULL_REQUESTS_COUNT_ASC
+  TOPIC_PULL_REQUESTS_COUNT_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_ROW_ID_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_ROW_ID_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_TOPIC_ID_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_TOPIC_ID_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_PULL_REQUEST_ID_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_PULL_REQUEST_ID_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_CREATED_AT_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """A connection to a list of `PersonalAccessToken` values."""
@@ -8185,1042 +9524,6 @@ enum StackOrderBy {
   MERGE_QUEUE_ENTRIES_VARIANCE_POPULATION_POSITION_DESC
 }
 
-"""
-A condition to be used against `PullRequestComment` object types. All fields are
-tested for equality and combined with a logical ‘and.’
-"""
-input PullRequestCommentCondition {
-  """Checks for equality with the object’s `rowId` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s `pullRequestId` field."""
-  pullRequestId: UUID
-
-  """Checks for equality with the object’s `authorId` field."""
-  authorId: UUID
-
-  """Checks for equality with the object’s `body` field."""
-  body: String
-
-  """Checks for equality with the object’s `path` field."""
-  path: String
-
-  """Checks for equality with the object’s `line` field."""
-  line: Int
-
-  """Checks for equality with the object’s `side` field."""
-  side: String
-
-  """Checks for equality with the object’s `commitSha` field."""
-  commitSha: String
-
-  """Checks for equality with the object’s `replyToId` field."""
-  replyToId: UUID
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-
-  """Checks for equality with the object’s `updatedAt` field."""
-  updatedAt: Datetime
-}
-
-"""Methods to use when ordering `PullRequestComment`."""
-enum PullRequestCommentOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  PULL_REQUEST_ID_ASC
-  PULL_REQUEST_ID_DESC
-  AUTHOR_ID_ASC
-  AUTHOR_ID_DESC
-  BODY_ASC
-  BODY_DESC
-  PATH_ASC
-  PATH_DESC
-  LINE_ASC
-  LINE_DESC
-  SIDE_ASC
-  SIDE_DESC
-  COMMIT_SHA_ASC
-  COMMIT_SHA_DESC
-  REPLY_TO_ID_ASC
-  REPLY_TO_ID_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-  UPDATED_AT_ASC
-  UPDATED_AT_DESC
-}
-
-"""A connection to a list of `PullRequestReview` values."""
-type PullRequestReviewConnection {
-  """A list of `PullRequestReview` objects."""
-  nodes: [PullRequestReview!]!
-
-  """
-  A list of edges which contains the `PullRequestReview` and cursor to aid in pagination.
-  """
-  edges: [PullRequestReviewEdge!]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """
-  The count of *all* `PullRequestReview` you could get from the connection.
-  """
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: PullRequestReviewAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """
-    The method to use when grouping `PullRequestReview` for these aggregates.
-    """
-    groupBy: [PullRequestReviewGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: PullRequestReviewHavingInput
-  ): [PullRequestReviewAggregates!]
-}
-
-type PullRequestReview implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  pullRequestId: UUID!
-  reviewerId: UUID!
-  state: String!
-  body: String
-  submittedAt: Datetime
-  createdAt: Datetime!
-  updatedAt: Datetime!
-
-  """
-  Reads a single `PullRequest` that is related to this `PullRequestReview`.
-  """
-  pullRequest: PullRequest
-
-  """Reads a single `User` that is related to this `PullRequestReview`."""
-  reviewer: User
-}
-
-"""A `PullRequestReview` edge in the connection."""
-type PullRequestReviewEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `PullRequestReview` at the end of the edge."""
-  node: PullRequestReview!
-}
-
-type PullRequestReviewAggregates {
-  keys: [String]
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: PullRequestReviewDistinctCountAggregates
-}
-
-type PullRequestReviewDistinctCountAggregates {
-  """Distinct count of rowId across the matching connection"""
-  rowId: BigInt
-
-  """Distinct count of pullRequestId across the matching connection"""
-  pullRequestId: BigInt
-
-  """Distinct count of reviewerId across the matching connection"""
-  reviewerId: BigInt
-
-  """Distinct count of state across the matching connection"""
-  state: BigInt
-
-  """Distinct count of body across the matching connection"""
-  body: BigInt
-
-  """Distinct count of submittedAt across the matching connection"""
-  submittedAt: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-
-  """Distinct count of updatedAt across the matching connection"""
-  updatedAt: BigInt
-}
-
-"""Grouping methods for `PullRequestReview` for usage during aggregation."""
-enum PullRequestReviewGroupBy {
-  PULL_REQUEST_ID
-  REVIEWER_ID
-  STATE
-  BODY
-  SUBMITTED_AT
-  SUBMITTED_AT_TRUNCATED_TO_HOUR
-  SUBMITTED_AT_TRUNCATED_TO_DAY
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-  UPDATED_AT
-  UPDATED_AT_TRUNCATED_TO_HOUR
-  UPDATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for `PullRequestReview` aggregates."""
-input PullRequestReviewHavingInput {
-  AND: [PullRequestReviewHavingInput!]
-  OR: [PullRequestReviewHavingInput!]
-  sum: PullRequestReviewHavingSumInput
-  distinctCount: PullRequestReviewHavingDistinctCountInput
-  min: PullRequestReviewHavingMinInput
-  max: PullRequestReviewHavingMaxInput
-  average: PullRequestReviewHavingAverageInput
-  stddevSample: PullRequestReviewHavingStddevSampleInput
-  stddevPopulation: PullRequestReviewHavingStddevPopulationInput
-  varianceSample: PullRequestReviewHavingVarianceSampleInput
-  variancePopulation: PullRequestReviewHavingVariancePopulationInput
-}
-
-input PullRequestReviewHavingSumInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingDistinctCountInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingMinInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingMaxInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingAverageInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingStddevSampleInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingStddevPopulationInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingVarianceSampleInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestReviewHavingVariancePopulationInput {
-  submittedAt: HavingDatetimeFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-"""
-A condition to be used against `PullRequestReview` object types. All fields are
-tested for equality and combined with a logical ‘and.’
-"""
-input PullRequestReviewCondition {
-  """Checks for equality with the object’s `rowId` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s `pullRequestId` field."""
-  pullRequestId: UUID
-
-  """Checks for equality with the object’s `reviewerId` field."""
-  reviewerId: UUID
-
-  """Checks for equality with the object’s `state` field."""
-  state: String
-
-  """Checks for equality with the object’s `body` field."""
-  body: String
-
-  """Checks for equality with the object’s `submittedAt` field."""
-  submittedAt: Datetime
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-
-  """Checks for equality with the object’s `updatedAt` field."""
-  updatedAt: Datetime
-}
-
-"""Methods to use when ordering `PullRequestReview`."""
-enum PullRequestReviewOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  PULL_REQUEST_ID_ASC
-  PULL_REQUEST_ID_DESC
-  REVIEWER_ID_ASC
-  REVIEWER_ID_DESC
-  STATE_ASC
-  STATE_DESC
-  BODY_ASC
-  BODY_DESC
-  SUBMITTED_AT_ASC
-  SUBMITTED_AT_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-  UPDATED_AT_ASC
-  UPDATED_AT_DESC
-}
-
-"""A `PullRequestComment` edge in the connection."""
-type PullRequestCommentEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `PullRequestComment` at the end of the edge."""
-  node: PullRequestComment!
-}
-
-type PullRequestCommentAggregates {
-  keys: [String]
-
-  """
-  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  sum: PullRequestCommentSumAggregates
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: PullRequestCommentDistinctCountAggregates
-
-  """
-  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  min: PullRequestCommentMinAggregates
-
-  """
-  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  max: PullRequestCommentMaxAggregates
-
-  """
-  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  average: PullRequestCommentAverageAggregates
-
-  """
-  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  stddevSample: PullRequestCommentStddevSampleAggregates
-
-  """
-  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  stddevPopulation: PullRequestCommentStddevPopulationAggregates
-
-  """
-  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  varianceSample: PullRequestCommentVarianceSampleAggregates
-
-  """
-  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  variancePopulation: PullRequestCommentVariancePopulationAggregates
-}
-
-type PullRequestCommentSumAggregates {
-  """Sum of line across the matching connection"""
-  line: BigInt!
-}
-
-type PullRequestCommentDistinctCountAggregates {
-  """Distinct count of rowId across the matching connection"""
-  rowId: BigInt
-
-  """Distinct count of pullRequestId across the matching connection"""
-  pullRequestId: BigInt
-
-  """Distinct count of authorId across the matching connection"""
-  authorId: BigInt
-
-  """Distinct count of body across the matching connection"""
-  body: BigInt
-
-  """Distinct count of path across the matching connection"""
-  path: BigInt
-
-  """Distinct count of line across the matching connection"""
-  line: BigInt
-
-  """Distinct count of side across the matching connection"""
-  side: BigInt
-
-  """Distinct count of commitSha across the matching connection"""
-  commitSha: BigInt
-
-  """Distinct count of replyToId across the matching connection"""
-  replyToId: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-
-  """Distinct count of updatedAt across the matching connection"""
-  updatedAt: BigInt
-}
-
-type PullRequestCommentMinAggregates {
-  """Minimum of line across the matching connection"""
-  line: Int
-}
-
-type PullRequestCommentMaxAggregates {
-  """Maximum of line across the matching connection"""
-  line: Int
-}
-
-type PullRequestCommentAverageAggregates {
-  """Mean average of line across the matching connection"""
-  line: BigFloat
-}
-
-type PullRequestCommentStddevSampleAggregates {
-  """Sample standard deviation of line across the matching connection"""
-  line: BigFloat
-}
-
-type PullRequestCommentStddevPopulationAggregates {
-  """Population standard deviation of line across the matching connection"""
-  line: BigFloat
-}
-
-type PullRequestCommentVarianceSampleAggregates {
-  """Sample variance of line across the matching connection"""
-  line: BigFloat
-}
-
-type PullRequestCommentVariancePopulationAggregates {
-  """Population variance of line across the matching connection"""
-  line: BigFloat
-}
-
-"""
-Grouping methods for `PullRequestComment` for usage during aggregation.
-"""
-enum PullRequestCommentGroupBy {
-  PULL_REQUEST_ID
-  AUTHOR_ID
-  BODY
-  PATH
-  LINE
-  SIDE
-  COMMIT_SHA
-  REPLY_TO_ID
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-  UPDATED_AT
-  UPDATED_AT_TRUNCATED_TO_HOUR
-  UPDATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for `PullRequestComment` aggregates."""
-input PullRequestCommentHavingInput {
-  AND: [PullRequestCommentHavingInput!]
-  OR: [PullRequestCommentHavingInput!]
-  sum: PullRequestCommentHavingSumInput
-  distinctCount: PullRequestCommentHavingDistinctCountInput
-  min: PullRequestCommentHavingMinInput
-  max: PullRequestCommentHavingMaxInput
-  average: PullRequestCommentHavingAverageInput
-  stddevSample: PullRequestCommentHavingStddevSampleInput
-  stddevPopulation: PullRequestCommentHavingStddevPopulationInput
-  varianceSample: PullRequestCommentHavingVarianceSampleInput
-  variancePopulation: PullRequestCommentHavingVariancePopulationInput
-}
-
-input PullRequestCommentHavingSumInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingDistinctCountInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingMinInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingMaxInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingAverageInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingStddevSampleInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingStddevPopulationInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingVarianceSampleInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input PullRequestCommentHavingVariancePopulationInput {
-  line: HavingIntFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-"""A connection to a list of `Project` values."""
-type ProjectConnection {
-  """A list of `Project` objects."""
-  nodes: [Project!]!
-
-  """
-  A list of edges which contains the `Project` and cursor to aid in pagination.
-  """
-  edges: [ProjectEdge!]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """The count of *all* `Project` you could get from the connection."""
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: ProjectAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """The method to use when grouping `Project` for these aggregates."""
-    groupBy: [ProjectGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: ProjectHavingInput
-  ): [ProjectAggregates!]
-}
-
-type Project implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  ownerId: UUID!
-  organizationId: UUID
-  name: String!
-  slug: String!
-  description: String
-  visibility: Visibility!
-  createdAt: Datetime!
-  updatedAt: Datetime!
-
-  """Reads a single `Organization` that is related to this `Project`."""
-  organization: Organization
-
-  """Reads a single `User` that is related to this `Project`."""
-  owner: User
-
-  """Reads and enables pagination through a set of `ProjectRepository`."""
-  projectRepositories(
-    """Only read the first `n` values of the set."""
-    first: Int
-
-    """Only read the last `n` values of the set."""
-    last: Int
-
-    """
-    Skip the first `n` values from our `after` cursor, an alternative to cursor
-    based pagination. May not be used with `last`.
-    """
-    offset: Int
-
-    """Read all values in the set before (above) this cursor."""
-    before: Cursor
-
-    """Read all values in the set after (below) this cursor."""
-    after: Cursor
-
-    """
-    A condition to be used in determining which values should be returned by the collection.
-    """
-    condition: ProjectRepositoryCondition
-
-    """
-    A filter to be used in determining which values should be returned by the collection.
-    """
-    filter: ProjectRepositoryFilter
-
-    """The method to use when ordering `ProjectRepository`."""
-    orderBy: [ProjectRepositoryOrderBy!] = [PRIMARY_KEY_ASC]
-  ): ProjectRepositoryConnection!
-}
-
-"""A connection to a list of `ProjectRepository` values."""
-type ProjectRepositoryConnection {
-  """A list of `ProjectRepository` objects."""
-  nodes: [ProjectRepository!]!
-
-  """
-  A list of edges which contains the `ProjectRepository` and cursor to aid in pagination.
-  """
-  edges: [ProjectRepositoryEdge!]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """
-  The count of *all* `ProjectRepository` you could get from the connection.
-  """
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: ProjectRepositoryAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """
-    The method to use when grouping `ProjectRepository` for these aggregates.
-    """
-    groupBy: [ProjectRepositoryGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: ProjectRepositoryHavingInput
-  ): [ProjectRepositoryAggregates!]
-}
-
-type ProjectRepository implements Node {
-  """
-  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
-  """
-  id: ID!
-  rowId: UUID!
-  projectId: UUID!
-  repositoryId: UUID!
-  createdAt: Datetime!
-  detectionSource: String!
-
-  """Reads a single `Project` that is related to this `ProjectRepository`."""
-  project: Project
-
-  """
-  Reads a single `Repository` that is related to this `ProjectRepository`.
-  """
-  repository: Repository
-}
-
-"""A `ProjectRepository` edge in the connection."""
-type ProjectRepositoryEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `ProjectRepository` at the end of the edge."""
-  node: ProjectRepository!
-}
-
-type ProjectRepositoryAggregates {
-  keys: [String]
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: ProjectRepositoryDistinctCountAggregates
-}
-
-type ProjectRepositoryDistinctCountAggregates {
-  """Distinct count of rowId across the matching connection"""
-  rowId: BigInt
-
-  """Distinct count of projectId across the matching connection"""
-  projectId: BigInt
-
-  """Distinct count of repositoryId across the matching connection"""
-  repositoryId: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-
-  """Distinct count of detectionSource across the matching connection"""
-  detectionSource: BigInt
-}
-
-"""Grouping methods for `ProjectRepository` for usage during aggregation."""
-enum ProjectRepositoryGroupBy {
-  PROJECT_ID
-  REPOSITORY_ID
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-  DETECTION_SOURCE
-}
-
-"""Conditions for `ProjectRepository` aggregates."""
-input ProjectRepositoryHavingInput {
-  AND: [ProjectRepositoryHavingInput!]
-  OR: [ProjectRepositoryHavingInput!]
-  sum: ProjectRepositoryHavingSumInput
-  distinctCount: ProjectRepositoryHavingDistinctCountInput
-  min: ProjectRepositoryHavingMinInput
-  max: ProjectRepositoryHavingMaxInput
-  average: ProjectRepositoryHavingAverageInput
-  stddevSample: ProjectRepositoryHavingStddevSampleInput
-  stddevPopulation: ProjectRepositoryHavingStddevPopulationInput
-  varianceSample: ProjectRepositoryHavingVarianceSampleInput
-  variancePopulation: ProjectRepositoryHavingVariancePopulationInput
-}
-
-input ProjectRepositoryHavingSumInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingDistinctCountInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingMinInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingMaxInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingAverageInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingStddevSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingStddevPopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingVarianceSampleInput {
-  createdAt: HavingDatetimeFilter
-}
-
-input ProjectRepositoryHavingVariancePopulationInput {
-  createdAt: HavingDatetimeFilter
-}
-
-"""
-A condition to be used against `ProjectRepository` object types. All fields are
-tested for equality and combined with a logical ‘and.’
-"""
-input ProjectRepositoryCondition {
-  """Checks for equality with the object’s `rowId` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s `projectId` field."""
-  projectId: UUID
-
-  """Checks for equality with the object’s `repositoryId` field."""
-  repositoryId: UUID
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-
-  """Checks for equality with the object’s `detectionSource` field."""
-  detectionSource: String
-}
-
-"""Methods to use when ordering `ProjectRepository`."""
-enum ProjectRepositoryOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  PROJECT_ID_ASC
-  PROJECT_ID_DESC
-  REPOSITORY_ID_ASC
-  REPOSITORY_ID_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-  DETECTION_SOURCE_ASC
-  DETECTION_SOURCE_DESC
-}
-
-"""A `Project` edge in the connection."""
-type ProjectEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `Project` at the end of the edge."""
-  node: Project!
-}
-
-type ProjectAggregates {
-  keys: [String]
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: ProjectDistinctCountAggregates
-}
-
-type ProjectDistinctCountAggregates {
-  """Distinct count of rowId across the matching connection"""
-  rowId: BigInt
-
-  """Distinct count of ownerId across the matching connection"""
-  ownerId: BigInt
-
-  """Distinct count of organizationId across the matching connection"""
-  organizationId: BigInt
-
-  """Distinct count of name across the matching connection"""
-  name: BigInt
-
-  """Distinct count of slug across the matching connection"""
-  slug: BigInt
-
-  """Distinct count of description across the matching connection"""
-  description: BigInt
-
-  """Distinct count of visibility across the matching connection"""
-  visibility: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-
-  """Distinct count of updatedAt across the matching connection"""
-  updatedAt: BigInt
-}
-
-"""Grouping methods for `Project` for usage during aggregation."""
-enum ProjectGroupBy {
-  OWNER_ID
-  ORGANIZATION_ID
-  NAME
-  SLUG
-  DESCRIPTION
-  VISIBILITY
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-  UPDATED_AT
-  UPDATED_AT_TRUNCATED_TO_HOUR
-  UPDATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for `Project` aggregates."""
-input ProjectHavingInput {
-  AND: [ProjectHavingInput!]
-  OR: [ProjectHavingInput!]
-  sum: ProjectHavingSumInput
-  distinctCount: ProjectHavingDistinctCountInput
-  min: ProjectHavingMinInput
-  max: ProjectHavingMaxInput
-  average: ProjectHavingAverageInput
-  stddevSample: ProjectHavingStddevSampleInput
-  stddevPopulation: ProjectHavingStddevPopulationInput
-  varianceSample: ProjectHavingVarianceSampleInput
-  variancePopulation: ProjectHavingVariancePopulationInput
-}
-
-input ProjectHavingSumInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingDistinctCountInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingMinInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingMaxInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingAverageInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingStddevSampleInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingStddevPopulationInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingVarianceSampleInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input ProjectHavingVariancePopulationInput {
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-"""
-A condition to be used against `Project` object types. All fields are tested for equality and combined with a logical ‘and.’
-"""
-input ProjectCondition {
-  """Checks for equality with the object’s `rowId` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s `ownerId` field."""
-  ownerId: UUID
-
-  """Checks for equality with the object’s `organizationId` field."""
-  organizationId: UUID
-
-  """Checks for equality with the object’s `name` field."""
-  name: String
-
-  """Checks for equality with the object’s `slug` field."""
-  slug: String
-
-  """Checks for equality with the object’s `description` field."""
-  description: String
-
-  """Checks for equality with the object’s `visibility` field."""
-  visibility: Visibility
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-
-  """Checks for equality with the object’s `updatedAt` field."""
-  updatedAt: Datetime
-}
-
-"""Methods to use when ordering `Project`."""
-enum ProjectOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  OWNER_ID_ASC
-  OWNER_ID_DESC
-  ORGANIZATION_ID_ASC
-  ORGANIZATION_ID_DESC
-  NAME_ASC
-  NAME_DESC
-  SLUG_ASC
-  SLUG_DESC
-  DESCRIPTION_ASC
-  DESCRIPTION_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-  UPDATED_AT_ASC
-  UPDATED_AT_DESC
-  PROJECT_REPOSITORIES_COUNT_ASC
-  PROJECT_REPOSITORIES_COUNT_DESC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_ROW_ID_ASC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_ROW_ID_DESC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_PROJECT_ID_ASC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_PROJECT_ID_DESC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_ASC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_REPOSITORY_ID_DESC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_ASC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_CREATED_AT_DESC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_ASC
-  PROJECT_REPOSITORIES_DISTINCT_COUNT_DETECTION_SOURCE_DESC
-}
-
-"""A connection to a list of `Agent` values."""
-type AgentConnection {
-  """A list of `Agent` objects."""
-  nodes: [Agent!]!
-
-  """
-  A list of edges which contains the `Agent` and cursor to aid in pagination.
-  """
-  edges: [AgentEdge!]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """The count of *all* `Agent` you could get from the connection."""
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: AgentAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """The method to use when grouping `Agent` for these aggregates."""
-    groupBy: [AgentGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: AgentHavingInput
-  ): [AgentAggregates!]
-}
-
 """A `Agent` edge in the connection."""
 type AgentEdge {
   """A cursor for use in pagination."""
@@ -9695,6 +9998,644 @@ enum OrganizationMemberOrderBy {
   SYNCED_AT_DESC
 }
 
+"""A connection to a list of `Topic` values."""
+type TopicConnection {
+  """A list of `Topic` objects."""
+  nodes: [Topic!]!
+
+  """
+  A list of edges which contains the `Topic` and cursor to aid in pagination.
+  """
+  edges: [TopicEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """The count of *all* `Topic` you could get from the connection."""
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: TopicAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """The method to use when grouping `Topic` for these aggregates."""
+    groupBy: [TopicGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: TopicHavingInput
+  ): [TopicAggregates!]
+}
+
+type Topic implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  ownerId: UUID!
+  organizationId: UUID
+  title: String!
+  description: String
+  status: String!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """Reads a single `Organization` that is related to this `Topic`."""
+  organization: Organization
+
+  """Reads a single `User` that is related to this `Topic`."""
+  owner: User
+
+  """Reads and enables pagination through a set of `TopicPullRequest`."""
+  topicPullRequests(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: TopicPullRequestCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: TopicPullRequestFilter
+
+    """The method to use when ordering `TopicPullRequest`."""
+    orderBy: [TopicPullRequestOrderBy!] = [PRIMARY_KEY_ASC]
+  ): TopicPullRequestConnection!
+}
+
+"""A connection to a list of `TopicPullRequest` values."""
+type TopicPullRequestConnection {
+  """A list of `TopicPullRequest` objects."""
+  nodes: [TopicPullRequest!]!
+
+  """
+  A list of edges which contains the `TopicPullRequest` and cursor to aid in pagination.
+  """
+  edges: [TopicPullRequestEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `TopicPullRequest` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: TopicPullRequestAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `TopicPullRequest` for these aggregates.
+    """
+    groupBy: [TopicPullRequestGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: TopicPullRequestHavingInput
+  ): [TopicPullRequestAggregates!]
+}
+
+"""A `TopicPullRequest` edge in the connection."""
+type TopicPullRequestEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `TopicPullRequest` at the end of the edge."""
+  node: TopicPullRequest!
+}
+
+type TopicPullRequestAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: TopicPullRequestDistinctCountAggregates
+}
+
+type TopicPullRequestDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of topicId across the matching connection"""
+  topicId: BigInt
+
+  """Distinct count of pullRequestId across the matching connection"""
+  pullRequestId: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+}
+
+"""Grouping methods for `TopicPullRequest` for usage during aggregation."""
+enum TopicPullRequestGroupBy {
+  TOPIC_ID
+  PULL_REQUEST_ID
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `TopicPullRequest` aggregates."""
+input TopicPullRequestHavingInput {
+  AND: [TopicPullRequestHavingInput!]
+  OR: [TopicPullRequestHavingInput!]
+  sum: TopicPullRequestHavingSumInput
+  distinctCount: TopicPullRequestHavingDistinctCountInput
+  min: TopicPullRequestHavingMinInput
+  max: TopicPullRequestHavingMaxInput
+  average: TopicPullRequestHavingAverageInput
+  stddevSample: TopicPullRequestHavingStddevSampleInput
+  stddevPopulation: TopicPullRequestHavingStddevPopulationInput
+  varianceSample: TopicPullRequestHavingVarianceSampleInput
+  variancePopulation: TopicPullRequestHavingVariancePopulationInput
+}
+
+input TopicPullRequestHavingSumInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingMinInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+}
+
+input TopicPullRequestHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `TopicPullRequest` object types. All fields are
+tested for equality and combined with a logical ‘and.’
+"""
+input TopicPullRequestCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `topicId` field."""
+  topicId: UUID
+
+  """Checks for equality with the object’s `pullRequestId` field."""
+  pullRequestId: UUID
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+}
+
+"""Methods to use when ordering `TopicPullRequest`."""
+enum TopicPullRequestOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  TOPIC_ID_ASC
+  TOPIC_ID_DESC
+  PULL_REQUEST_ID_ASC
+  PULL_REQUEST_ID_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+}
+
+"""A `Topic` edge in the connection."""
+type TopicEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `Topic` at the end of the edge."""
+  node: Topic!
+}
+
+type TopicAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: TopicDistinctCountAggregates
+}
+
+type TopicDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of ownerId across the matching connection"""
+  ownerId: BigInt
+
+  """Distinct count of organizationId across the matching connection"""
+  organizationId: BigInt
+
+  """Distinct count of title across the matching connection"""
+  title: BigInt
+
+  """Distinct count of description across the matching connection"""
+  description: BigInt
+
+  """Distinct count of status across the matching connection"""
+  status: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+"""Grouping methods for `Topic` for usage during aggregation."""
+enum TopicGroupBy {
+  OWNER_ID
+  ORGANIZATION_ID
+  TITLE
+  DESCRIPTION
+  STATUS
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `Topic` aggregates."""
+input TopicHavingInput {
+  AND: [TopicHavingInput!]
+  OR: [TopicHavingInput!]
+  sum: TopicHavingSumInput
+  distinctCount: TopicHavingDistinctCountInput
+  min: TopicHavingMinInput
+  max: TopicHavingMaxInput
+  average: TopicHavingAverageInput
+  stddevSample: TopicHavingStddevSampleInput
+  stddevPopulation: TopicHavingStddevPopulationInput
+  varianceSample: TopicHavingVarianceSampleInput
+  variancePopulation: TopicHavingVariancePopulationInput
+}
+
+input TopicHavingSumInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingMinInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input TopicHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `Topic` object types. All fields are tested for equality and combined with a logical ‘and.’
+"""
+input TopicCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `ownerId` field."""
+  ownerId: UUID
+
+  """Checks for equality with the object’s `organizationId` field."""
+  organizationId: UUID
+
+  """Checks for equality with the object’s `title` field."""
+  title: String
+
+  """Checks for equality with the object’s `description` field."""
+  description: String
+
+  """Checks for equality with the object’s `status` field."""
+  status: String
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering `Topic`."""
+enum TopicOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  OWNER_ID_ASC
+  OWNER_ID_DESC
+  ORGANIZATION_ID_ASC
+  ORGANIZATION_ID_DESC
+  TITLE_ASC
+  TITLE_DESC
+  DESCRIPTION_ASC
+  DESCRIPTION_DESC
+  STATUS_ASC
+  STATUS_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+  TOPIC_PULL_REQUESTS_COUNT_ASC
+  TOPIC_PULL_REQUESTS_COUNT_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_ROW_ID_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_ROW_ID_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_TOPIC_ID_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_TOPIC_ID_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_PULL_REQUEST_ID_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_PULL_REQUEST_ID_DESC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_CREATED_AT_ASC
+  TOPIC_PULL_REQUESTS_DISTINCT_COUNT_CREATED_AT_DESC
+}
+
+"""A connection to a list of `RepositoryCollaborator` values."""
+type RepositoryCollaboratorConnection {
+  """A list of `RepositoryCollaborator` objects."""
+  nodes: [RepositoryCollaborator!]!
+
+  """
+  A list of edges which contains the `RepositoryCollaborator` and cursor to aid in pagination.
+  """
+  edges: [RepositoryCollaboratorEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `RepositoryCollaborator` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: RepositoryCollaboratorAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `RepositoryCollaborator` for these aggregates.
+    """
+    groupBy: [RepositoryCollaboratorGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: RepositoryCollaboratorHavingInput
+  ): [RepositoryCollaboratorAggregates!]
+}
+
+type RepositoryCollaborator implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  repositoryId: UUID!
+  userId: UUID!
+  permission: Permission!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """
+  Reads a single `Repository` that is related to this `RepositoryCollaborator`.
+  """
+  repository: Repository
+
+  """
+  Reads a single `User` that is related to this `RepositoryCollaborator`.
+  """
+  user: User
+}
+
+"""A `RepositoryCollaborator` edge in the connection."""
+type RepositoryCollaboratorEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `RepositoryCollaborator` at the end of the edge."""
+  node: RepositoryCollaborator!
+}
+
+type RepositoryCollaboratorAggregates {
+  keys: [String]
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: RepositoryCollaboratorDistinctCountAggregates
+}
+
+type RepositoryCollaboratorDistinctCountAggregates {
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of userId across the matching connection"""
+  userId: BigInt
+
+  """Distinct count of permission across the matching connection"""
+  permission: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+"""
+Grouping methods for `RepositoryCollaborator` for usage during aggregation.
+"""
+enum RepositoryCollaboratorGroupBy {
+  REPOSITORY_ID
+  USER_ID
+  PERMISSION
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `RepositoryCollaborator` aggregates."""
+input RepositoryCollaboratorHavingInput {
+  AND: [RepositoryCollaboratorHavingInput!]
+  OR: [RepositoryCollaboratorHavingInput!]
+  sum: RepositoryCollaboratorHavingSumInput
+  distinctCount: RepositoryCollaboratorHavingDistinctCountInput
+  min: RepositoryCollaboratorHavingMinInput
+  max: RepositoryCollaboratorHavingMaxInput
+  average: RepositoryCollaboratorHavingAverageInput
+  stddevSample: RepositoryCollaboratorHavingStddevSampleInput
+  stddevPopulation: RepositoryCollaboratorHavingStddevPopulationInput
+  varianceSample: RepositoryCollaboratorHavingVarianceSampleInput
+  variancePopulation: RepositoryCollaboratorHavingVariancePopulationInput
+}
+
+input RepositoryCollaboratorHavingSumInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingDistinctCountInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingMinInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingMaxInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingAverageInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingStddevSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingStddevPopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingVarianceSampleInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input RepositoryCollaboratorHavingVariancePopulationInput {
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `RepositoryCollaborator` object types. All fields
+are tested for equality and combined with a logical ‘and.’
+"""
+input RepositoryCollaboratorCondition {
+  """Checks for equality with the object’s `repositoryId` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s `userId` field."""
+  userId: UUID
+
+  """Checks for equality with the object’s `permission` field."""
+  permission: Permission
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering `RepositoryCollaborator`."""
+enum RepositoryCollaboratorOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  PERMISSION_ASC
+  PERMISSION_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
 """A connection to a list of `ExternalDependency` values."""
 type ExternalDependencyConnection {
   """A list of `ExternalDependency` objects."""
@@ -9903,347 +10844,6 @@ enum ExternalDependencyOrderBy {
   DETECTION_SOURCE_DESC
   CREATED_AT_ASC
   CREATED_AT_DESC
-}
-
-"""A connection to a list of `RepositoryRelationship` values."""
-type RepositoryRelationshipConnection {
-  """A list of `RepositoryRelationship` objects."""
-  nodes: [RepositoryRelationship!]!
-
-  """
-  A list of edges which contains the `RepositoryRelationship` and cursor to aid in pagination.
-  """
-  edges: [RepositoryRelationshipEdge!]!
-
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """
-  The count of *all* `RepositoryRelationship` you could get from the connection.
-  """
-  totalCount: Int!
-
-  """
-  Aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  aggregates: RepositoryRelationshipAggregates
-
-  """
-  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  groupedAggregates(
-    """
-    The method to use when grouping `RepositoryRelationship` for these aggregates.
-    """
-    groupBy: [RepositoryRelationshipGroupBy!]!
-
-    """Conditions on the grouped aggregates."""
-    having: RepositoryRelationshipHavingInput
-  ): [RepositoryRelationshipAggregates!]
-}
-
-"""A `RepositoryRelationship` edge in the connection."""
-type RepositoryRelationshipEdge {
-  """A cursor for use in pagination."""
-  cursor: Cursor
-
-  """The `RepositoryRelationship` at the end of the edge."""
-  node: RepositoryRelationship!
-}
-
-type RepositoryRelationshipAggregates {
-  keys: [String]
-
-  """
-  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  sum: RepositoryRelationshipSumAggregates
-
-  """
-  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  distinctCount: RepositoryRelationshipDistinctCountAggregates
-
-  """
-  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  min: RepositoryRelationshipMinAggregates
-
-  """
-  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  max: RepositoryRelationshipMaxAggregates
-
-  """
-  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  average: RepositoryRelationshipAverageAggregates
-
-  """
-  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  stddevSample: RepositoryRelationshipStddevSampleAggregates
-
-  """
-  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  stddevPopulation: RepositoryRelationshipStddevPopulationAggregates
-
-  """
-  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  varianceSample: RepositoryRelationshipVarianceSampleAggregates
-
-  """
-  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
-  """
-  variancePopulation: RepositoryRelationshipVariancePopulationAggregates
-}
-
-type RepositoryRelationshipSumAggregates {
-  """Sum of confidence across the matching connection"""
-  confidence: Float!
-}
-
-type RepositoryRelationshipDistinctCountAggregates {
-  """Distinct count of rowId across the matching connection"""
-  rowId: BigInt
-
-  """Distinct count of sourceRepositoryId across the matching connection"""
-  sourceRepositoryId: BigInt
-
-  """Distinct count of targetRepositoryId across the matching connection"""
-  targetRepositoryId: BigInt
-
-  """Distinct count of relationshipTypeId across the matching connection"""
-  relationshipTypeId: BigInt
-
-  """Distinct count of detectionSource across the matching connection"""
-  detectionSource: BigInt
-
-  """Distinct count of confidence across the matching connection"""
-  confidence: BigInt
-
-  """Distinct count of versionConstraint across the matching connection"""
-  versionConstraint: BigInt
-
-  """Distinct count of branch across the matching connection"""
-  branch: BigInt
-
-  """Distinct count of createdAt across the matching connection"""
-  createdAt: BigInt
-
-  """Distinct count of updatedAt across the matching connection"""
-  updatedAt: BigInt
-}
-
-type RepositoryRelationshipMinAggregates {
-  """Minimum of confidence across the matching connection"""
-  confidence: Float
-}
-
-type RepositoryRelationshipMaxAggregates {
-  """Maximum of confidence across the matching connection"""
-  confidence: Float
-}
-
-type RepositoryRelationshipAverageAggregates {
-  """Mean average of confidence across the matching connection"""
-  confidence: Float
-}
-
-type RepositoryRelationshipStddevSampleAggregates {
-  """Sample standard deviation of confidence across the matching connection"""
-  confidence: Float
-}
-
-type RepositoryRelationshipStddevPopulationAggregates {
-  """
-  Population standard deviation of confidence across the matching connection
-  """
-  confidence: Float
-}
-
-type RepositoryRelationshipVarianceSampleAggregates {
-  """Sample variance of confidence across the matching connection"""
-  confidence: Float
-}
-
-type RepositoryRelationshipVariancePopulationAggregates {
-  """Population variance of confidence across the matching connection"""
-  confidence: Float
-}
-
-"""
-Grouping methods for `RepositoryRelationship` for usage during aggregation.
-"""
-enum RepositoryRelationshipGroupBy {
-  SOURCE_REPOSITORY_ID
-  TARGET_REPOSITORY_ID
-  RELATIONSHIP_TYPE_ID
-  DETECTION_SOURCE
-  CONFIDENCE
-  VERSION_CONSTRAINT
-  BRANCH
-  CREATED_AT
-  CREATED_AT_TRUNCATED_TO_HOUR
-  CREATED_AT_TRUNCATED_TO_DAY
-  UPDATED_AT
-  UPDATED_AT_TRUNCATED_TO_HOUR
-  UPDATED_AT_TRUNCATED_TO_DAY
-}
-
-"""Conditions for `RepositoryRelationship` aggregates."""
-input RepositoryRelationshipHavingInput {
-  AND: [RepositoryRelationshipHavingInput!]
-  OR: [RepositoryRelationshipHavingInput!]
-  sum: RepositoryRelationshipHavingSumInput
-  distinctCount: RepositoryRelationshipHavingDistinctCountInput
-  min: RepositoryRelationshipHavingMinInput
-  max: RepositoryRelationshipHavingMaxInput
-  average: RepositoryRelationshipHavingAverageInput
-  stddevSample: RepositoryRelationshipHavingStddevSampleInput
-  stddevPopulation: RepositoryRelationshipHavingStddevPopulationInput
-  varianceSample: RepositoryRelationshipHavingVarianceSampleInput
-  variancePopulation: RepositoryRelationshipHavingVariancePopulationInput
-}
-
-input RepositoryRelationshipHavingSumInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input HavingFloatFilter {
-  equalTo: Float
-  notEqualTo: Float
-  greaterThan: Float
-  greaterThanOrEqualTo: Float
-  lessThan: Float
-  lessThanOrEqualTo: Float
-}
-
-input RepositoryRelationshipHavingDistinctCountInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipHavingMinInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipHavingMaxInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipHavingAverageInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipHavingStddevSampleInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipHavingStddevPopulationInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipHavingVarianceSampleInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-input RepositoryRelationshipHavingVariancePopulationInput {
-  confidence: HavingFloatFilter
-  createdAt: HavingDatetimeFilter
-  updatedAt: HavingDatetimeFilter
-}
-
-"""
-A condition to be used against `RepositoryRelationship` object types. All fields
-are tested for equality and combined with a logical ‘and.’
-"""
-input RepositoryRelationshipCondition {
-  """Checks for equality with the object’s `rowId` field."""
-  rowId: UUID
-
-  """Checks for equality with the object’s `sourceRepositoryId` field."""
-  sourceRepositoryId: UUID
-
-  """Checks for equality with the object’s `targetRepositoryId` field."""
-  targetRepositoryId: UUID
-
-  """Checks for equality with the object’s `relationshipTypeId` field."""
-  relationshipTypeId: UUID
-
-  """Checks for equality with the object’s `detectionSource` field."""
-  detectionSource: String
-
-  """Checks for equality with the object’s `confidence` field."""
-  confidence: Float
-
-  """Checks for equality with the object’s `versionConstraint` field."""
-  versionConstraint: String
-
-  """Checks for equality with the object’s `branch` field."""
-  branch: String
-
-  """Checks for equality with the object’s `createdAt` field."""
-  createdAt: Datetime
-
-  """Checks for equality with the object’s `updatedAt` field."""
-  updatedAt: Datetime
-}
-
-"""Methods to use when ordering `RepositoryRelationship`."""
-enum RepositoryRelationshipOrderBy {
-  NATURAL
-  PRIMARY_KEY_ASC
-  PRIMARY_KEY_DESC
-  ROW_ID_ASC
-  ROW_ID_DESC
-  SOURCE_REPOSITORY_ID_ASC
-  SOURCE_REPOSITORY_ID_DESC
-  TARGET_REPOSITORY_ID_ASC
-  TARGET_REPOSITORY_ID_DESC
-  RELATIONSHIP_TYPE_ID_ASC
-  RELATIONSHIP_TYPE_ID_DESC
-  DETECTION_SOURCE_ASC
-  DETECTION_SOURCE_DESC
-  CONFIDENCE_ASC
-  CONFIDENCE_DESC
-  VERSION_CONSTRAINT_ASC
-  VERSION_CONSTRAINT_DESC
-  BRANCH_ASC
-  BRANCH_DESC
-  CREATED_AT_ASC
-  CREATED_AT_DESC
-  UPDATED_AT_ASC
-  UPDATED_AT_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_COUNT_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_ROW_ID_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_RELATIONSHIP_ID_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_KEY_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_VALUE_DESC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_ASC
-  REPOSITORY_RELATIONSHIP_METADATA_BY_RELATIONSHIP_ID_DISTINCT_COUNT_CREATED_AT_DESC
 }
 
 """A connection to a list of `MergeBatch` values."""
@@ -10600,397 +11200,600 @@ input RepositoryHavingVariancePopulationInput {
   updatedAt: HavingDatetimeFilter
 }
 
-"""A connection to a list of `RepositoryRelationshipType` values."""
-type RepositoryRelationshipTypeConnection {
-  """A list of `RepositoryRelationshipType` objects."""
-  nodes: [RepositoryRelationshipType!]!
+"""A connection to a list of `PullRequestComment` values."""
+type PullRequestCommentConnection {
+  """A list of `PullRequestComment` objects."""
+  nodes: [PullRequestComment!]!
 
   """
-  A list of edges which contains the `RepositoryRelationshipType` and cursor to aid in pagination.
+  A list of edges which contains the `PullRequestComment` and cursor to aid in pagination.
   """
-  edges: [RepositoryRelationshipTypeEdge!]!
+  edges: [PullRequestCommentEdge!]!
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
   """
-  The count of *all* `RepositoryRelationshipType` you could get from the connection.
+  The count of *all* `PullRequestComment` you could get from the connection.
   """
   totalCount: Int!
 
   """
   Aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  aggregates: RepositoryRelationshipTypeAggregates
+  aggregates: PullRequestCommentAggregates
 
   """
   Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
   groupedAggregates(
     """
-    The method to use when grouping `RepositoryRelationshipType` for these aggregates.
+    The method to use when grouping `PullRequestComment` for these aggregates.
     """
-    groupBy: [RepositoryRelationshipTypeGroupBy!]!
+    groupBy: [PullRequestCommentGroupBy!]!
 
     """Conditions on the grouped aggregates."""
-    having: RepositoryRelationshipTypeHavingInput
-  ): [RepositoryRelationshipTypeAggregates!]
+    having: PullRequestCommentHavingInput
+  ): [PullRequestCommentAggregates!]
 }
 
-"""A `RepositoryRelationshipType` edge in the connection."""
-type RepositoryRelationshipTypeEdge {
+type PullRequestComment implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  pullRequestId: UUID!
+  authorId: UUID!
+  body: String!
+  path: String
+  line: Int
+  side: String
+  commitSha: String
+  replyToId: UUID
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """Reads a single `User` that is related to this `PullRequestComment`."""
+  author: User
+
+  """
+  Reads a single `PullRequest` that is related to this `PullRequestComment`.
+  """
+  pullRequest: PullRequest
+}
+
+"""A `PullRequestComment` edge in the connection."""
+type PullRequestCommentEdge {
   """A cursor for use in pagination."""
   cursor: Cursor
 
-  """The `RepositoryRelationshipType` at the end of the edge."""
-  node: RepositoryRelationshipType!
+  """The `PullRequestComment` at the end of the edge."""
+  node: PullRequestComment!
 }
 
-type RepositoryRelationshipTypeAggregates {
+type PullRequestCommentAggregates {
   keys: [String]
+
+  """
+  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  sum: PullRequestCommentSumAggregates
 
   """
   Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  distinctCount: RepositoryRelationshipTypeDistinctCountAggregates
+  distinctCount: PullRequestCommentDistinctCountAggregates
+
+  """
+  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  min: PullRequestCommentMinAggregates
+
+  """
+  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  max: PullRequestCommentMaxAggregates
+
+  """
+  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  average: PullRequestCommentAverageAggregates
+
+  """
+  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevSample: PullRequestCommentStddevSampleAggregates
+
+  """
+  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevPopulation: PullRequestCommentStddevPopulationAggregates
+
+  """
+  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  varianceSample: PullRequestCommentVarianceSampleAggregates
+
+  """
+  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  variancePopulation: PullRequestCommentVariancePopulationAggregates
 }
 
-type RepositoryRelationshipTypeDistinctCountAggregates {
+type PullRequestCommentSumAggregates {
+  """Sum of line across the matching connection"""
+  line: BigInt!
+}
+
+type PullRequestCommentDistinctCountAggregates {
   """Distinct count of rowId across the matching connection"""
   rowId: BigInt
 
-  """Distinct count of name across the matching connection"""
-  name: BigInt
+  """Distinct count of pullRequestId across the matching connection"""
+  pullRequestId: BigInt
 
-  """Distinct count of description across the matching connection"""
-  description: BigInt
+  """Distinct count of authorId across the matching connection"""
+  authorId: BigInt
 
-  """Distinct count of isDirected across the matching connection"""
-  isDirected: BigInt
+  """Distinct count of body across the matching connection"""
+  body: BigInt
 
-  """Distinct count of organizationId across the matching connection"""
-  organizationId: BigInt
+  """Distinct count of path across the matching connection"""
+  path: BigInt
+
+  """Distinct count of line across the matching connection"""
+  line: BigInt
+
+  """Distinct count of side across the matching connection"""
+  side: BigInt
+
+  """Distinct count of commitSha across the matching connection"""
+  commitSha: BigInt
+
+  """Distinct count of replyToId across the matching connection"""
+  replyToId: BigInt
 
   """Distinct count of createdAt across the matching connection"""
   createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+type PullRequestCommentMinAggregates {
+  """Minimum of line across the matching connection"""
+  line: Int
+}
+
+type PullRequestCommentMaxAggregates {
+  """Maximum of line across the matching connection"""
+  line: Int
+}
+
+type PullRequestCommentAverageAggregates {
+  """Mean average of line across the matching connection"""
+  line: BigFloat
+}
+
+type PullRequestCommentStddevSampleAggregates {
+  """Sample standard deviation of line across the matching connection"""
+  line: BigFloat
+}
+
+type PullRequestCommentStddevPopulationAggregates {
+  """Population standard deviation of line across the matching connection"""
+  line: BigFloat
+}
+
+type PullRequestCommentVarianceSampleAggregates {
+  """Sample variance of line across the matching connection"""
+  line: BigFloat
+}
+
+type PullRequestCommentVariancePopulationAggregates {
+  """Population variance of line across the matching connection"""
+  line: BigFloat
 }
 
 """
-Grouping methods for `RepositoryRelationshipType` for usage during aggregation.
+Grouping methods for `PullRequestComment` for usage during aggregation.
 """
-enum RepositoryRelationshipTypeGroupBy {
-  NAME
-  DESCRIPTION
-  IS_DIRECTED
-  ORGANIZATION_ID
+enum PullRequestCommentGroupBy {
+  PULL_REQUEST_ID
+  AUTHOR_ID
+  BODY
+  PATH
+  LINE
+  SIDE
+  COMMIT_SHA
+  REPLY_TO_ID
   CREATED_AT
   CREATED_AT_TRUNCATED_TO_HOUR
   CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
 }
 
-"""Conditions for `RepositoryRelationshipType` aggregates."""
-input RepositoryRelationshipTypeHavingInput {
-  AND: [RepositoryRelationshipTypeHavingInput!]
-  OR: [RepositoryRelationshipTypeHavingInput!]
-  sum: RepositoryRelationshipTypeHavingSumInput
-  distinctCount: RepositoryRelationshipTypeHavingDistinctCountInput
-  min: RepositoryRelationshipTypeHavingMinInput
-  max: RepositoryRelationshipTypeHavingMaxInput
-  average: RepositoryRelationshipTypeHavingAverageInput
-  stddevSample: RepositoryRelationshipTypeHavingStddevSampleInput
-  stddevPopulation: RepositoryRelationshipTypeHavingStddevPopulationInput
-  varianceSample: RepositoryRelationshipTypeHavingVarianceSampleInput
-  variancePopulation: RepositoryRelationshipTypeHavingVariancePopulationInput
+"""Conditions for `PullRequestComment` aggregates."""
+input PullRequestCommentHavingInput {
+  AND: [PullRequestCommentHavingInput!]
+  OR: [PullRequestCommentHavingInput!]
+  sum: PullRequestCommentHavingSumInput
+  distinctCount: PullRequestCommentHavingDistinctCountInput
+  min: PullRequestCommentHavingMinInput
+  max: PullRequestCommentHavingMaxInput
+  average: PullRequestCommentHavingAverageInput
+  stddevSample: PullRequestCommentHavingStddevSampleInput
+  stddevPopulation: PullRequestCommentHavingStddevPopulationInput
+  varianceSample: PullRequestCommentHavingVarianceSampleInput
+  variancePopulation: PullRequestCommentHavingVariancePopulationInput
 }
 
-input RepositoryRelationshipTypeHavingSumInput {
+input PullRequestCommentHavingSumInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingDistinctCountInput {
+input PullRequestCommentHavingDistinctCountInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingMinInput {
+input PullRequestCommentHavingMinInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingMaxInput {
+input PullRequestCommentHavingMaxInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingAverageInput {
+input PullRequestCommentHavingAverageInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingStddevSampleInput {
+input PullRequestCommentHavingStddevSampleInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingStddevPopulationInput {
+input PullRequestCommentHavingStddevPopulationInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingVarianceSampleInput {
+input PullRequestCommentHavingVarianceSampleInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipTypeHavingVariancePopulationInput {
+input PullRequestCommentHavingVariancePopulationInput {
+  line: HavingIntFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
 """
-A condition to be used against `RepositoryRelationshipType` object types. All
-fields are tested for equality and combined with a logical ‘and.’
+A condition to be used against `PullRequestComment` object types. All fields are
+tested for equality and combined with a logical ‘and.’
 """
-input RepositoryRelationshipTypeCondition {
+input PullRequestCommentCondition {
   """Checks for equality with the object’s `rowId` field."""
   rowId: UUID
 
-  """Checks for equality with the object’s `name` field."""
-  name: String
+  """Checks for equality with the object’s `pullRequestId` field."""
+  pullRequestId: UUID
 
-  """Checks for equality with the object’s `description` field."""
-  description: String
+  """Checks for equality with the object’s `authorId` field."""
+  authorId: UUID
 
-  """Checks for equality with the object’s `isDirected` field."""
-  isDirected: Boolean
+  """Checks for equality with the object’s `body` field."""
+  body: String
 
-  """Checks for equality with the object’s `organizationId` field."""
-  organizationId: UUID
+  """Checks for equality with the object’s `path` field."""
+  path: String
+
+  """Checks for equality with the object’s `line` field."""
+  line: Int
+
+  """Checks for equality with the object’s `side` field."""
+  side: String
+
+  """Checks for equality with the object’s `commitSha` field."""
+  commitSha: String
+
+  """Checks for equality with the object’s `replyToId` field."""
+  replyToId: UUID
 
   """Checks for equality with the object’s `createdAt` field."""
   createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
 }
 
-"""Methods to use when ordering `RepositoryRelationshipType`."""
-enum RepositoryRelationshipTypeOrderBy {
+"""Methods to use when ordering `PullRequestComment`."""
+enum PullRequestCommentOrderBy {
   NATURAL
   PRIMARY_KEY_ASC
   PRIMARY_KEY_DESC
   ROW_ID_ASC
   ROW_ID_DESC
-  NAME_ASC
-  NAME_DESC
-  DESCRIPTION_ASC
-  DESCRIPTION_DESC
-  IS_DIRECTED_ASC
-  IS_DIRECTED_DESC
-  ORGANIZATION_ID_ASC
-  ORGANIZATION_ID_DESC
+  PULL_REQUEST_ID_ASC
+  PULL_REQUEST_ID_DESC
+  AUTHOR_ID_ASC
+  AUTHOR_ID_DESC
+  BODY_ASC
+  BODY_DESC
+  PATH_ASC
+  PATH_DESC
+  LINE_ASC
+  LINE_DESC
+  SIDE_ASC
+  SIDE_DESC
+  COMMIT_SHA_ASC
+  COMMIT_SHA_DESC
+  REPLY_TO_ID_ASC
+  REPLY_TO_ID_DESC
   CREATED_AT_ASC
   CREATED_AT_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_COUNT_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_SUM_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_ROW_ID_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_SOURCE_REPOSITORY_ID_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_TARGET_REPOSITORY_ID_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_RELATIONSHIP_TYPE_ID_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_DETECTION_SOURCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_VERSION_CONSTRAINT_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_BRANCH_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_CREATED_AT_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_DISTINCT_COUNT_UPDATED_AT_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MIN_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_MAX_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_AVERAGE_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_SAMPLE_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_STDDEV_POPULATION_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_SAMPLE_CONFIDENCE_DESC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_ASC
-  REPOSITORY_RELATIONSHIPS_BY_RELATIONSHIP_TYPE_ID_VARIANCE_POPULATION_CONFIDENCE_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
 }
 
-"""A connection to a list of `RepositoryRelationshipMetadatum` values."""
-type RepositoryRelationshipMetadatumConnection {
-  """A list of `RepositoryRelationshipMetadatum` objects."""
-  nodes: [RepositoryRelationshipMetadatum!]!
+"""A connection to a list of `PullRequestReview` values."""
+type PullRequestReviewConnection {
+  """A list of `PullRequestReview` objects."""
+  nodes: [PullRequestReview!]!
 
   """
-  A list of edges which contains the `RepositoryRelationshipMetadatum` and cursor to aid in pagination.
+  A list of edges which contains the `PullRequestReview` and cursor to aid in pagination.
   """
-  edges: [RepositoryRelationshipMetadatumEdge!]!
+  edges: [PullRequestReviewEdge!]!
 
   """Information to aid in pagination."""
   pageInfo: PageInfo!
 
   """
-  The count of *all* `RepositoryRelationshipMetadatum` you could get from the connection.
+  The count of *all* `PullRequestReview` you could get from the connection.
   """
   totalCount: Int!
 
   """
   Aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  aggregates: RepositoryRelationshipMetadatumAggregates
+  aggregates: PullRequestReviewAggregates
 
   """
   Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
   groupedAggregates(
     """
-    The method to use when grouping `RepositoryRelationshipMetadatum` for these aggregates.
+    The method to use when grouping `PullRequestReview` for these aggregates.
     """
-    groupBy: [RepositoryRelationshipMetadatumGroupBy!]!
+    groupBy: [PullRequestReviewGroupBy!]!
 
     """Conditions on the grouped aggregates."""
-    having: RepositoryRelationshipMetadatumHavingInput
-  ): [RepositoryRelationshipMetadatumAggregates!]
+    having: PullRequestReviewHavingInput
+  ): [PullRequestReviewAggregates!]
 }
 
-"""A `RepositoryRelationshipMetadatum` edge in the connection."""
-type RepositoryRelationshipMetadatumEdge {
+type PullRequestReview implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  pullRequestId: UUID!
+  reviewerId: UUID!
+  state: String!
+  body: String
+  submittedAt: Datetime
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """
+  Reads a single `PullRequest` that is related to this `PullRequestReview`.
+  """
+  pullRequest: PullRequest
+
+  """Reads a single `User` that is related to this `PullRequestReview`."""
+  reviewer: User
+}
+
+"""A `PullRequestReview` edge in the connection."""
+type PullRequestReviewEdge {
   """A cursor for use in pagination."""
   cursor: Cursor
 
-  """The `RepositoryRelationshipMetadatum` at the end of the edge."""
-  node: RepositoryRelationshipMetadatum!
+  """The `PullRequestReview` at the end of the edge."""
+  node: PullRequestReview!
 }
 
-type RepositoryRelationshipMetadatumAggregates {
+type PullRequestReviewAggregates {
   keys: [String]
 
   """
   Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
   """
-  distinctCount: RepositoryRelationshipMetadatumDistinctCountAggregates
+  distinctCount: PullRequestReviewDistinctCountAggregates
 }
 
-type RepositoryRelationshipMetadatumDistinctCountAggregates {
+type PullRequestReviewDistinctCountAggregates {
   """Distinct count of rowId across the matching connection"""
   rowId: BigInt
 
-  """Distinct count of relationshipId across the matching connection"""
-  relationshipId: BigInt
+  """Distinct count of pullRequestId across the matching connection"""
+  pullRequestId: BigInt
 
-  """Distinct count of key across the matching connection"""
-  key: BigInt
+  """Distinct count of reviewerId across the matching connection"""
+  reviewerId: BigInt
 
-  """Distinct count of value across the matching connection"""
-  value: BigInt
+  """Distinct count of state across the matching connection"""
+  state: BigInt
+
+  """Distinct count of body across the matching connection"""
+  body: BigInt
+
+  """Distinct count of submittedAt across the matching connection"""
+  submittedAt: BigInt
 
   """Distinct count of createdAt across the matching connection"""
   createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
 }
 
-"""
-Grouping methods for `RepositoryRelationshipMetadatum` for usage during aggregation.
-"""
-enum RepositoryRelationshipMetadatumGroupBy {
-  RELATIONSHIP_ID
-  KEY
-  VALUE
+"""Grouping methods for `PullRequestReview` for usage during aggregation."""
+enum PullRequestReviewGroupBy {
+  PULL_REQUEST_ID
+  REVIEWER_ID
+  STATE
+  BODY
+  SUBMITTED_AT
+  SUBMITTED_AT_TRUNCATED_TO_HOUR
+  SUBMITTED_AT_TRUNCATED_TO_DAY
   CREATED_AT
   CREATED_AT_TRUNCATED_TO_HOUR
   CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
 }
 
-"""Conditions for `RepositoryRelationshipMetadatum` aggregates."""
-input RepositoryRelationshipMetadatumHavingInput {
-  AND: [RepositoryRelationshipMetadatumHavingInput!]
-  OR: [RepositoryRelationshipMetadatumHavingInput!]
-  sum: RepositoryRelationshipMetadatumHavingSumInput
-  distinctCount: RepositoryRelationshipMetadatumHavingDistinctCountInput
-  min: RepositoryRelationshipMetadatumHavingMinInput
-  max: RepositoryRelationshipMetadatumHavingMaxInput
-  average: RepositoryRelationshipMetadatumHavingAverageInput
-  stddevSample: RepositoryRelationshipMetadatumHavingStddevSampleInput
-  stddevPopulation: RepositoryRelationshipMetadatumHavingStddevPopulationInput
-  varianceSample: RepositoryRelationshipMetadatumHavingVarianceSampleInput
-  variancePopulation: RepositoryRelationshipMetadatumHavingVariancePopulationInput
+"""Conditions for `PullRequestReview` aggregates."""
+input PullRequestReviewHavingInput {
+  AND: [PullRequestReviewHavingInput!]
+  OR: [PullRequestReviewHavingInput!]
+  sum: PullRequestReviewHavingSumInput
+  distinctCount: PullRequestReviewHavingDistinctCountInput
+  min: PullRequestReviewHavingMinInput
+  max: PullRequestReviewHavingMaxInput
+  average: PullRequestReviewHavingAverageInput
+  stddevSample: PullRequestReviewHavingStddevSampleInput
+  stddevPopulation: PullRequestReviewHavingStddevPopulationInput
+  varianceSample: PullRequestReviewHavingVarianceSampleInput
+  variancePopulation: PullRequestReviewHavingVariancePopulationInput
 }
 
-input RepositoryRelationshipMetadatumHavingSumInput {
+input PullRequestReviewHavingSumInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingDistinctCountInput {
+input PullRequestReviewHavingDistinctCountInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingMinInput {
+input PullRequestReviewHavingMinInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingMaxInput {
+input PullRequestReviewHavingMaxInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingAverageInput {
+input PullRequestReviewHavingAverageInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingStddevSampleInput {
+input PullRequestReviewHavingStddevSampleInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingStddevPopulationInput {
+input PullRequestReviewHavingStddevPopulationInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingVarianceSampleInput {
+input PullRequestReviewHavingVarianceSampleInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
-input RepositoryRelationshipMetadatumHavingVariancePopulationInput {
+input PullRequestReviewHavingVariancePopulationInput {
+  submittedAt: HavingDatetimeFilter
   createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
 }
 
 """
-A condition to be used against `RepositoryRelationshipMetadatum` object types.
-All fields are tested for equality and combined with a logical ‘and.’
+A condition to be used against `PullRequestReview` object types. All fields are
+tested for equality and combined with a logical ‘and.’
 """
-input RepositoryRelationshipMetadatumCondition {
+input PullRequestReviewCondition {
   """Checks for equality with the object’s `rowId` field."""
   rowId: UUID
 
-  """Checks for equality with the object’s `relationshipId` field."""
-  relationshipId: UUID
+  """Checks for equality with the object’s `pullRequestId` field."""
+  pullRequestId: UUID
 
-  """Checks for equality with the object’s `key` field."""
-  key: String
+  """Checks for equality with the object’s `reviewerId` field."""
+  reviewerId: UUID
 
-  """Checks for equality with the object’s `value` field."""
-  value: String
+  """Checks for equality with the object’s `state` field."""
+  state: String
+
+  """Checks for equality with the object’s `body` field."""
+  body: String
+
+  """Checks for equality with the object’s `submittedAt` field."""
+  submittedAt: Datetime
 
   """Checks for equality with the object’s `createdAt` field."""
   createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
 }
 
-"""Methods to use when ordering `RepositoryRelationshipMetadatum`."""
-enum RepositoryRelationshipMetadatumOrderBy {
+"""Methods to use when ordering `PullRequestReview`."""
+enum PullRequestReviewOrderBy {
   NATURAL
   PRIMARY_KEY_ASC
   PRIMARY_KEY_DESC
   ROW_ID_ASC
   ROW_ID_DESC
-  RELATIONSHIP_ID_ASC
-  RELATIONSHIP_ID_DESC
-  KEY_ASC
-  KEY_DESC
-  VALUE_ASC
-  VALUE_DESC
+  PULL_REQUEST_ID_ASC
+  PULL_REQUEST_ID_DESC
+  REVIEWER_ID_ASC
+  REVIEWER_ID_DESC
+  STATE_ASC
+  STATE_DESC
+  BODY_ASC
+  BODY_DESC
+  SUBMITTED_AT_ASC
+  SUBMITTED_AT_DESC
   CREATED_AT_ASC
   CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
 }
 
 """A connection to a list of `Organization` values."""
@@ -11332,6 +12135,67 @@ enum OrganizationOrderBy {
   ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROLES_DESC
   ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_ASC
   ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_DESC
+  TOPICS_COUNT_ASC
+  TOPICS_COUNT_DESC
+  TOPICS_DISTINCT_COUNT_ROW_ID_ASC
+  TOPICS_DISTINCT_COUNT_ROW_ID_DESC
+  TOPICS_DISTINCT_COUNT_OWNER_ID_ASC
+  TOPICS_DISTINCT_COUNT_OWNER_ID_DESC
+  TOPICS_DISTINCT_COUNT_ORGANIZATION_ID_ASC
+  TOPICS_DISTINCT_COUNT_ORGANIZATION_ID_DESC
+  TOPICS_DISTINCT_COUNT_TITLE_ASC
+  TOPICS_DISTINCT_COUNT_TITLE_DESC
+  TOPICS_DISTINCT_COUNT_DESCRIPTION_ASC
+  TOPICS_DISTINCT_COUNT_DESCRIPTION_DESC
+  TOPICS_DISTINCT_COUNT_STATUS_ASC
+  TOPICS_DISTINCT_COUNT_STATUS_DESC
+  TOPICS_DISTINCT_COUNT_CREATED_AT_ASC
+  TOPICS_DISTINCT_COUNT_CREATED_AT_DESC
+  TOPICS_DISTINCT_COUNT_UPDATED_AT_ASC
+  TOPICS_DISTINCT_COUNT_UPDATED_AT_DESC
+}
+
+"""The output of our create `TopicPullRequest` mutation."""
+type CreateTopicPullRequestPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `TopicPullRequest` that was created by this mutation."""
+  topicPullRequest: TopicPullRequest
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `TopicPullRequest`. May be used by Relay 1."""
+  topicPullRequestEdge(
+    """The method to use when ordering `TopicPullRequest`."""
+    orderBy: [TopicPullRequestOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): TopicPullRequestEdge
+}
+
+"""All input for the create `TopicPullRequest` mutation."""
+input CreateTopicPullRequestInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `TopicPullRequest` to be created by this mutation."""
+  topicPullRequest: TopicPullRequestInput!
+}
+
+"""An input for mutations affecting `TopicPullRequest`"""
+input TopicPullRequestInput {
+  rowId: UUID
+  topicId: UUID!
+  pullRequestId: UUID!
+  createdAt: Datetime
 }
 
 """The output of our create `RepositoryRelationshipMetadatum` mutation."""
@@ -11559,6 +12423,53 @@ input ExternalDependencyInput {
   versionConstraint: String
   detectionSource: String
   createdAt: Datetime
+}
+
+"""The output of our create `Topic` mutation."""
+type CreateTopicPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Topic` that was created by this mutation."""
+  topic: Topic
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Topic`. May be used by Relay 1."""
+  topicEdge(
+    """The method to use when ordering `Topic`."""
+    orderBy: [TopicOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): TopicEdge
+}
+
+"""All input for the create `Topic` mutation."""
+input CreateTopicInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `Topic` to be created by this mutation."""
+  topic: TopicInput!
+}
+
+"""An input for mutations affecting `Topic`"""
+input TopicInput {
+  rowId: UUID
+  ownerId: UUID!
+  organizationId: UUID
+  title: String!
+  description: String
+  status: String
+  createdAt: Datetime
+  updatedAt: Datetime
 }
 
 """The output of our create `RepositoryCollaborator` mutation."""
@@ -12199,6 +13110,54 @@ input PullRequestInput {
   authoredByAgentId: UUID
 }
 
+"""The output of our update `TopicPullRequest` mutation."""
+type UpdateTopicPullRequestPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `TopicPullRequest` that was updated by this mutation."""
+  topicPullRequest: TopicPullRequest
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `TopicPullRequest`. May be used by Relay 1."""
+  topicPullRequestEdge(
+    """The method to use when ordering `TopicPullRequest`."""
+    orderBy: [TopicPullRequestOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): TopicPullRequestEdge
+}
+
+"""All input for the `updateTopicPullRequest` mutation."""
+input UpdateTopicPullRequestInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `TopicPullRequest` being updated.
+  """
+  patch: TopicPullRequestPatch!
+}
+
+"""
+Represents an update to a `TopicPullRequest`. Fields that are set will be updated.
+"""
+input TopicPullRequestPatch {
+  rowId: UUID
+  topicId: UUID
+  pullRequestId: UUID
+  createdAt: Datetime
+}
+
 """The output of our update `RepositoryRelationshipMetadatum` mutation."""
 type UpdateRepositoryRelationshipMetadatumPayload {
   """
@@ -12449,6 +13408,58 @@ input ExternalDependencyPatch {
   versionConstraint: String
   detectionSource: String
   createdAt: Datetime
+}
+
+"""The output of our update `Topic` mutation."""
+type UpdateTopicPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Topic` that was updated by this mutation."""
+  topic: Topic
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Topic`. May be used by Relay 1."""
+  topicEdge(
+    """The method to use when ordering `Topic`."""
+    orderBy: [TopicOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): TopicEdge
+}
+
+"""All input for the `updateTopic` mutation."""
+input UpdateTopicInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `Topic` being updated.
+  """
+  patch: TopicPatch!
+}
+
+"""
+Represents an update to a `Topic`. Fields that are set will be updated.
+"""
+input TopicPatch {
+  rowId: UUID
+  ownerId: UUID
+  organizationId: UUID
+  title: String
+  description: String
+  status: String
+  createdAt: Datetime
+  updatedAt: Datetime
 }
 
 """The output of our update `RepositoryCollaborator` mutation."""
@@ -12890,6 +13901,24 @@ enum UserOrderBy {
   ORGANIZATION_MEMBERS_DISTINCT_COUNT_ROLES_DESC
   ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_ASC
   ORGANIZATION_MEMBERS_DISTINCT_COUNT_SYNCED_AT_DESC
+  TOPICS_BY_OWNER_ID_COUNT_ASC
+  TOPICS_BY_OWNER_ID_COUNT_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_ROW_ID_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_ROW_ID_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_OWNER_ID_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_OWNER_ID_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_ORGANIZATION_ID_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_ORGANIZATION_ID_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_TITLE_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_TITLE_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_DESCRIPTION_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_DESCRIPTION_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_STATUS_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_STATUS_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_CREATED_AT_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_CREATED_AT_DESC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_UPDATED_AT_ASC
+  TOPICS_BY_OWNER_ID_DISTINCT_COUNT_UPDATED_AT_DESC
 }
 
 """All input for the `updateUser` mutation."""
@@ -13576,6 +14605,40 @@ input PullRequestPatch {
   authoredByAgentId: UUID
 }
 
+"""The output of our delete `TopicPullRequest` mutation."""
+type DeleteTopicPullRequestPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `TopicPullRequest` that was deleted by this mutation."""
+  topicPullRequest: TopicPullRequest
+  deletedTopicPullRequestId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `TopicPullRequest`. May be used by Relay 1."""
+  topicPullRequestEdge(
+    """The method to use when ordering `TopicPullRequest`."""
+    orderBy: [TopicPullRequestOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): TopicPullRequestEdge
+}
+
+"""All input for the `deleteTopicPullRequest` mutation."""
+input DeleteTopicPullRequestInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
 """The output of our delete `RepositoryRelationshipMetadatum` mutation."""
 type DeleteRepositoryRelationshipMetadatumPayload {
   """
@@ -13742,6 +14805,40 @@ type DeleteExternalDependencyPayload {
 
 """All input for the `deleteExternalDependency` mutation."""
 input DeleteExternalDependencyInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
+"""The output of our delete `Topic` mutation."""
+type DeleteTopicPayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `Topic` that was deleted by this mutation."""
+  topic: Topic
+  deletedTopicId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `Topic`. May be used by Relay 1."""
+  topicEdge(
+    """The method to use when ordering `Topic`."""
+    orderBy: [TopicOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): TopicEdge
+}
+
+"""All input for the `deleteTopic` mutation."""
+input DeleteTopicInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -14921,6 +16018,17 @@ type VersionDriftEntry {
   organizationSlug: String
 }
 
+"""
+Whether a topic can submit all-or-nothing, and the members blocking it.
+"""
+type TopicReadiness {
+  """True when every member pull request is landable (merged or open)."""
+  ready: Boolean
+
+  """The member pull requests that cannot land yet, by row id."""
+  blockingPullRequestIds: [UUID!]
+}
+
 """The root query type which gives access points into the data universe."""
 type Query implements Node {
   """
@@ -14940,6 +16048,9 @@ type Query implements Node {
     id: ID!
   ): Node
 
+  """Get a single `TopicPullRequest`."""
+  topicPullRequest(rowId: UUID!): TopicPullRequest
+
   """Get a single `RepositoryRelationshipMetadatum`."""
   repositoryRelationshipMetadatum(rowId: UUID!): RepositoryRelationshipMetadatum
 
@@ -14954,6 +16065,9 @@ type Query implements Node {
 
   """Get a single `ExternalDependency`."""
   externalDependency(rowId: UUID!): ExternalDependency
+
+  """Get a single `Topic`."""
+  topic(rowId: UUID!): Topic
 
   """Get a single `RepositoryCollaborator`."""
   repositoryCollaborator(repositoryId: UUID!, userId: UUID!): RepositoryCollaborator
@@ -14997,6 +16111,14 @@ type Query implements Node {
   """Get a single `PullRequest`."""
   pullRequest(rowId: UUID!): PullRequest
 
+  """Reads a single `TopicPullRequest` using its globally unique `ID`."""
+  topicPullRequestById(
+    """
+    The globally unique `ID` to be used in selecting a single `TopicPullRequest`.
+    """
+    id: ID!
+  ): TopicPullRequest
+
   """
   Reads a single `RepositoryRelationshipMetadatum` using its globally unique `ID`.
   """
@@ -15038,6 +16160,12 @@ type Query implements Node {
     """
     id: ID!
   ): ExternalDependency
+
+  """Reads a single `Topic` using its globally unique `ID`."""
+  topicById(
+    """The globally unique `ID` to be used in selecting a single `Topic`."""
+    id: ID!
+  ): Topic
 
   """
   Reads a single `RepositoryCollaborator` using its globally unique `ID`.
@@ -15140,6 +16268,40 @@ type Query implements Node {
     """
     id: ID!
   ): PullRequest
+
+  """Reads and enables pagination through a set of `TopicPullRequest`."""
+  topicPullRequests(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: TopicPullRequestCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: TopicPullRequestFilter
+
+    """The method to use when ordering `TopicPullRequest`."""
+    orderBy: [TopicPullRequestOrderBy!] = [PRIMARY_KEY_ASC]
+  ): TopicPullRequestConnection
 
   """
   Reads and enables pagination through a set of `RepositoryRelationshipMetadatum`.
@@ -15312,6 +16474,40 @@ type Query implements Node {
     """The method to use when ordering `ExternalDependency`."""
     orderBy: [ExternalDependencyOrderBy!] = [PRIMARY_KEY_ASC]
   ): ExternalDependencyConnection
+
+  """Reads and enables pagination through a set of `Topic`."""
+  topics(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: TopicCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: TopicFilter
+
+    """The method to use when ordering `Topic`."""
+    orderBy: [TopicOrderBy!] = [PRIMARY_KEY_ASC]
+  ): TopicConnection
 
   """
   Reads and enables pagination through a set of `RepositoryCollaborator`.
@@ -15886,12 +17082,26 @@ type Query implements Node {
   caller may see appear.
   """
   projectVersionDrift(projectId: UUID!): [VersionDriftEntry!]
+
+  """
+  Whether the topic is ready to submit as one all-or-nothing unit. Only
+  member pull requests the caller may see are considered.
+  """
+  topicReadiness(topicId: UUID!): TopicReadiness
 }
 
 """
 The root mutation type which contains root level fields which mutate data.
 """
 type Mutation {
+  """Creates a single `TopicPullRequest`."""
+  createTopicPullRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateTopicPullRequestInput!
+  ): CreateTopicPullRequestPayload
+
   """Creates a single `RepositoryRelationshipMetadatum`."""
   createRepositoryRelationshipMetadatum(
     """
@@ -15931,6 +17141,14 @@ type Mutation {
     """
     input: CreateExternalDependencyInput!
   ): CreateExternalDependencyPayload
+
+  """Creates a single `Topic`."""
+  createTopic(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateTopicInput!
+  ): CreateTopicPayload
 
   """Creates a single `RepositoryCollaborator`."""
   createRepositoryCollaborator(
@@ -16036,6 +17254,14 @@ type Mutation {
     input: CreatePullRequestInput!
   ): CreatePullRequestPayload
 
+  """Updates a single `TopicPullRequest` using a unique key and a patch."""
+  updateTopicPullRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateTopicPullRequestInput!
+  ): UpdateTopicPullRequestPayload
+
   """
   Updates a single `RepositoryRelationshipMetadatum` using a unique key and a patch.
   """
@@ -16077,6 +17303,14 @@ type Mutation {
     """
     input: UpdateExternalDependencyInput!
   ): UpdateExternalDependencyPayload
+
+  """Updates a single `Topic` using a unique key and a patch."""
+  updateTopic(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateTopicInput!
+  ): UpdateTopicPayload
 
   """
   Updates a single `RepositoryCollaborator` using a unique key and a patch.
@@ -16204,6 +17438,14 @@ type Mutation {
     input: UpdatePullRequestInput!
   ): UpdatePullRequestPayload
 
+  """Deletes a single `TopicPullRequest` using a unique key."""
+  deleteTopicPullRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteTopicPullRequestInput!
+  ): DeleteTopicPullRequestPayload
+
   """Deletes a single `RepositoryRelationshipMetadatum` using a unique key."""
   deleteRepositoryRelationshipMetadatum(
     """
@@ -16243,6 +17485,14 @@ type Mutation {
     """
     input: DeleteExternalDependencyInput!
   ): DeleteExternalDependencyPayload
+
+  """Deletes a single `Topic` using a unique key."""
+  deleteTopic(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteTopicInput!
+  ): DeleteTopicPayload
 
   """Deletes a single `RepositoryCollaborator` using a unique key."""
   deleteRepositoryCollaborator(

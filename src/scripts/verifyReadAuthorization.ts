@@ -41,6 +41,8 @@ import {
   repositoryRelationshipTypeTable,
   repositoryTable,
   stackTable,
+  topicPullRequestTable,
+  topicTable,
   userTable,
   verificationCheckTable,
 } from "lib/db/schema";
@@ -61,6 +63,7 @@ const SECRETS = [
   "SECRET_CHANGE",
   "SECRET_CHECK",
   "SECRET_PROJECT",
+  "SECRET_TOPIC",
   "SECRET_TYPE",
   "SECRET_METADATA",
   "SECRET_DEPENDENCY",
@@ -251,6 +254,18 @@ const seed = async () => {
     .insert(projectRepositoryTable)
     .values({ projectId: project.id, repositoryId: privateRepo.id });
 
+  // a cross-repo topic grouping the private pull request, so topic reads and
+  // topic readiness are checked against a private member
+  const [topic] = await dbPool
+    .insert(topicTable)
+    .values({ ownerId: owner.id, title: "SECRET_TOPIC" })
+    .returning();
+  if (!topic) throw new Error("failed to seed topic");
+
+  await dbPool
+    .insert(topicPullRequestTable)
+    .values({ topicId: topic.id, pullRequestId: privatePr.id });
+
   const [relationshipType] = await dbPool
     .insert(repositoryRelationshipTypeTable)
     .values({ name: `${TAG}-SECRET_TYPE`, organizationId: organization.id })
@@ -324,6 +339,7 @@ const seed = async () => {
     privateRepoId: privateRepo.id,
     publicRepoId: publicRepo.id,
     projectId: project.id,
+    topicId: topic.id,
   };
 };
 
@@ -340,6 +356,7 @@ const cases = (
   privateRepoId: string,
   publicRepoId: string,
   projectId: string,
+  topicId: string,
 ): { name: string; document: string; mustReject?: boolean }[] => [
   {
     name: "repositories connection",
@@ -380,6 +397,20 @@ const cases = (
   {
     name: "projects",
     document: `{ projects(first:100){ nodes{ name slug } } }`,
+  },
+  {
+    name: "topics",
+    document: `{ topics(first:100){ nodes{ title } } }`,
+  },
+  {
+    // a topic membership must not leak the private pull request it groups
+    name: "topicPullRequests",
+    document: `{ topicPullRequests(first:100){ nodes{ pullRequest{ title } } } }`,
+  },
+  {
+    // readiness reaches the topic's private member pull requests
+    name: "topicReadiness (private topic)",
+    document: `{ topicReadiness(topicId:"${topicId}"){ ready blockingPullRequestIds } }`,
   },
   {
     name: "projectRepositories",
@@ -486,11 +517,16 @@ const cases = (
 ];
 
 const main = async () => {
-  const { privateRepoId, publicRepoId, projectId } = await seed();
+  const { privateRepoId, publicRepoId, projectId, topicId } = await seed();
 
   let failures = 0;
 
-  for (const testCase of cases(privateRepoId, publicRepoId, projectId)) {
+  for (const testCase of cases(
+    privateRepoId,
+    publicRepoId,
+    projectId,
+    topicId,
+  )) {
     const body = await query(testCase.document);
     const leaked = SECRETS.filter((secret) => body.includes(secret));
 

@@ -18,6 +18,7 @@ import {
   RepositoryReadPlugin,
   RepositoryRelationshipPlugin,
   SmartTagPlugin,
+  TopicPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
 import {
@@ -48,6 +49,7 @@ import {
 } from "lib/graphql/plugins/search";
 import { StackMutationsPlugin } from "lib/graphql/plugins/stack";
 import { PullRequestCommentSubscriptionPlugin } from "lib/graphql/plugins/subscriptions";
+import { TopicReadinessPlugin } from "lib/graphql/plugins/topic";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
 /**
@@ -68,6 +70,7 @@ const graphilePreset: GraphileConfig.Preset = {
     OrganizationPlugin,
     PrimaryKeyMutationsOnlyPlugin,
     ProjectPlugin,
+    TopicPlugin,
     PullRequestPlugin,
     PullRequestCommentPlugin,
     PullRequestReviewPlugin,
@@ -107,6 +110,8 @@ const graphilePreset: GraphileConfig.Preset = {
     ProjectMembershipPlugin,
     // Version drift: packages a project's repos depend on at inconsistent versions
     ProjectVersionDriftPlugin,
+    // Cross-repo topic readiness (all-or-nothing submit gate)
+    TopicReadinessPlugin,
     // Search indexing plugins
     RepositorySearchPlugin,
     PullRequestSearchPlugin,
