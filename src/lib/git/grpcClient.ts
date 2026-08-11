@@ -130,6 +130,54 @@ export const listRefsViaBackend = (
     });
   });
 
+/** A commit signature as arbor-git returns it (timestamp is a string with longs:String). */
+export interface BackendSignature {
+  name: string;
+  email: string;
+  timestamp: string | number;
+}
+
+/** A commit as arbor-git returns it. */
+export interface BackendCommit {
+  oid: string;
+  message: string;
+  author?: BackendSignature;
+  committer?: BackendSignature;
+  parentOids?: string[];
+}
+
+/**
+ * Read commit history through the backend (GetCommitLog server stream). Skips
+ * `skip` commits from `ref` then collects up to `limit`.
+ */
+export const getCommitLogViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  ref: string,
+  limit: number,
+  skip: number,
+): Promise<BackendCommit[]> =>
+  new Promise((resolve, reject) => {
+    const call = (
+      client as unknown as {
+        getCommitLog: (request: unknown) => {
+          on: (event: string, handler: (arg: unknown) => void) => void;
+        };
+      }
+    ).getCommitLog({
+      repository: { owner, name: repo },
+      startRef: ref,
+      limit,
+      skip,
+    });
+
+    const commits: BackendCommit[] = [];
+    call.on("data", (commit: unknown) => commits.push(commit as BackendCommit));
+    call.on("end", () => resolve(commits));
+    call.on("error", (error: unknown) => reject(error));
+  });
+
 /** A tree entry as arbor-git returns it (mode/type are enum strings). */
 export interface BackendTreeEntry {
   name: string;

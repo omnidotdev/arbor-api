@@ -5,6 +5,7 @@ import git, { TREE } from "isomorphic-git";
 
 import {
   getArborGitClient,
+  getCommitLogViaBackend,
   getTreeViaBackend,
   isArborGitEnabled,
   listRefsViaBackend,
@@ -319,8 +320,40 @@ export const gitService = {
     ref: string,
     options: { depth?: number; skip?: number } = {},
   ): Promise<CommitInfo[]> {
-    const gitdir = getRepositoryPath(owner, repo);
     const { depth = 20, skip = 0 } = options;
+
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        const commits = await getCommitLogViaBackend(
+          client,
+          owner,
+          repo,
+          ref,
+          depth,
+          skip,
+        );
+        return commits.map((commit) => ({
+          sha: commit.oid,
+          message: commit.message,
+          author: {
+            name: commit.author?.name ?? "",
+            email: commit.author?.email ?? "",
+            timestamp: Number(commit.author?.timestamp ?? 0),
+          },
+          committer: {
+            name: commit.committer?.name ?? "",
+            email: commit.committer?.email ?? "",
+            timestamp: Number(commit.committer?.timestamp ?? 0),
+          },
+          parents: commit.parentOids ?? [],
+        }));
+      } catch {
+        return [];
+      }
+    }
+
+    const gitdir = getRepositoryPath(owner, repo);
 
     try {
       const commits = await git.log({
