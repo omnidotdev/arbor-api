@@ -3,6 +3,11 @@ import * as fs from "node:fs";
 import { diffLines } from "diff";
 import git, { TREE } from "isomorphic-git";
 
+import {
+  getArborGitClient,
+  isArborGitEnabled,
+  listRefsViaBackend,
+} from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
 
 import type { ReadCommitResult, WalkerEntry } from "isomorphic-git";
@@ -578,6 +583,18 @@ export const gitService = {
    * List all branches.
    */
   async listBranches(owner: string, repo: string): Promise<BranchInfo[]> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const refs = await listRefsViaBackend(client, owner, repo);
+      return refs
+        .filter((ref) => ref.type === "REF_TYPE_BRANCH")
+        .map((ref) => ({
+          name: ref.shortName,
+          sha: ref.oid,
+          isDefault: ref.isDefault,
+        }));
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {

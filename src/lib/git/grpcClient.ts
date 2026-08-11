@@ -97,6 +97,39 @@ export const isArborGitEnabled = (): boolean => backendEnabled;
 /** The connected GitService client, or null when the backend is not in use. */
 export const getArborGitClient = (): Client | null => backendClient;
 
+/** A reference as arbor-git returns it (camelCased by the proto loader). */
+export interface BackendRef {
+  name: string;
+  shortName: string;
+  oid: string;
+  /** The RefType enum as a string, e.g. "REF_TYPE_BRANCH". */
+  type: string;
+  isDefault: boolean;
+}
+
+/** List a repository's refs through the backend (ListRefs unary call). */
+export const listRefsViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+): Promise<BackendRef[]> =>
+  new Promise((resolve, reject) => {
+    (
+      client as unknown as {
+        listRefs: (
+          request: unknown,
+          callback: (
+            error: Error | null,
+            response?: { refs?: BackendRef[] },
+          ) => void,
+        ) => void;
+      }
+    ).listRefs({ repository: { owner, name: repo } }, (error, response) => {
+      if (error) reject(error);
+      else resolve(response?.refs ?? []);
+    });
+  });
+
 /**
  * Serve git-upload-pack (clone/fetch) through the backend. Opens the bidirectional
  * UploadPack stream, sends the repository then the client's request bytes, and

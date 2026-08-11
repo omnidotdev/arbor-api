@@ -7,6 +7,7 @@ import { join } from "node:path";
 import {
   checkArborGitHealth,
   createGitServiceClient,
+  listRefsViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 
@@ -106,5 +107,16 @@ maybe("uploadPackViaBackend against a live arbor-git", () => {
 
     expect(result.success).toBe(true);
     expect(result.data.includes(Buffer.from("PACK"))).toBe(true);
+  });
+
+  test("lists the repository's branches through the backend", async () => {
+    const refs = await listRefsViaBackend(client!, OWNER, REPO);
+    const main = refs
+      .filter((ref) => ref.type === "REF_TYPE_BRANCH")
+      .find((ref) => ref.shortName === "main");
+
+    expect(main).toBeDefined();
+    expect(main?.oid).toBe(oid);
+    expect(main?.isDefault).toBe(true);
   });
 });
