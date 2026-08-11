@@ -6,6 +6,7 @@ import { PostGraphileConnectionFilterPreset } from "postgraphile-plugin-connecti
 
 import { pgSubscriber } from "lib/db/pubsub";
 import {
+  BranchProtectionRulePlugin,
   NoNodeIdMutationsPlugin,
   OrganizationPlugin,
   PrimaryKeyMutationsOnlyPlugin,
@@ -79,6 +80,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryReadPlugin,
     RepositoryCollaboratorPlugin,
     RepositoryRelationshipPlugin,
+    // Branch protection rules (admin-gated merge policy)
+    BranchProtectionRulePlugin,
     SmartTagPlugin,
     UserPlugin,
     // Personal access tokens (git HTTPS credentials)

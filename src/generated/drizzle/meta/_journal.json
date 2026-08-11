@@ -85,6 +85,13 @@
       "when": 1786399964561,
       "tag": "0011_common_stephen_strange",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1786464544894,
+      "tag": "0012_minor_squadron_sinister",
+      "breakpoints": true
     }
   ]
 }

@@ -1036,6 +1036,40 @@ type Repository {
     orderBy: [MergeQueueEntryOrderBy!] = [PRIMARY_KEY_ASC]
   ): MergeQueueEntryConnection!
 
+  """Reads and enables pagination through a set of `BranchProtectionRule`."""
+  branchProtectionRules(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: BranchProtectionRuleCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: BranchProtectionRuleFilter
+
+    """The method to use when ordering `BranchProtectionRule`."""
+    orderBy: [BranchProtectionRuleOrderBy!] = [PRIMARY_KEY_ASC]
+  ): BranchProtectionRuleConnection!
+
   """Fetch a ref by its fully qualified name (e.g., "refs/heads/main")."""
   ref(qualifiedName: String!): Ref
 
@@ -1424,6 +1458,12 @@ input RepositoryFilter {
 
   """Some related `mergeQueueEntries` exist."""
   mergeQueueEntriesExist: Boolean
+
+  """Filter by the object’s `branchProtectionRules` relation."""
+  branchProtectionRules: RepositoryToManyBranchProtectionRuleFilter
+
+  """Some related `branchProtectionRules` exist."""
+  branchProtectionRulesExist: Boolean
 
   """Filter by the object’s `organization` relation."""
   organization: OrganizationFilter
@@ -5149,6 +5189,156 @@ input RepositoryToManyMergeQueueEntryFilter {
   aggregates: MergeQueueEntryAggregatesFilter
 }
 
+"""
+A filter to be used against many `BranchProtectionRule` object types. All fields are combined with a logical ‘and.’
+"""
+input RepositoryToManyBranchProtectionRuleFilter {
+  """
+  Every related `BranchProtectionRule` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  every: BranchProtectionRuleFilter
+
+  """
+  Some related `BranchProtectionRule` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  some: BranchProtectionRuleFilter
+
+  """
+  No related `BranchProtectionRule` matches the filter criteria. All fields are combined with a logical ‘and.’
+  """
+  none: BranchProtectionRuleFilter
+
+  """
+  Aggregates across related `BranchProtectionRule` match the filter criteria.
+  """
+  aggregates: BranchProtectionRuleAggregatesFilter
+}
+
+"""
+A filter to be used against `BranchProtectionRule` object types. All fields are combined with a logical ‘and.’
+"""
+input BranchProtectionRuleFilter {
+  """Filter by the object’s `rowId` field."""
+  rowId: UUIDFilter
+
+  """Filter by the object’s `repositoryId` field."""
+  repositoryId: UUIDFilter
+
+  """Filter by the object’s `refPattern` field."""
+  refPattern: StringFilter
+
+  """Filter by the object’s `requiredApprovals` field."""
+  requiredApprovals: IntFilter
+
+  """Filter by the object’s `requirePassingChecks` field."""
+  requirePassingChecks: BooleanFilter
+
+  """Filter by the object’s `createdAt` field."""
+  createdAt: DatetimeFilter
+
+  """Filter by the object’s `updatedAt` field."""
+  updatedAt: DatetimeFilter
+
+  """Filter by the object’s `repository` relation."""
+  repository: RepositoryFilter
+
+  """Checks for all expressions in this list."""
+  and: [BranchProtectionRuleFilter!]
+
+  """Checks for any expressions in this list."""
+  or: [BranchProtectionRuleFilter!]
+
+  """Negates the expression."""
+  not: BranchProtectionRuleFilter
+}
+
+"""
+A filter to be used against aggregates of `BranchProtectionRule` object types.
+"""
+input BranchProtectionRuleAggregatesFilter {
+  """
+  A filter that must pass for the relevant `BranchProtectionRule` object to be included within the aggregate.
+  """
+  filter: BranchProtectionRuleFilter
+
+  """Sum aggregate over matching `BranchProtectionRule` objects."""
+  sum: BranchProtectionRuleSumAggregateFilter
+
+  """Distinct count aggregate over matching `BranchProtectionRule` objects."""
+  distinctCount: BranchProtectionRuleDistinctCountAggregateFilter
+
+  """Minimum aggregate over matching `BranchProtectionRule` objects."""
+  min: BranchProtectionRuleMinAggregateFilter
+
+  """Maximum aggregate over matching `BranchProtectionRule` objects."""
+  max: BranchProtectionRuleMaxAggregateFilter
+
+  """Mean average aggregate over matching `BranchProtectionRule` objects."""
+  average: BranchProtectionRuleAverageAggregateFilter
+
+  """
+  Sample standard deviation aggregate over matching `BranchProtectionRule` objects.
+  """
+  stddevSample: BranchProtectionRuleStddevSampleAggregateFilter
+
+  """
+  Population standard deviation aggregate over matching `BranchProtectionRule` objects.
+  """
+  stddevPopulation: BranchProtectionRuleStddevPopulationAggregateFilter
+
+  """
+  Sample variance aggregate over matching `BranchProtectionRule` objects.
+  """
+  varianceSample: BranchProtectionRuleVarianceSampleAggregateFilter
+
+  """
+  Population variance aggregate over matching `BranchProtectionRule` objects.
+  """
+  variancePopulation: BranchProtectionRuleVariancePopulationAggregateFilter
+}
+
+input BranchProtectionRuleSumAggregateFilter {
+  requiredApprovals: BigIntFilter
+}
+
+input BranchProtectionRuleDistinctCountAggregateFilter {
+  rowId: BigIntFilter
+  repositoryId: BigIntFilter
+  refPattern: BigIntFilter
+  requiredApprovals: BigIntFilter
+  requirePassingChecks: BigIntFilter
+  createdAt: BigIntFilter
+  updatedAt: BigIntFilter
+}
+
+input BranchProtectionRuleMinAggregateFilter {
+  requiredApprovals: IntFilter
+}
+
+input BranchProtectionRuleMaxAggregateFilter {
+  requiredApprovals: IntFilter
+}
+
+input BranchProtectionRuleAverageAggregateFilter {
+  requiredApprovals: BigFloatFilter
+}
+
+input BranchProtectionRuleStddevSampleAggregateFilter {
+  requiredApprovals: BigFloatFilter
+}
+
+input BranchProtectionRuleStddevPopulationAggregateFilter {
+  requiredApprovals: BigFloatFilter
+}
+
+input BranchProtectionRuleVarianceSampleAggregateFilter {
+  requiredApprovals: BigFloatFilter
+}
+
+input BranchProtectionRuleVariancePopulationAggregateFilter {
+  requiredApprovals: BigFloatFilter
+}
+
 """Methods to use when ordering `Repository`."""
 enum RepositoryOrderBy {
   NATURAL
@@ -5474,6 +5664,38 @@ enum RepositoryOrderBy {
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_REF_PATTERNS_DESC
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PATH_PATTERNS_ASC
   PERSONAL_ACCESS_TOKEN_REPOSITORIES_DISTINCT_COUNT_PATH_PATTERNS_DESC
+  BRANCH_PROTECTION_RULES_COUNT_ASC
+  BRANCH_PROTECTION_RULES_COUNT_DESC
+  BRANCH_PROTECTION_RULES_SUM_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_SUM_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_ROW_ID_ASC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_ROW_ID_DESC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REPOSITORY_ID_ASC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REPOSITORY_ID_DESC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REF_PATTERN_ASC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REF_PATTERN_DESC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REQUIRE_PASSING_CHECKS_ASC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_REQUIRE_PASSING_CHECKS_DESC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_CREATED_AT_ASC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_CREATED_AT_DESC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_UPDATED_AT_ASC
+  BRANCH_PROTECTION_RULES_DISTINCT_COUNT_UPDATED_AT_DESC
+  BRANCH_PROTECTION_RULES_MIN_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_MIN_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_MAX_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_MAX_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_AVERAGE_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_AVERAGE_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_STDDEV_SAMPLE_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_STDDEV_SAMPLE_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_STDDEV_POPULATION_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_STDDEV_POPULATION_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_VARIANCE_SAMPLE_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_VARIANCE_SAMPLE_REQUIRED_APPROVALS_DESC
+  BRANCH_PROTECTION_RULES_VARIANCE_POPULATION_REQUIRED_APPROVALS_ASC
+  BRANCH_PROTECTION_RULES_VARIANCE_POPULATION_REQUIRED_APPROVALS_DESC
 }
 
 """A connection to a list of `RepositoryRelationshipType` values."""
@@ -11073,6 +11295,322 @@ enum MergeBatchOrderBy {
   MERGE_QUEUE_ENTRIES_BY_BATCH_ID_VARIANCE_POPULATION_POSITION_DESC
 }
 
+"""A connection to a list of `BranchProtectionRule` values."""
+type BranchProtectionRuleConnection {
+  """A list of `BranchProtectionRule` objects."""
+  nodes: [BranchProtectionRule!]!
+
+  """
+  A list of edges which contains the `BranchProtectionRule` and cursor to aid in pagination.
+  """
+  edges: [BranchProtectionRuleEdge!]!
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """
+  The count of *all* `BranchProtectionRule` you could get from the connection.
+  """
+  totalCount: Int!
+
+  """
+  Aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  aggregates: BranchProtectionRuleAggregates
+
+  """
+  Grouped aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  groupedAggregates(
+    """
+    The method to use when grouping `BranchProtectionRule` for these aggregates.
+    """
+    groupBy: [BranchProtectionRuleGroupBy!]!
+
+    """Conditions on the grouped aggregates."""
+    having: BranchProtectionRuleHavingInput
+  ): [BranchProtectionRuleAggregates!]
+}
+
+type BranchProtectionRule implements Node {
+  """
+  A globally unique identifier. Can be used in various places throughout the system to identify this single value.
+  """
+  id: ID!
+  rowId: UUID!
+  repositoryId: UUID!
+  refPattern: String!
+  requiredApprovals: Int!
+  requirePassingChecks: Boolean!
+  createdAt: Datetime!
+  updatedAt: Datetime!
+
+  """
+  Reads a single `Repository` that is related to this `BranchProtectionRule`.
+  """
+  repository: Repository
+}
+
+"""A `BranchProtectionRule` edge in the connection."""
+type BranchProtectionRuleEdge {
+  """A cursor for use in pagination."""
+  cursor: Cursor
+
+  """The `BranchProtectionRule` at the end of the edge."""
+  node: BranchProtectionRule!
+}
+
+type BranchProtectionRuleAggregates {
+  keys: [String]
+
+  """
+  Sum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  sum: BranchProtectionRuleSumAggregates
+
+  """
+  Distinct count aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  distinctCount: BranchProtectionRuleDistinctCountAggregates
+
+  """
+  Minimum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  min: BranchProtectionRuleMinAggregates
+
+  """
+  Maximum aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  max: BranchProtectionRuleMaxAggregates
+
+  """
+  Mean average aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  average: BranchProtectionRuleAverageAggregates
+
+  """
+  Sample standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevSample: BranchProtectionRuleStddevSampleAggregates
+
+  """
+  Population standard deviation aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  stddevPopulation: BranchProtectionRuleStddevPopulationAggregates
+
+  """
+  Sample variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  varianceSample: BranchProtectionRuleVarianceSampleAggregates
+
+  """
+  Population variance aggregates across the matching connection (ignoring before/after/first/last/offset)
+  """
+  variancePopulation: BranchProtectionRuleVariancePopulationAggregates
+}
+
+type BranchProtectionRuleSumAggregates {
+  """Sum of requiredApprovals across the matching connection"""
+  requiredApprovals: BigInt!
+}
+
+type BranchProtectionRuleDistinctCountAggregates {
+  """Distinct count of rowId across the matching connection"""
+  rowId: BigInt
+
+  """Distinct count of repositoryId across the matching connection"""
+  repositoryId: BigInt
+
+  """Distinct count of refPattern across the matching connection"""
+  refPattern: BigInt
+
+  """Distinct count of requiredApprovals across the matching connection"""
+  requiredApprovals: BigInt
+
+  """Distinct count of requirePassingChecks across the matching connection"""
+  requirePassingChecks: BigInt
+
+  """Distinct count of createdAt across the matching connection"""
+  createdAt: BigInt
+
+  """Distinct count of updatedAt across the matching connection"""
+  updatedAt: BigInt
+}
+
+type BranchProtectionRuleMinAggregates {
+  """Minimum of requiredApprovals across the matching connection"""
+  requiredApprovals: Int
+}
+
+type BranchProtectionRuleMaxAggregates {
+  """Maximum of requiredApprovals across the matching connection"""
+  requiredApprovals: Int
+}
+
+type BranchProtectionRuleAverageAggregates {
+  """Mean average of requiredApprovals across the matching connection"""
+  requiredApprovals: BigFloat
+}
+
+type BranchProtectionRuleStddevSampleAggregates {
+  """
+  Sample standard deviation of requiredApprovals across the matching connection
+  """
+  requiredApprovals: BigFloat
+}
+
+type BranchProtectionRuleStddevPopulationAggregates {
+  """
+  Population standard deviation of requiredApprovals across the matching connection
+  """
+  requiredApprovals: BigFloat
+}
+
+type BranchProtectionRuleVarianceSampleAggregates {
+  """Sample variance of requiredApprovals across the matching connection"""
+  requiredApprovals: BigFloat
+}
+
+type BranchProtectionRuleVariancePopulationAggregates {
+  """
+  Population variance of requiredApprovals across the matching connection
+  """
+  requiredApprovals: BigFloat
+}
+
+"""
+Grouping methods for `BranchProtectionRule` for usage during aggregation.
+"""
+enum BranchProtectionRuleGroupBy {
+  REPOSITORY_ID
+  REF_PATTERN
+  REQUIRED_APPROVALS
+  REQUIRE_PASSING_CHECKS
+  CREATED_AT
+  CREATED_AT_TRUNCATED_TO_HOUR
+  CREATED_AT_TRUNCATED_TO_DAY
+  UPDATED_AT
+  UPDATED_AT_TRUNCATED_TO_HOUR
+  UPDATED_AT_TRUNCATED_TO_DAY
+}
+
+"""Conditions for `BranchProtectionRule` aggregates."""
+input BranchProtectionRuleHavingInput {
+  AND: [BranchProtectionRuleHavingInput!]
+  OR: [BranchProtectionRuleHavingInput!]
+  sum: BranchProtectionRuleHavingSumInput
+  distinctCount: BranchProtectionRuleHavingDistinctCountInput
+  min: BranchProtectionRuleHavingMinInput
+  max: BranchProtectionRuleHavingMaxInput
+  average: BranchProtectionRuleHavingAverageInput
+  stddevSample: BranchProtectionRuleHavingStddevSampleInput
+  stddevPopulation: BranchProtectionRuleHavingStddevPopulationInput
+  varianceSample: BranchProtectionRuleHavingVarianceSampleInput
+  variancePopulation: BranchProtectionRuleHavingVariancePopulationInput
+}
+
+input BranchProtectionRuleHavingSumInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingDistinctCountInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingMinInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingMaxInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingAverageInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingStddevSampleInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingStddevPopulationInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingVarianceSampleInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+input BranchProtectionRuleHavingVariancePopulationInput {
+  requiredApprovals: HavingIntFilter
+  createdAt: HavingDatetimeFilter
+  updatedAt: HavingDatetimeFilter
+}
+
+"""
+A condition to be used against `BranchProtectionRule` object types. All fields
+are tested for equality and combined with a logical ‘and.’
+"""
+input BranchProtectionRuleCondition {
+  """Checks for equality with the object’s `rowId` field."""
+  rowId: UUID
+
+  """Checks for equality with the object’s `repositoryId` field."""
+  repositoryId: UUID
+
+  """Checks for equality with the object’s `refPattern` field."""
+  refPattern: String
+
+  """Checks for equality with the object’s `requiredApprovals` field."""
+  requiredApprovals: Int
+
+  """Checks for equality with the object’s `requirePassingChecks` field."""
+  requirePassingChecks: Boolean
+
+  """Checks for equality with the object’s `createdAt` field."""
+  createdAt: Datetime
+
+  """Checks for equality with the object’s `updatedAt` field."""
+  updatedAt: Datetime
+}
+
+"""Methods to use when ordering `BranchProtectionRule`."""
+enum BranchProtectionRuleOrderBy {
+  NATURAL
+  PRIMARY_KEY_ASC
+  PRIMARY_KEY_DESC
+  ROW_ID_ASC
+  ROW_ID_DESC
+  REPOSITORY_ID_ASC
+  REPOSITORY_ID_DESC
+  REF_PATTERN_ASC
+  REF_PATTERN_DESC
+  REQUIRED_APPROVALS_ASC
+  REQUIRED_APPROVALS_DESC
+  REQUIRE_PASSING_CHECKS_ASC
+  REQUIRE_PASSING_CHECKS_DESC
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
 """A `Repository` edge in the connection."""
 type RepositoryEdge {
   """A cursor for use in pagination."""
@@ -12561,6 +13099,52 @@ input RepositoryRelationshipTypeInput {
   createdAt: Datetime
 }
 
+"""The output of our create `BranchProtectionRule` mutation."""
+type CreateBranchProtectionRulePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `BranchProtectionRule` that was created by this mutation."""
+  branchProtectionRule: BranchProtectionRule
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `BranchProtectionRule`. May be used by Relay 1."""
+  branchProtectionRuleEdge(
+    """The method to use when ordering `BranchProtectionRule`."""
+    orderBy: [BranchProtectionRuleOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): BranchProtectionRuleEdge
+}
+
+"""All input for the create `BranchProtectionRule` mutation."""
+input CreateBranchProtectionRuleInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+
+  """The `BranchProtectionRule` to be created by this mutation."""
+  branchProtectionRule: BranchProtectionRuleInput!
+}
+
+"""An input for mutations affecting `BranchProtectionRule`"""
+input BranchProtectionRuleInput {
+  rowId: UUID
+  repositoryId: UUID!
+  refPattern: String!
+  requiredApprovals: Int
+  requirePassingChecks: Boolean
+  createdAt: Datetime
+  updatedAt: Datetime
+}
+
 """The output of our create `Agent` mutation."""
 type CreateAgentPayload {
   """
@@ -13560,6 +14144,57 @@ input RepositoryRelationshipTypePatch {
   isDirected: Boolean
   organizationId: UUID
   createdAt: Datetime
+}
+
+"""The output of our update `BranchProtectionRule` mutation."""
+type UpdateBranchProtectionRulePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `BranchProtectionRule` that was updated by this mutation."""
+  branchProtectionRule: BranchProtectionRule
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `BranchProtectionRule`. May be used by Relay 1."""
+  branchProtectionRuleEdge(
+    """The method to use when ordering `BranchProtectionRule`."""
+    orderBy: [BranchProtectionRuleOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): BranchProtectionRuleEdge
+}
+
+"""All input for the `updateBranchProtectionRule` mutation."""
+input UpdateBranchProtectionRuleInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+
+  """
+  An object where the defined keys will be set on the `BranchProtectionRule` being updated.
+  """
+  patch: BranchProtectionRulePatch!
+}
+
+"""
+Represents an update to a `BranchProtectionRule`. Fields that are set will be updated.
+"""
+input BranchProtectionRulePatch {
+  rowId: UUID
+  repositoryId: UUID
+  refPattern: String
+  requiredApprovals: Int
+  requirePassingChecks: Boolean
+  createdAt: Datetime
+  updatedAt: Datetime
 }
 
 """The output of our update `User` mutation."""
@@ -14916,6 +15551,40 @@ input DeleteRepositoryRelationshipTypeInput {
   rowId: UUID!
 }
 
+"""The output of our delete `BranchProtectionRule` mutation."""
+type DeleteBranchProtectionRulePayload {
+  """
+  The exact same `clientMutationId` that was provided in the mutation input,
+  unchanged and unused. May be used by a client to track mutations.
+  """
+  clientMutationId: String
+
+  """The `BranchProtectionRule` that was deleted by this mutation."""
+  branchProtectionRule: BranchProtectionRule
+  deletedBranchProtectionRuleId: ID
+
+  """
+  Our root query field type. Allows us to run any query from our mutation payload.
+  """
+  query: Query
+
+  """An edge for our `BranchProtectionRule`. May be used by Relay 1."""
+  branchProtectionRuleEdge(
+    """The method to use when ordering `BranchProtectionRule`."""
+    orderBy: [BranchProtectionRuleOrderBy!]! = [PRIMARY_KEY_ASC]
+  ): BranchProtectionRuleEdge
+}
+
+"""All input for the `deleteBranchProtectionRule` mutation."""
+input DeleteBranchProtectionRuleInput {
+  """
+  An arbitrary string value with no semantic meaning. Will be included in the
+  payload verbatim. May be used to track mutations by the client.
+  """
+  clientMutationId: String
+  rowId: UUID!
+}
+
 """The output of our delete `User` mutation."""
 type DeleteUserPayload {
   """
@@ -16075,6 +16744,9 @@ type Query implements Node {
   """Get a single `RepositoryRelationshipType`."""
   repositoryRelationshipType(rowId: UUID!): RepositoryRelationshipType
 
+  """Get a single `BranchProtectionRule`."""
+  branchProtectionRule(rowId: UUID!): BranchProtectionRule
+
   """Get a single `Agent`."""
   agent(rowId: UUID!): Agent
 
@@ -16186,6 +16858,14 @@ type Query implements Node {
     """
     id: ID!
   ): RepositoryRelationshipType
+
+  """Reads a single `BranchProtectionRule` using its globally unique `ID`."""
+  branchProtectionRuleById(
+    """
+    The globally unique `ID` to be used in selecting a single `BranchProtectionRule`.
+    """
+    id: ID!
+  ): BranchProtectionRule
 
   """Reads a single `Agent` using its globally unique `ID`."""
   agentById(
@@ -16580,6 +17260,40 @@ type Query implements Node {
     """The method to use when ordering `RepositoryRelationshipType`."""
     orderBy: [RepositoryRelationshipTypeOrderBy!] = [PRIMARY_KEY_ASC]
   ): RepositoryRelationshipTypeConnection
+
+  """Reads and enables pagination through a set of `BranchProtectionRule`."""
+  branchProtectionRules(
+    """Only read the first `n` values of the set."""
+    first: Int
+
+    """Only read the last `n` values of the set."""
+    last: Int
+
+    """
+    Skip the first `n` values from our `after` cursor, an alternative to cursor
+    based pagination. May not be used with `last`.
+    """
+    offset: Int
+
+    """Read all values in the set before (above) this cursor."""
+    before: Cursor
+
+    """Read all values in the set after (below) this cursor."""
+    after: Cursor
+
+    """
+    A condition to be used in determining which values should be returned by the collection.
+    """
+    condition: BranchProtectionRuleCondition
+
+    """
+    A filter to be used in determining which values should be returned by the collection.
+    """
+    filter: BranchProtectionRuleFilter
+
+    """The method to use when ordering `BranchProtectionRule`."""
+    orderBy: [BranchProtectionRuleOrderBy!] = [PRIMARY_KEY_ASC]
+  ): BranchProtectionRuleConnection
 
   """Reads and enables pagination through a set of `Agent`."""
   agents(
@@ -17166,6 +17880,14 @@ type Mutation {
     input: CreateRepositoryRelationshipTypeInput!
   ): CreateRepositoryRelationshipTypePayload
 
+  """Creates a single `BranchProtectionRule`."""
+  createBranchProtectionRule(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: CreateBranchProtectionRuleInput!
+  ): CreateBranchProtectionRulePayload
+
   """Creates a single `Agent`."""
   createAgent(
     """
@@ -17331,6 +18053,16 @@ type Mutation {
     """
     input: UpdateRepositoryRelationshipTypeInput!
   ): UpdateRepositoryRelationshipTypePayload
+
+  """
+  Updates a single `BranchProtectionRule` using a unique key and a patch.
+  """
+  updateBranchProtectionRule(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: UpdateBranchProtectionRuleInput!
+  ): UpdateBranchProtectionRulePayload
 
   """Updates a single `User` using a unique key and a patch."""
   updateUser(
@@ -17509,6 +18241,14 @@ type Mutation {
     """
     input: DeleteRepositoryRelationshipTypeInput!
   ): DeleteRepositoryRelationshipTypePayload
+
+  """Deletes a single `BranchProtectionRule` using a unique key."""
+  deleteBranchProtectionRule(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: DeleteBranchProtectionRuleInput!
+  ): DeleteBranchProtectionRulePayload
 
   """Deletes a single `User` using a unique key."""
   deleteUser(

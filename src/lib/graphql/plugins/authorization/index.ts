@@ -1,3 +1,4 @@
+export { default as BranchProtectionRulePlugin } from "./BranchProtectionRule.plugin";
 export { default as NoNodeIdMutationsPlugin } from "./NoNodeIdMutations.plugin";
 export { default as OrganizationPlugin } from "./Organization.plugin";
 export { default as PrimaryKeyMutationsOnlyPlugin } from "./PrimaryKeyMutationsOnly.plugin";
