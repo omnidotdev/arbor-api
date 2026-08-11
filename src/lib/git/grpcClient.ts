@@ -216,6 +216,31 @@ export const getTreeViaBackend = (
     );
   });
 
+/** Read a blob's bytes by oid through the backend (GetBlob server stream). */
+export const getBlobViaBackend = (
+  client: Client,
+  owner: string,
+  repo: string,
+  oid: string,
+): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
+    const call = (
+      client as unknown as {
+        getBlob: (request: unknown) => {
+          on: (event: string, handler: (arg: unknown) => void) => void;
+        };
+      }
+    ).getBlob({ repository: { owner, name: repo }, oid });
+
+    const chunks: Buffer[] = [];
+    call.on("data", (chunk: unknown) => {
+      const data = (chunk as { data?: Buffer | Uint8Array }).data;
+      if (data && data.length > 0) chunks.push(Buffer.from(data));
+    });
+    call.on("end", () => resolve(Buffer.concat(chunks)));
+    call.on("error", (error: unknown) => reject(error));
+  });
+
 /**
  * Serve git-receive-pack (push) through the backend, mirroring uploadPackViaBackend
  * over the ReceivePack stream. `userId` is carried in the init for the backend's
