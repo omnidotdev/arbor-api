@@ -576,6 +576,18 @@ const gitRoutes = new Elysia({ prefix: "/git" })
       // only at repository level) leaves the push exactly as before
       const bounds = scopeBoundsForRepository(gate.caller.scope, repository.id);
 
+      // The repository's protected-branch globs, enforced for every pusher (no
+      // delete / no force-push) by the same pre-receive boundary. Empty for an
+      // unprotected repository, so nothing changes there
+      const protectionRules =
+        await dbPool.query.branchProtectionRuleTable.findMany({
+          where: (table, { eq }) => eq(table.repositoryId, repository.id),
+          columns: { refPattern: true },
+        });
+      const protectedRefPatterns = protectionRules.map(
+        (rule) => rule.refPattern,
+      );
+
       // The default branch tip before the push, to detect whether this push
       // advanced it (HEAD resolves through the default branch to a commit)
       const headBefore = await gitService
@@ -589,6 +601,7 @@ const gitRoutes = new Elysia({ prefix: "/git" })
         body,
         bounds,
         gate.caller.user.id,
+        protectedRefPatterns,
       );
 
       if (!result.success) {

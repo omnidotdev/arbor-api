@@ -149,7 +149,12 @@ mock.module("lib/providers", () => ({
 }));
 
 mock.module("lib/db/db", () => ({
-  dbPool: {},
+  dbPool: {
+    query: {
+      // the push handler loads the repo's branch protection rules; none by default
+      branchProtectionRuleTable: { findMany: async () => [] },
+    },
+  },
 }));
 
 mock.module("lib/graphql/plugins/authorization/constants", () => ({

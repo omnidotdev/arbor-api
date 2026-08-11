@@ -538,7 +538,9 @@ export const getBlobViaBackend = (
  * in the init and the backend enforces it against the actual pushed objects via
  * its pre-receive boundary hook, so a confined push is safe to route here; null
  * bounds is an unconfined push. A `null` pattern list in a dimension leaves it
- * unconfined, matching the in-process `ScopeBounds` shape.
+ * unconfined, matching the in-process `ScopeBounds` shape. `protectedRefPatterns`
+ * carries the repository's protected-branch globs, which the backend enforces for
+ * every pusher (no delete / no force-push), independent of token confinement.
  */
 export const receivePackViaBackend = (
   client: Client,
@@ -547,6 +549,7 @@ export const receivePackViaBackend = (
   userId: string,
   input: Buffer,
   bounds: ScopeBounds | null = null,
+  protectedRefPatterns: string[] = [],
 ): Promise<{ data: Buffer; success: boolean }> =>
   new Promise((resolve) => {
     const call = (
@@ -580,6 +583,7 @@ export const receivePackViaBackend = (
         refPatterns: bounds?.refPatterns ?? [],
         pathConfined: bounds?.pathPatterns != null,
         pathPatterns: bounds?.pathPatterns ?? [],
+        protectedRefPatterns,
       },
     });
     call.write({ data: input });

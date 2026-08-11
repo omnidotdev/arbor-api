@@ -1,9 +1,37 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
+// Relative (not the `lib/` alias) so the hook resolves this chain when bun runs
+// it with a cwd inside the bare repo, away from the project tsconfig
+import { matchesAnyGlob } from "../../auth/refPathMatch";
 import { evaluateReceivePack, parseUpdateLines } from "../receivePackGuard";
 
 import type { RefUpdate, ScopeBounds } from "../receivePackGuard";
+
+/**
+ * Whether a ref names a protected branch: only `refs/heads/*` refs are subject to
+ * branch protection, matched against the rule globs by branch name.
+ */
+const isProtectedBranch = (patterns: string[], ref: string): boolean => {
+  if (!ref.startsWith("refs/heads/")) return false;
+  return matchesAnyGlob(patterns, ref.slice("refs/heads/".length));
+};
+
+/**
+ * Whether advancing `oldOid` to `newOid` rewrites history (a force / non-fast-
+ * forward push): true when `oldOid` is NOT an ancestor of `newOid`. Fails closed
+ * (treats an unexpected exit as a force-push) so a protected branch is never
+ * advanced past an ambiguous check.
+ */
+const isForcePush = (oldOid: string, newOid: string): boolean => {
+  const result = spawnSync("git", [
+    "merge-base",
+    "--is-ancestor",
+    oldOid,
+    newOid,
+  ]);
+  return result.status !== 0;
+};
 
 /**
  * Git pre-receive hook enforcing a credential's ref/path bounds against the
@@ -66,31 +94,52 @@ const run = (): number => {
     refPatterns: parsePatterns(process.env.ARBOR_REF_PATTERNS),
     pathPatterns: parsePatterns(process.env.ARBOR_PATH_PATTERNS),
   };
+  const protectedPatterns =
+    parsePatterns(process.env.ARBOR_PROTECTED_REF_PATTERNS) ?? [];
 
-  // Unconfined in both dimensions: nothing for the boundary to enforce
-  if (bounds.refPatterns === null && bounds.pathPatterns === null) return 0;
+  const confined = bounds.refPatterns !== null || bounds.pathPatterns !== null;
+
+  // Nothing to enforce: no token confinement and no protected branches
+  if (!confined && protectedPatterns.length === 0) return 0;
 
   // Changed paths are only needed when paths are confined; skip the walk for the
   // common ref-only case (e.g. an agent confined to refs/heads/agent/*)
   const needPaths = bounds.pathPatterns !== null;
 
-  const updates: RefUpdate[] = parseUpdateLines(readFileSync(0, "utf8")).map(
-    (update) => ({
-      ...update,
-      changedPaths:
-        needPaths && !isZeroOid(update.newOid)
-          ? changedPathsFor(update.newOid)
-          : [],
-    }),
-  );
+  const parsed = parseUpdateLines(readFileSync(0, "utf8"));
+  const reasons: string[] = [];
 
-  const rejections = evaluateReceivePack(bounds, updates);
-  if (rejections.length === 0) return 0;
+  // Branch protection applies to every pusher: a protected branch cannot be
+  // deleted or force-pushed
+  for (const update of parsed) {
+    if (!isProtectedBranch(protectedPatterns, update.ref)) continue;
+    if (isZeroOid(update.newOid)) {
+      reasons.push(`${update.ref} is a protected branch and cannot be deleted`);
+    } else if (
+      !isZeroOid(update.oldOid) &&
+      isForcePush(update.oldOid, update.newOid)
+    ) {
+      reasons.push(
+        `${update.ref} is a protected branch and cannot be force-pushed`,
+      );
+    }
+  }
 
-  for (const rejection of rejections) {
-    process.stderr.write(
-      `arbor: rejected ${rejection.ref}: ${rejection.reason}\n`,
-    );
+  const updates: RefUpdate[] = parsed.map((update) => ({
+    ...update,
+    changedPaths:
+      needPaths && !isZeroOid(update.newOid)
+        ? changedPathsFor(update.newOid)
+        : [],
+  }));
+
+  for (const rejection of evaluateReceivePack(bounds, updates)) {
+    reasons.push(rejection.reason);
+  }
+
+  if (reasons.length === 0) return 0;
+  for (const reason of reasons) {
+    process.stderr.write(`arbor: ${reason}\n`);
   }
   return 1;
 };
