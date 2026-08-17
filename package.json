@@ -44,7 +44,7 @@
     "@grpc/grpc-js": "^1.14.4",
     "@grpc/proto-loader": "^0.8.1",
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "@omnidotdev/providers": "github:omnidotdev/providers#49f2fc4",
+    "@omnidotdev/providers": "github:omnidotdev/providers#733b14e",
     "@omnidotdev/search": "github:omnidotdev/search#8acefe7",
     "@tanstack/query-core": "^5.101.4",
     "diff": "^9.0.0",
