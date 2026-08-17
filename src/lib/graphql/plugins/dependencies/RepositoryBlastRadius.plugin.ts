@@ -3,6 +3,7 @@ import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
 import { repositoryBlastRadius } from "lib/dependencies";
+import { GRAPH_LEVEL, requireGraphLevel } from "lib/entitlements";
 
 import type { FieldArgs } from "postgraphile/grafast";
 
@@ -103,7 +104,14 @@ const RepositoryBlastRadiusPlugin = extendSchema(() => {
       Query: {
         plans: {
           repositoryBlastRadius: EXPORTABLE(
-            (lambda, object, context, repositoryBlastRadius) =>
+            (
+              lambda,
+              object,
+              context,
+              repositoryBlastRadius,
+              requireGraphLevel,
+              GRAPH_LEVEL,
+            ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $repositoryId = fieldArgs.getRaw("repositoryId");
                 const $db = context().get("db");
@@ -115,15 +123,44 @@ const RepositoryBlastRadiusPlugin = extendSchema(() => {
                     db: $db,
                     observer: $observer,
                   }),
-                  async (args: any) =>
-                    await repositoryBlastRadius({
+                  async (args: any) => {
+                    // Blast radius is a paid graph capability (Team, level 2).
+                    // graph_level is an ORGANIZATION entitlement (billing is
+                    // per-org), so resolve the repository's owning organization
+                    // and require the tier before running. A PERSONAL repository
+                    // has no organizationId and resolves to the free tier (level
+                    // 0), so blast radius is denied on it; revisit if
+                    // personal-account billing is introduced. A GraphQLError
+                    // with extensions.code GRAPH_TIER_REQUIRED is thrown when
+                    // below the tier so the UI can prompt an upgrade (a plain
+                    // Error would be masked by graphql-yoga)
+                    const repo = await args.db.query.repositoryTable.findFirst({
+                      columns: { organizationId: true },
+                      where: (table: any, { eq }: any) =>
+                        eq(table.id, args.repositoryId),
+                    });
+
+                    await requireGraphLevel(
+                      repo?.organizationId ?? null,
+                      GRAPH_LEVEL.BLAST_RADIUS,
+                    );
+
+                    return await repositoryBlastRadius({
                       observer: args.observer,
                       db: args.db,
                       input: { repositoryId: args.repositoryId },
-                    }),
+                    });
+                  },
                 );
               },
-            [lambda, object, context, repositoryBlastRadius],
+            [
+              lambda,
+              object,
+              context,
+              repositoryBlastRadius,
+              requireGraphLevel,
+              GRAPH_LEVEL,
+            ],
           ),
         },
       },
