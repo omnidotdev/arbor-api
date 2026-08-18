@@ -1,6 +1,7 @@
 import { EnvelopArmor } from "@escape.tech/graphql-armor";
 
 import { GRAPHQL_MAX_COMPLEXITY_COST, isProdEnv } from "lib/config/env.config";
+import { costLimitError } from "./costLimitError";
 
 /**
  * Floor for the query-cost ceiling. The app's own list surfaces (stacks, pull
@@ -39,6 +40,14 @@ const armor = new EnvelopArmor({
     scalarCost: 1,
     depthCostFactor: 1.5,
     ignoreIntrospection: true,
+    // Armor otherwise throws a bare GraphQLError that yoga masks into a retried
+    // HTTP 500. Re-throw a coded 400 so an over-cost query fails cleanly and
+    // non-retryably (runs before Armor's own throw)
+    onReject: [
+      (_ctx, error) => {
+        throw costLimitError(error.message);
+      },
+    ],
   },
 });
 
