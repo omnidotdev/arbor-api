@@ -1,9 +1,37 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { dbPool } from "lib/db/db";
 import { pullRequestTable } from "lib/db/schema";
 
 import type { SelectPullRequest } from "lib/db/schema";
+
+/** Open/closed transition a caller can request on a pull request. */
+export type PullRequestStateAction = "close" | "reopen";
+
+interface PullRequestStateChange {
+  /** State to write. */
+  to: string;
+  /** States the pull request may currently be in for the change to apply. */
+  from: string[];
+  /** closedAt to write: the close time when closing, cleared when reopening. */
+  closedAt: Date | null;
+}
+
+/**
+ * The open/closed state change for an action, as a pure policy.
+ *
+ * `from` deliberately omits "merged": a merged pull request is terminal and must
+ * never be reopened or reclosed. The service constrains the UPDATE to `from`, so
+ * this set is also what makes the close/reopen path race-safe against a merge.
+ */
+export function pullRequestStateChange(
+  action: PullRequestStateAction,
+  now: Date,
+): PullRequestStateChange {
+  return action === "close"
+    ? { to: "closed", from: ["open", "draft"], closedAt: now }
+    : { to: "open", from: ["closed"], closedAt: null };
+}
 
 /**
  * Input for opening a pull request.
@@ -83,5 +111,41 @@ export const pullRequestService = {
     }
 
     return null;
+  },
+
+  /**
+   * Close or reopen a pull request.
+   *
+   * The change is applied atomically with the current state constrained to the
+   * action's allowed `from` states (see pullRequestStateChange), so a merged
+   * pull request is never affected and a concurrent merge cannot be clobbered.
+   * Returns the updated row, or null when no row matched (not found, already in
+   * the target state, or merged) so the caller can report a clean error.
+   */
+  async setPullRequestState(
+    id: string,
+    action: PullRequestStateAction,
+    db: typeof dbPool = dbPool,
+  ): Promise<SelectPullRequest | null> {
+    const now = new Date();
+    const change = pullRequestStateChange(action, now);
+
+    const [updated] = await db
+      .update(pullRequestTable)
+      .set({
+        state: change.to,
+        // closedAt is a plain timestamp() (Date); updatedAt is mode "string"
+        closedAt: change.closedAt,
+        updatedAt: now.toISOString(),
+      })
+      .where(
+        and(
+          eq(pullRequestTable.id, id),
+          inArray(pullRequestTable.state, change.from),
+        ),
+      )
+      .returning();
+
+    return updated ?? null;
   },
 };

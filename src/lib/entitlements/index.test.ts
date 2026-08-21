@@ -20,11 +20,19 @@ import type { EntitlementsResponse } from "@omnidotdev/providers/billing";
  */
 
 let entitlementsResponse: EntitlementsResponse | null = null;
+// Per-entity overrides, keyed by the id passed to getEntitlements. Lets a test
+// give different organizations different tiers (needed to prove
+// getUserMaxGraphLevel takes the MAX across a user's orgs). Falls back to the
+// shared entitlementsResponse for any id not in the map.
+let entitlementsByEntity: Record<string, EntitlementsResponse | null> = {};
 
 mock.module("lib/providers", () => ({
   default: { emit: async () => {} },
   billing: {
-    getEntitlements: async () => entitlementsResponse,
+    getEntitlements: async (_entityType: string, entityId: string) =>
+      entityId in entitlementsByEntity
+        ? entitlementsByEntity[entityId]
+        : entitlementsResponse,
   },
 }));
 
@@ -44,7 +52,23 @@ const withGraphLevel = (level: number): EntitlementsResponse =>
 beforeEach(() => {
   // Default: no billing account / Aether unavailable -> free tier
   entitlementsResponse = null;
+  entitlementsByEntity = {};
 });
+
+/**
+ * Fake db exposing only the org-membership query getUserMaxGraphLevel needs, so
+ * the resolution can be tested without a live database. Returns the configured
+ * organization ids as the user's memberships regardless of the where clause.
+ */
+const dbWithMemberships = (organizationIds: string[]) =>
+  ({
+    query: {
+      organizationMemberTable: {
+        findMany: async () =>
+          organizationIds.map((organizationId) => ({ organizationId })),
+      },
+    },
+  }) as never;
 
 describe("getOrganizationGraphLevel", () => {
   test("maps the pro tier to the org-wide graph level (1)", async () => {
@@ -152,5 +176,81 @@ describe("requireGraphLevel", () => {
     } catch (error: any) {
       expect(error.extensions?.code).toBe("GRAPH_TIER_REQUIRED");
     }
+  });
+});
+
+/**
+ * A user's graph capability is the highest graph_level across the organizations
+ * they belong to. This is what lets a paying customer keep the org-wide polyrepo
+ * graph and blast radius on a personal repository (which has no owning org to
+ * bill), without giving the paid feature away to free users.
+ */
+describe("getUserMaxGraphLevel", () => {
+  test("takes the highest graph level across the user's organizations", async () => {
+    const { getUserMaxGraphLevel } = await importEntitlements();
+    entitlementsByEntity = {
+      "org-free": null, // level 0
+      "org-team": withTier("team"), // level 2
+    };
+    expect(
+      await getUserMaxGraphLevel(
+        "user-1",
+        dbWithMemberships(["org-free", "org-team"]),
+      ),
+    ).toBe(2);
+  });
+
+  test("resolves to the free level (0) for a user in no organizations", async () => {
+    const { getUserMaxGraphLevel } = await importEntitlements();
+    expect(await getUserMaxGraphLevel("user-1", dbWithMemberships([]))).toBe(0);
+  });
+
+  test("resolves to the free level (0) when every organization is free", async () => {
+    const { getUserMaxGraphLevel } = await importEntitlements();
+    entitlementsByEntity = { "org-a": null, "org-b": null };
+    expect(
+      await getUserMaxGraphLevel(
+        "user-1",
+        dbWithMemberships(["org-a", "org-b"]),
+      ),
+    ).toBe(0);
+  });
+
+  test("honours bypass organizations, granting the highest level", async () => {
+    const { getUserMaxGraphLevel } = await importEntitlements();
+    expect(
+      await getUserMaxGraphLevel("user-1", dbWithMemberships(["org-omni"]), [
+        "org-omni",
+      ]),
+    ).toBe(2);
+  });
+});
+
+describe("requireUserGraphLevel", () => {
+  test("passes when one of the user's organizations meets the level", async () => {
+    const { requireUserGraphLevel } = await importEntitlements();
+    entitlementsByEntity = { "org-team": withTier("team") };
+    await expect(
+      requireUserGraphLevel("user-1", dbWithMemberships(["org-team"]), 1),
+    ).resolves.toBeUndefined();
+  });
+
+  test("throws GRAPH_TIER_REQUIRED when no organization meets the level", async () => {
+    const { requireUserGraphLevel } = await importEntitlements();
+    entitlementsByEntity = { "org-free": null };
+    try {
+      await requireUserGraphLevel("user-1", dbWithMemberships(["org-free"]), 1);
+      throw new Error("expected requireUserGraphLevel to throw");
+    } catch (error: any) {
+      expect(error.extensions?.code).toBe("GRAPH_TIER_REQUIRED");
+      expect(error.extensions?.requiredLevel).toBe(1);
+    }
+  });
+
+  test("throws the Team message for a user with no paid organization", async () => {
+    const { requireUserGraphLevel } = await importEntitlements();
+    await expect(
+      requireUserGraphLevel("user-1", dbWithMemberships([]), 2),
+    ).rejects.toThrow("This feature is available on the Team plan");
   });
 });

@@ -199,11 +199,12 @@ export async function hasGraphLevel(
  * GRAPH_TIER_REQUIRED plus `requiredLevel` survive masking, letting the UI show
  * the correct upgrade path.
  *
- * graph_level is an ORGANIZATION entitlement because billing is per-organization.
- * A PERSONAL repository has no owning organization, so a null organizationId
- * resolves to the free tier (level 0); any paid graph capability (the org-wide
- * polyrepo graph at level 1, blast radius at level 2) is therefore denied on a
- * personal repository. Revisit this if personal-account billing is introduced.
+ * graph_level is an ORGANIZATION entitlement because billing is per-organization,
+ * so this gates ORGANIZATION-owned surfaces. A null organizationId resolves to
+ * the free tier (level 0). Surfaces with no owning organization (a personal
+ * repository, or the user-scoped org-wide graph) gate on the user's capability
+ * via requireUserGraphLevel instead, so a paying customer keeps paid graph
+ * features there rather than being denied outright.
  *
  * Falls back to the free tier when Aether is unavailable (see
  * getOrganizationGraphLevel), so self-hosted deployments without billing keep
@@ -219,14 +220,94 @@ export async function requireGraphLevel(
       ? await getOrganizationGraphLevel(organizationId, billingBypassOrgIds)
       : GRAPH_LEVEL.BASIC;
 
-  if (level < requiredLevel) {
-    throw new GraphQLError(
-      requiredLevel >= GRAPH_LEVEL.BLAST_RADIUS
-        ? "This feature is available on the Team plan"
-        : "This feature is available on the Pro plan",
-      { extensions: { code: "GRAPH_TIER_REQUIRED", requiredLevel } },
-    );
-  }
+  if (level < requiredLevel) throw graphTierRequiredError(requiredLevel);
+}
+
+/**
+ * Client-visible error for a graph capability the caller's plan does not cover.
+ *
+ * MUST be a GraphQLError, not a plain Error: graphql-yoga masks any thrown plain
+ * Error to "Unexpected error" in production, so the upgrade prompt would never
+ * reach the client. The stable `extensions.code` of GRAPH_TIER_REQUIRED plus
+ * `requiredLevel` survive masking, letting the UI show the right upgrade path.
+ */
+function graphTierRequiredError(requiredLevel: number): GraphQLError {
+  return new GraphQLError(
+    requiredLevel >= GRAPH_LEVEL.BLAST_RADIUS
+      ? "This feature is available on the Team plan"
+      : "This feature is available on the Pro plan",
+    { extensions: { code: "GRAPH_TIER_REQUIRED", requiredLevel } },
+  );
+}
+
+/**
+ * The subset of the db a user's graph-level resolution needs: the mirrored
+ * organization memberships. Structurally typed so the resolution can be unit
+ * tested with a fake db and so entitlements does not depend on the db module.
+ */
+interface GraphMembershipDb {
+  query: {
+    organizationMemberTable: {
+      findMany: (args: {
+        columns: { organizationId: true };
+        where: (table: any, ops: { eq: (a: any, b: any) => any }) => unknown;
+      }) => Promise<Array<{ organizationId: string }>>;
+    };
+  };
+}
+
+/**
+ * The graph capability a USER carries: the highest graph_level across every
+ * organization they belong to.
+ *
+ * graph_level is an organization entitlement because billing is per-organization,
+ * which leaves two surfaces with no single organization to gate on: a PERSONAL
+ * repository (no owning org) and the user-scoped org-wide polyrepo graph (which
+ * spans a user's repos across many orgs). Both resolve their tier from the
+ * user's paid memberships instead, so a paying Pro/Team customer keeps the
+ * capability there while a user in only free organizations (or none) stays on
+ * the free tier. Nothing is given away, and the paid feature stays reachable
+ * without per-personal-account billing.
+ *
+ * Falls back to the free level (0) for a user in no organizations.
+ * @knipignore Exported for unit tests; wrapped by requireUserGraphLevel
+ */
+export async function getUserMaxGraphLevel(
+  userId: string,
+  db: GraphMembershipDb,
+  billingBypassOrgIds: string[] = DEFAULT_BYPASS_ORG_IDS,
+): Promise<number> {
+  const memberships = await db.query.organizationMemberTable.findMany({
+    columns: { organizationId: true },
+    where: (table, { eq }) => eq(table.userId, userId),
+  });
+
+  if (memberships.length === 0) return GRAPH_LEVEL.BASIC;
+
+  const levels = await Promise.all(
+    memberships.map((membership) =>
+      getOrganizationGraphLevel(membership.organizationId, billingBypassOrgIds),
+    ),
+  );
+
+  return Math.max(GRAPH_LEVEL.BASIC, ...levels);
+}
+
+/**
+ * Enforce that a USER's graph capability (max across their organizations) meets
+ * a minimum level, throwing a client-visible GRAPH_TIER_REQUIRED GraphQLError
+ * when it does not. The user-scoped counterpart to requireGraphLevel, for the
+ * surfaces with no single organization to bill (personal repositories and the
+ * org-wide polyrepo graph).
+ */
+export async function requireUserGraphLevel(
+  userId: string,
+  db: GraphMembershipDb,
+  requiredLevel: number,
+  billingBypassOrgIds: string[] = DEFAULT_BYPASS_ORG_IDS,
+): Promise<void> {
+  const level = await getUserMaxGraphLevel(userId, db, billingBypassOrgIds);
+  if (level < requiredLevel) throw graphTierRequiredError(requiredLevel);
 }
 
 /**

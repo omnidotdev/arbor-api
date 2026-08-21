@@ -24,6 +24,7 @@ import {
 } from "lib/graphql/plugins/authorization";
 import {
   DependencyDiscoveryPlugin,
+  PolyrepoGraphAccessPlugin,
   ProjectMembershipPlugin,
   ProjectVersionDriftPlugin,
   RepositoryBlastRadiusPlugin,
@@ -43,7 +44,10 @@ import {
   PersonalAccessTokenCreatePlugin,
   PersonalAccessTokenPlugin,
 } from "lib/graphql/plugins/personalAccessToken";
-import { OpenPullRequestPlugin } from "lib/graphql/plugins/pullRequest";
+import {
+  OpenPullRequestPlugin,
+  SetPullRequestStatePlugin,
+} from "lib/graphql/plugins/pullRequest";
 import {
   PullRequestSearchPlugin,
   RepositorySearchPlugin,
@@ -101,6 +105,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryDefaultBranchPlugin,
     // Open a pull request (server-assigned number, author from context)
     OpenPullRequestPlugin,
+    // Close / reopen a pull request (authorized, merge-safe transition)
+    SetPullRequestStatePlugin,
     // Stacked-change mergeability + merge (records intent, defers base advance)
     StackMutationsPlugin,
     // Merge queue: enqueue stacks and run a serial processing pass
@@ -109,6 +115,8 @@ const graphilePreset: GraphileConfig.Preset = {
     DependencyDiscoveryPlugin,
     // Blast radius: the repositories affected by a change, via reverse deps
     RepositoryBlastRadiusPlugin,
+    // Tier gate for the org-wide polyrepo graph (Pro capability)
+    PolyrepoGraphAccessPlugin,
     // Project membership reconciled from a repository's arbor.project.json
     ProjectMembershipPlugin,
     // Version drift: packages a project's repos depend on at inconsistent versions

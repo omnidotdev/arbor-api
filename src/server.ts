@@ -65,6 +65,16 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
       description: "Pull request merged",
     },
     {
+      name: "arbor.pull_request.closed",
+      source: "omni.arbor",
+      description: "Pull request closed without merging",
+    },
+    {
+      name: "arbor.pull_request.reopened",
+      source: "omni.arbor",
+      description: "Closed pull request reopened",
+    },
+    {
       name: "arbor.repository.pushed",
       source: "omni.arbor",
       description:

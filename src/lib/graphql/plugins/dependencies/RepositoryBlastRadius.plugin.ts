@@ -3,7 +3,11 @@ import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
 import { repositoryBlastRadius } from "lib/dependencies";
-import { GRAPH_LEVEL, requireGraphLevel } from "lib/entitlements";
+import {
+  GRAPH_LEVEL,
+  requireGraphLevel,
+  requireUserGraphLevel,
+} from "lib/entitlements";
 
 import type { FieldArgs } from "postgraphile/grafast";
 
@@ -110,6 +114,7 @@ const RepositoryBlastRadiusPlugin = extendSchema(() => {
               context,
               repositoryBlastRadius,
               requireGraphLevel,
+              requireUserGraphLevel,
               GRAPH_LEVEL,
             ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
@@ -126,24 +131,35 @@ const RepositoryBlastRadiusPlugin = extendSchema(() => {
                   async (args: any) => {
                     // Blast radius is a paid graph capability (Team, level 2).
                     // graph_level is an ORGANIZATION entitlement (billing is
-                    // per-org), so resolve the repository's owning organization
-                    // and require the tier before running. A PERSONAL repository
-                    // has no organizationId and resolves to the free tier (level
-                    // 0), so blast radius is denied on it; revisit if
-                    // personal-account billing is introduced. A GraphQLError
+                    // per-org), so an ORGANIZATION repository gates on its owning
+                    // org's tier. A PERSONAL repository has no org to bill, so it
+                    // gates on its OWNER's capability (the highest graph_level
+                    // across the orgs they belong to) instead: a paying Team
+                    // customer keeps blast radius on their personal repos, while
+                    // an owner on only free orgs stays denied. A GraphQLError
                     // with extensions.code GRAPH_TIER_REQUIRED is thrown when
                     // below the tier so the UI can prompt an upgrade (a plain
                     // Error would be masked by graphql-yoga)
                     const repo = await args.db.query.repositoryTable.findFirst({
-                      columns: { organizationId: true },
+                      columns: { organizationId: true, ownerId: true },
                       where: (table: any, { eq }: any) =>
                         eq(table.id, args.repositoryId),
                     });
 
-                    await requireGraphLevel(
-                      repo?.organizationId ?? null,
-                      GRAPH_LEVEL.BLAST_RADIUS,
-                    );
+                    if (repo?.organizationId) {
+                      await requireGraphLevel(
+                        repo.organizationId,
+                        GRAPH_LEVEL.BLAST_RADIUS,
+                      );
+                    } else {
+                      // Personal repo (or missing row): gate on the owner's plan.
+                      // A missing ownerId cannot be entitled, so it is denied
+                      await requireUserGraphLevel(
+                        repo?.ownerId ?? "",
+                        args.db,
+                        GRAPH_LEVEL.BLAST_RADIUS,
+                      );
+                    }
 
                     return await repositoryBlastRadius({
                       observer: args.observer,
@@ -159,6 +175,7 @@ const RepositoryBlastRadiusPlugin = extendSchema(() => {
               context,
               repositoryBlastRadius,
               requireGraphLevel,
+              requireUserGraphLevel,
               GRAPH_LEVEL,
             ],
           ),

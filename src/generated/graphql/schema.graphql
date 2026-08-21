@@ -16486,6 +16486,27 @@ type OpenPullRequestPayload {
   error: String
 }
 
+"""Input for closing or reopening a pull request."""
+input SetPullRequestStateInput {
+  """The pull request to act on."""
+  pullRequestId: UUID!
+}
+
+"""Payload for the closePullRequest / reopenPullRequest mutations."""
+type SetPullRequestStatePayload {
+  """The affected pull request row id."""
+  rowId: UUID
+
+  """The per-repository pull request number."""
+  number: Int
+
+  """The pull request's state after the change."""
+  state: String
+
+  """Error message if the change failed."""
+  error: String
+}
+
 """
 Whether a change can merge, derived from its required verification checks.
 """
@@ -17791,6 +17812,15 @@ type Query implements Node {
   repositoryBlastRadius(repositoryId: UUID!): [BlastRadiusRepository!]
 
   """
+  Enforces access to the org-wide polyrepo graph, a paid graph capability
+  (Pro tier). Resolves to true when the viewer's plan includes it and
+  throws GRAPH_TIER_REQUIRED otherwise. Being non-null, a denial nulls the
+  whole response so no graph data is returned below the tier. Request this
+  alongside the polyrepo graph query.
+  """
+  polyrepoGraphAccess: Boolean!
+
+  """
   External packages the project's repositories depend on at inconsistent
   versions, one row per package/version/repository. Only repositories the
   caller may see appear.
@@ -18463,6 +18493,30 @@ type Mutation {
     """
     input: OpenPullRequestInput!
   ): OpenPullRequestPayload
+
+  """
+  Close an open pull request without merging it. Requires the repository
+  owner, a write/admin collaborator, or the pull request's author. A merged
+  pull request cannot be closed.
+  """
+  closePullRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SetPullRequestStateInput!
+  ): SetPullRequestStatePayload
+
+  """
+  Reopen a closed pull request. Requires the repository owner, a
+  write/admin collaborator, or the pull request's author. A merged pull
+  request cannot be reopened.
+  """
+  reopenPullRequest(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: SetPullRequestStateInput!
+  ): SetPullRequestStatePayload
 
   """
   Merge a change onto its stack base branch.
