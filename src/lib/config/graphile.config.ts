@@ -54,7 +54,10 @@ import {
 } from "lib/graphql/plugins/search";
 import { StackMutationsPlugin } from "lib/graphql/plugins/stack";
 import { PullRequestCommentSubscriptionPlugin } from "lib/graphql/plugins/subscriptions";
-import { SubmitTesterApplicationPlugin } from "lib/graphql/plugins/testerApplication";
+import {
+  MyTesterApplicationPlugin,
+  SubmitTesterApplicationPlugin,
+} from "lib/graphql/plugins/testerApplication";
 import { TopicReadinessPlugin } from "lib/graphql/plugins/topic";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
@@ -106,6 +109,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryDefaultBranchPlugin,
     // Submit a closed-beta tester application (emits arbor.application.submitted)
     SubmitTesterApplicationPlugin,
+    // Read the caller's own closed-beta tester application status (carve-out)
+    MyTesterApplicationPlugin,
     // Open a pull request (server-assigned number, author from context)
     OpenPullRequestPlugin,
     // Close / reopen a pull request (authorized, merge-safe transition)

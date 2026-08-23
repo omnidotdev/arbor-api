@@ -16507,6 +16507,66 @@ type SetPullRequestStatePayload {
   error: String
 }
 
+"""Input for submitting a closed-beta tester application."""
+input SubmitTesterApplicationInput {
+  """Free-form application form answers (use case, stack, team size, links, notes)."""
+  answers: JSON
+
+  """Whether the applicant accepted the beta confidentiality terms. Must be true."""
+  ndaAccepted: Boolean!
+
+  """The version of the beta terms the applicant accepted."""
+  ndaVersion: String!
+}
+
+"""Payload for the submitTesterApplication mutation, the applicant's row."""
+type SubmitTesterApplicationPayload {
+  """The application row ID."""
+  rowId: UUID
+
+  """Lifecycle status (pending, approved, declined)."""
+  status: String
+
+  """Reviewer note, present after a decision."""
+  reviewerNote: String
+
+  """The accepted beta terms version."""
+  ndaVersion: String
+
+  """When the beta terms were accepted."""
+  ndaAcceptedAt: Datetime
+
+  """When the application was created."""
+  createdAt: Datetime
+
+  """When the application was last updated."""
+  updatedAt: Datetime
+}
+
+"""The authenticated caller's own closed-beta tester application."""
+type MyTesterApplication {
+  """The application row ID."""
+  rowId: UUID
+
+  """Lifecycle status (pending, approved, declined)."""
+  status: String
+
+  """Reviewer note, present after a decision."""
+  reviewerNote: String
+
+  """The accepted beta terms version."""
+  ndaVersion: String
+
+  """When the beta terms were accepted."""
+  ndaAcceptedAt: Datetime
+
+  """When the application was created."""
+  createdAt: Datetime
+
+  """When the application was last updated."""
+  updatedAt: Datetime
+}
+
 """
 Whether a change can merge, derived from its required verification checks.
 """
@@ -17802,6 +17862,12 @@ type Query implements Node {
   """
   observer: Observer
 
+  """
+  Returns the authenticated caller's own closed-beta tester application, or
+  null when they have not applied.
+  """
+  myTesterApplication: MyTesterApplication
+
   """Whether a change can merge, from its required verification checks."""
   stackMergeability(changeId: UUID!): StackMergeabilityResult
 
@@ -18576,6 +18642,14 @@ type Mutation {
     """
     input: ReconcileProjectMembershipInput!
   ): ReconcileProjectMembershipPayload
+
+  """
+  Submit (or re-submit after a decline) the authenticated user's arbor
+  closed-beta tester application. Requires accepting the beta terms.
+  """
+  submitTesterApplication(
+    input: SubmitTesterApplicationInput!
+  ): SubmitTesterApplicationPayload
 }
 
 """
