@@ -36,6 +36,9 @@ const state: {
     permission: "read" | "write";
     repositories: ReturnType<typeof repos> | null;
   };
+  // Whether the closed-beta gate blocks the caller (stubbed at the lib/git
+  // boundary; the gate's own decision logic is unit-tested in betaGate.plugin)
+  betaBlocked: boolean;
   // Default-branch HEAD before/after a push, to model whether it advanced
   headBefore: string;
   headAfter: string;
@@ -45,6 +48,7 @@ const state: {
   canWrite: false,
   authedUser: null,
   scope: { permission: "write", repositories: null },
+  betaBlocked: false,
   headBefore: "head-sha",
   headAfter: "head-sha",
 };
@@ -86,6 +90,7 @@ mock.module("lib/git", () => ({
     state.authedUser ? { user: state.authedUser, scope: state.scope } : null,
   canReadRepository: async () => state.canRead,
   canWriteRepository: async () => state.canWrite,
+  isGitCallerBetaBlocked: async () => state.betaBlocked,
 }));
 
 // NB: mock.module registrations are global and the first registration for a
@@ -174,6 +179,7 @@ const reset = () => {
   state.canWrite = false;
   state.authedUser = null;
   state.scope = { permission: "write", repositories: null };
+  state.betaBlocked = false;
   // Default: HEAD unchanged by a push, so discovery is not auto-triggered
   state.headBefore = "head-sha";
   state.headAfter = "head-sha";
@@ -249,6 +255,42 @@ describe("git routes read authorization", () => {
       new Request("http://localhost/git/alice/repo/branches", {
         headers: { authorization: "Bearer tok" },
       }),
+    );
+    expect(res.status).toBe(404);
+  });
+
+  test("closed-beta gate: a non-whitelisted owner read is 404 (no info leak)", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "private",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    // the owner could otherwise read, but the beta gate blocks them
+    state.authedUser = { id: "o1" };
+    state.canRead = true;
+    state.betaBlocked = true;
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/branches", {
+        headers: { authorization: "Bearer tok" },
+      }),
+    );
+    expect(res.status).toBe(404);
+  });
+
+  test("closed-beta gate: a public repo read is 404 for a blocked caller", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    state.canRead = true;
+    state.betaBlocked = true;
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/branches"),
     );
     expect(res.status).toBe(404);
   });
@@ -349,6 +391,29 @@ describe("git routes write authorization", () => {
       }),
     );
     expect(res.status).toBe(200);
+  });
+
+  test("closed-beta gate: a non-whitelisted writer push is 404 (no info leak)", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    // the owner could otherwise push, but the beta gate blocks them, and the
+    // response is the 404 no-info-leak shape rather than a 403
+    state.authedUser = { id: "o1" };
+    state.canWrite = true;
+    state.betaBlocked = true;
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/git-receive-pack", {
+        method: "POST",
+        body: new Uint8Array([0]),
+        headers: { authorization: "Bearer tok" },
+      }),
+    );
+    expect(res.status).toBe(404);
   });
 
   test("git-receive-pack emits arbor.repository.pushed on a successful push", async () => {

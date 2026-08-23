@@ -19,6 +19,7 @@ import {
   getServiceContentType,
   getServiceResultContentType,
   gitService,
+  isGitCallerBetaBlocked,
   parseGitService,
   receivePack,
   resolveRepositorySummary,
@@ -81,6 +82,13 @@ const gateRead = async (
 
   const caller = await authenticateGitRequest(request);
 
+  // Closed-beta gate: a non-whitelisted caller (anonymous included) sees the
+  // same 404 as a missing repo, so the gate leaks nothing about what exists
+  if (await isGitCallerBetaBlocked(caller)) {
+    set.status = 404;
+    return { authorized: false, body: NOT_FOUND };
+  }
+
   // A credential confined to other repositories is treated exactly like one
   // with no access at all, so a scoped token cannot probe for what exists
   if (caller && !scopeAllowsRepository(caller.scope, repository.id)) {
@@ -137,6 +145,13 @@ const gateWrite = async (
     set.status = 401;
     set.headers["WWW-Authenticate"] = GIT_AUTH_REALM;
     return { authorized: false, body: { error: "Authentication required" } };
+  }
+
+  // Closed-beta gate: a non-whitelisted authenticated caller sees a 404, the
+  // same fail-closed no-info-leak response used for private repos elsewhere
+  if (await isGitCallerBetaBlocked(caller)) {
+    set.status = 404;
+    return { authorized: false, body: NOT_FOUND };
   }
 
   // The credential's own limits are checked before the user's permissions: a

@@ -5,8 +5,10 @@ import {
   resolveUserFromPat,
 } from "lib/auth/personalAccessToken";
 import { resolveUserFromToken } from "lib/auth/resolveUserFromToken";
+import { betaGateEnabled } from "lib/config/env.config";
 import { dbPool } from "lib/db/db";
 import { repositoryTable, userTable } from "lib/db/schema";
+import { resolveBetaAllowed } from "lib/graphql/plugins/betaGate.plugin";
 
 import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { ResolvedUser } from "lib/auth/resolveUserFromToken";
@@ -145,6 +147,31 @@ export interface AuthenticatedGitCaller {
    */
   organizations: OrganizationClaim[];
 }
+
+/**
+ * Whether the closed-beta whitelist gate blocks this git caller.
+ *
+ * The Smart-HTTP endpoints sit outside the GraphQL pipeline, so the Envelop
+ * beta gate does not cover them; this mirrors it for git. Uses the same
+ * `resolveBetaAllowed` decision as the GraphQL gate (env whitelist, the
+ * billing-bypass org escape hatch, then an approved application) so the two
+ * cannot drift. Fail-closed: an anonymous caller (null) is never allowed while
+ * the gate is active. Returns false when the gate is disabled, so git behaviour
+ * is unchanged until rollout enables it.
+ */
+export const isGitCallerBetaBlocked = async (
+  caller: AuthenticatedGitCaller | null,
+): Promise<boolean> => {
+  if (!betaGateEnabled) return false;
+
+  const allowed = await resolveBetaAllowed({
+    observer: caller?.user ?? null,
+    organizations: caller?.organizations ?? [],
+    db: dbPool,
+  });
+
+  return !allowed;
+};
 
 /**
  * Authenticate a Smart-HTTP git request from its Authorization header.
