@@ -148,10 +148,13 @@ export const evaluateSubscriptionBetaGate = ({
 /**
  * Resolve whether a caller may use arbor while the gate is active.
  *
- * Combines the env/application whitelist (via isWhitelisted, looking up the
- * caller's application status) with the internal billing-bypass org escape
- * hatch. The env-whitelist ids and bypass org ids are injectable so the
- * resolution is unit-testable, defaulting to the live config.
+ * Combines the env/application whitelist (via isWhitelisted) with the internal
+ * billing-bypass org escape hatch. The two cheap in-memory checks (env
+ * whitelist, bypass-org membership) run first and short-circuit, so a
+ * rollout-seeded env-whitelisted user or a bypass-org member never pays for the
+ * DB lookup; only the approved-application case reaches getApplicationStatus.
+ * The env-whitelist ids and bypass org ids are injectable so the resolution is
+ * unit-testable, defaulting to the live config.
  */
 export const resolveBetaAllowed = async (
   {
@@ -168,25 +171,46 @@ export const resolveBetaAllowed = async (
     bypassOrgIds = billingBypassOrgIds,
   }: { envIds?: string[]; bypassOrgIds?: string[] } = {},
 ): Promise<boolean> => {
-  const applicationStatus = observer
-    ? await getApplicationStatus(db, observer.id)
-    : null;
+  // cheap in-memory check: an env-whitelisted user id. Reuses isWhitelisted with
+  // a null status so an anonymous caller (no userId) still fails closed here
+  if (
+    isWhitelisted({
+      gateEnabled: true,
+      userId: observer?.id,
+      envIds,
+      applicationStatus: null,
+    })
+  ) {
+    return true;
+  }
 
-  const whitelisted = isWhitelisted({
+  // cheap in-memory check: the internal-org escape hatch, a member of a
+  // billing-bypass org is allowed through regardless of application status
+  if (organizations.some((org) => bypassOrgIds.includes(org.id))) return true;
+
+  // fail closed for an anonymous caller before touching the DB
+  if (!observer) return false;
+
+  // only now the DB lookup, for the approved-application case
+  const applicationStatus = await getApplicationStatus(db, observer.id);
+  return isWhitelisted({
     gateEnabled: true,
-    userId: observer?.id,
+    userId: observer.id,
     envIds,
     applicationStatus,
   });
-
-  // internal-org escape hatch: a member of a billing-bypass org is allowed
-  // through regardless of application status
-  const isBillingBypassOrgMember = organizations.some((org) =>
-    bypassOrgIds.includes(org.id),
-  );
-
-  return whitelisted || isBillingBypassOrgMember;
 };
+
+/**
+ * Resolve the allow decision from a GraphQL context, shared by the onExecute and
+ * onSubscribe hooks so they differ only in their evaluate* call.
+ */
+const resolveAllowedFromContext = (context: GraphQLContext): Promise<boolean> =>
+  resolveBetaAllowed({
+    observer: context.observer,
+    organizations: context.organizations ?? [],
+    db: context.db,
+  });
 
 /**
  * Envelop plugin enforcing the closed-beta whitelist on every operation.
@@ -206,12 +230,7 @@ export const betaGatePlugin: Plugin<GraphQLContext> = {
     );
     if (!operation) throw betaAccessRequiredError();
 
-    const context = args.contextValue;
-    const allowed = await resolveBetaAllowed({
-      observer: context.observer,
-      organizations: context.organizations ?? [],
-      db: context.db,
-    });
+    const allowed = await resolveAllowedFromContext(args.contextValue);
 
     const { allow } = evaluateBetaGate({
       gateEnabled: true,
@@ -234,12 +253,7 @@ export const betaGatePlugin: Plugin<GraphQLContext> = {
   async onSubscribe({ args }) {
     if (!betaGateEnabled) return;
 
-    const context = args.contextValue;
-    const allowed = await resolveBetaAllowed({
-      observer: context.observer,
-      organizations: context.organizations ?? [],
-      db: context.db,
-    });
+    const allowed = await resolveAllowedFromContext(args.contextValue);
 
     const { allow } = evaluateSubscriptionBetaGate({
       gateEnabled: true,

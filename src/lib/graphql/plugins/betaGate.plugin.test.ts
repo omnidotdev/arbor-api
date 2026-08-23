@@ -33,6 +33,20 @@ const fakeDb = (status: string | undefined) =>
     },
   }) as never;
 
+/**
+ * A db whose lookup throws, so a test proves the resolution short-circuited on a
+ * cheap in-memory check and never hit the database.
+ */
+const throwingDb = {
+  query: {
+    testerApplicationTable: {
+      findFirst: async () => {
+        throw new Error("db must not be queried");
+      },
+    },
+  },
+} as never;
+
 describe("selectionIsBetaSafe", () => {
   test("a single carve-out query field is safe", () => {
     expect(
@@ -250,6 +264,30 @@ describe("resolveBetaAllowed", () => {
       await resolveBetaAllowed(
         { observer: { id: "u1" }, organizations: [], db: fakeDb(undefined) },
         { envIds: ["u1"] },
+      ),
+    ).toBe(true);
+  });
+
+  test("allows an env-whitelisted user without a DB lookup", async () => {
+    // throwingDb rejects if queried, so passing proves the in-memory check
+    // short-circuited before getApplicationStatus
+    expect(
+      await resolveBetaAllowed(
+        { observer: { id: "u1" }, organizations: [], db: throwingDb },
+        { envIds: ["u1"] },
+      ),
+    ).toBe(true);
+  });
+
+  test("allows a bypass-org member without a DB lookup", async () => {
+    expect(
+      await resolveBetaAllowed(
+        {
+          observer: { id: "u1" },
+          organizations: [{ id: "org1" }],
+          db: throwingDb,
+        },
+        { bypassOrgIds: ["org1"] },
       ),
     ).toBe(true);
   });
