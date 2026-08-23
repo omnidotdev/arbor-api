@@ -28,7 +28,11 @@ import { pgSubscriber } from "lib/db/pubsub";
 import { warnIfRowLevelSecurityIsBypassed } from "lib/db/rowLevelSecurity";
 import { ensureReposDirectory, initArborGitBackend } from "lib/git";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
-import { armorPlugin, authenticationPlugin } from "lib/graphql/plugins";
+import {
+  armorPlugin,
+  authenticationPlugin,
+  betaGatePlugin,
+} from "lib/graphql/plugins";
 import { rateLimit } from "lib/middleware/rateLimit";
 import { initializeSearchIndexes, search } from "lib/search";
 import gitRoutes from "routes/git.routes";
@@ -177,6 +181,9 @@ const app = new Elysia({
       plugins: [
         ...armorPlugin,
         ...authenticationPlugin,
+        // enforce the closed-beta whitelist AFTER authentication, so the
+        // observer, org claims, and db are resolved on the context
+        betaGatePlugin,
         // disable GraphQL schema introspection in production to mitigate reverse engineering
         isProdEnv && useDisableIntrospection(),
         isProdEnv &&

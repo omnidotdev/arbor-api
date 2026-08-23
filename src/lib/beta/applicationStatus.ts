@@ -14,10 +14,12 @@
 interface TesterApplicationDb {
   query: {
     testerApplicationTable: {
-      findFirst: (args: {
-        columns: { status: true };
-        where: (table: any, ops: { eq: (a: any, b: any) => any }) => unknown;
-      }) => Promise<{ status: string } | undefined>;
+      // method shorthand (not an arrow property) so the parameter is checked
+      // bivariantly, and a loose `config` so the concrete drizzle db (whose
+      // `findFirst` is generic with a strongly-typed `where` callback) is
+      // assignable to this seam. Kept db-module-free so the resolution stays
+      // unit-testable with a fake db
+      findFirst(config?: any): PromiseLike<{ status: string } | undefined>;
     };
   };
 }
@@ -36,7 +38,8 @@ export const getApplicationStatus = async (
 ): Promise<ApplicationStatus | null> => {
   const application = await db.query.testerApplicationTable.findFirst({
     columns: { status: true },
-    where: (table, { eq }) => eq(table.userId, userId),
+    where: (table: any, { eq }: { eq: (a: any, b: any) => any }) =>
+      eq(table.userId, userId),
   });
 
   return (application?.status as ApplicationStatus | undefined) ?? null;
