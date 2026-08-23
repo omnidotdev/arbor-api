@@ -127,6 +127,25 @@ export const evaluateBetaGate = ({
 };
 
 /**
+ * Pure allow/deny decision for a SUBSCRIPTION under the beta gate.
+ *
+ * Subscriptions have no legitimate carve-out in the closed beta (there is no
+ * subscription a non-whitelisted applicant needs to open to sign in, apply, or
+ * check status), so a non-allowed caller is denied every subscription root
+ * field. Gate-off and the allowed path stay identical to the query path.
+ */
+export const evaluateSubscriptionBetaGate = ({
+  gateEnabled,
+  allowed,
+}: {
+  gateEnabled: boolean;
+  allowed: boolean;
+}): { allow: boolean } => {
+  if (!gateEnabled) return { allow: true };
+  return { allow: allowed };
+};
+
+/**
  * Resolve whether a caller may use arbor while the gate is active.
  *
  * Combines the env/application whitelist (via isWhitelisted, looking up the
@@ -202,6 +221,29 @@ export const betaGatePlugin: Plugin<GraphQLContext> = {
       // introspection allowed in non-prod only, so tooling works in dev without
       // opening prod
       allowIntrospection: !isProdEnv,
+    });
+
+    if (!allow) throw betaAccessRequiredError();
+  },
+
+  // subscriptions run through the onSubscribe path, not onExecute, so they must
+  // be gated here too or a non-whitelisted caller could stream data from a
+  // non-carve-out subscription field, bypassing the whitelist. There is no
+  // legitimate subscription carve-out for the closed beta, so a non-allowed
+  // caller is denied every subscription root field
+  async onSubscribe({ args }) {
+    if (!betaGateEnabled) return;
+
+    const context = args.contextValue;
+    const allowed = await resolveBetaAllowed({
+      observer: context.observer,
+      organizations: context.organizations ?? [],
+      db: context.db,
+    });
+
+    const { allow } = evaluateSubscriptionBetaGate({
+      gateEnabled: true,
+      allowed,
     });
 
     if (!allow) throw betaAccessRequiredError();

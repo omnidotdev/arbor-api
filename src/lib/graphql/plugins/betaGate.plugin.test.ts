@@ -6,6 +6,7 @@ import {
   BETA_CARVE_OUT_FIELDS,
   betaGatePlugin,
   evaluateBetaGate,
+  evaluateSubscriptionBetaGate,
   resolveBetaAllowed,
   selectionIsBetaSafe,
 } from "./betaGate.plugin";
@@ -174,6 +175,45 @@ describe("evaluateBetaGate", () => {
   });
 });
 
+describe("evaluateSubscriptionBetaGate", () => {
+  test("allows any subscription when the gate is disabled", () => {
+    expect(
+      evaluateSubscriptionBetaGate({ gateEnabled: false, allowed: false })
+        .allow,
+    ).toBe(true);
+  });
+
+  test("allows an allowed (whitelisted / bypass-org) caller", () => {
+    expect(
+      evaluateSubscriptionBetaGate({ gateEnabled: true, allowed: true }).allow,
+    ).toBe(true);
+  });
+
+  test("denies a non-allowed caller", () => {
+    expect(
+      evaluateSubscriptionBetaGate({ gateEnabled: true, allowed: false }).allow,
+    ).toBe(false);
+  });
+
+  test("subscriptions have NO carve-out, unlike queries", () => {
+    // a query selecting only a carve-out field passes for a non-allowed caller
+    expect(
+      evaluateBetaGate({
+        gateEnabled: true,
+        allowed: false,
+        operation: op("{ observer { rowId } }"),
+        carveOuts: BETA_CARVE_OUT_FIELDS,
+        allowIntrospection: false,
+      }).allow,
+    ).toBe(true);
+    // the same non-allowed caller is denied on any subscription, even one whose
+    // root field shares a carve-out name
+    expect(
+      evaluateSubscriptionBetaGate({ gateEnabled: true, allowed: false }).allow,
+    ).toBe(false);
+  });
+});
+
 describe("resolveBetaAllowed", () => {
   test("allows an observer with an approved application", async () => {
     expect(
@@ -256,6 +296,24 @@ describe("betaGatePlugin", () => {
     await expect(
       betaGatePlugin.onExecute?.({ args } as unknown as Parameters<
         NonNullable<typeof betaGatePlugin.onExecute>
+      >[0]),
+    ).resolves.toBeUndefined();
+  });
+
+  test("onSubscribe is a no-op when the gate is disabled (default test env)", async () => {
+    const args = {
+      document: parse("subscription { pullRequestCommentChanged { rowId } }"),
+      operationName: undefined,
+      contextValue: {
+        observer: null,
+        organizations: [],
+        db: fakeDb(undefined),
+      },
+    };
+    // gate is off by default in the test env, so the subscription must proceed
+    await expect(
+      betaGatePlugin.onSubscribe?.({ args } as unknown as Parameters<
+        NonNullable<typeof betaGatePlugin.onSubscribe>
       >[0]),
     ).resolves.toBeUndefined();
   });
