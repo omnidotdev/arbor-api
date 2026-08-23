@@ -32,6 +32,12 @@ export const {
   VORTEX_API_KEY,
   // Billing bypass (org IDs that skip billing checks)
   BILLING_BYPASS_ORG_IDS,
+  // Closed-beta gate: default-denied whitelist enforced across the app. Off by
+  // default (unset) so the gate is inert until explicitly enabled at rollout
+  ARBOR_BETA_GATE_ENABLED,
+  // Comma-separated user IDs allowed through the closed-beta gate without an
+  // approved application (env bypass alongside the billing-bypass admins)
+  ARBOR_BETA_WHITELIST_USER_IDS,
   // Meilisearch (unified search)
   MEILISEARCH_URL,
   MEILISEARCH_MASTER_KEY,
@@ -49,7 +55,18 @@ export const {
 export const isDevEnv = NODE_ENV === "development",
   isProdEnv = NODE_ENV === "production",
   protectRoutes = isProdEnv || PROTECT_ROUTES === "true",
-  isAuthzEnabled = !!AUTHZ_API_URL;
+  isAuthzEnabled = !!AUTHZ_API_URL,
+  /** Whether the closed-beta whitelist gate is active */
+  betaGateEnabled = ARBOR_BETA_GATE_ENABLED === "true";
+
+/**
+ * User IDs allowed through the closed-beta gate without an approved application,
+ * derived once from the comma-separated ARBOR_BETA_WHITELIST_USER_IDS env var
+ */
+export const betaWhitelistUserIds: string[] =
+  ARBOR_BETA_WHITELIST_USER_IDS?.split(",")
+    .map((id) => id.trim())
+    .filter(Boolean) ?? [];
 
 /** Whether search indexing is enabled */
 export const isSearchEnabled = !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
