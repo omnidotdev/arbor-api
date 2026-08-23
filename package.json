@@ -39,7 +39,7 @@
     "@envelop/validation-cache": "^10.1.1",
     "@escape.tech/graphql-armor": "^3.2.0",
     "@graphile/pg-aggregates": "^0.2.0-rc.2",
-    "@graphile/simplify-inflection": "^8.0.0",
+    "@graphile/simplify-inflection": "^9.0.0",
     "@graphql-yoga/plugin-disable-introspection": "^2.22.3",
     "@grpc/grpc-js": "^1.14.4",
     "@grpc/proto-loader": "^0.8.1",
