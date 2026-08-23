@@ -90,6 +90,12 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
       description:
         "A change landed, carrying linked issue/task references for Backfeed/Runa",
     },
+    {
+      name: "arbor.application.submitted",
+      source: "omni.arbor",
+      description:
+        "A user submitted a closed-beta tester application; Bifrost ingests it for review",
+    },
   ]).catch((err) => {
     console.warn("[Events] Schema registration failed:", err);
   });

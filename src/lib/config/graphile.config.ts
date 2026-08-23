@@ -54,6 +54,7 @@ import {
 } from "lib/graphql/plugins/search";
 import { StackMutationsPlugin } from "lib/graphql/plugins/stack";
 import { PullRequestCommentSubscriptionPlugin } from "lib/graphql/plugins/subscriptions";
+import { SubmitTesterApplicationPlugin } from "lib/graphql/plugins/testerApplication";
 import { TopicReadinessPlugin } from "lib/graphql/plugins/topic";
 import { DATABASE_URL, isDevEnv, isProdEnv } from "./env.config";
 
@@ -103,6 +104,8 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryRenamePlugin,
     // Sync the on-disk HEAD when a repository's default branch changes
     RepositoryDefaultBranchPlugin,
+    // Submit a closed-beta tester application (emits arbor.application.submitted)
+    SubmitTesterApplicationPlugin,
     // Open a pull request (server-assigned number, author from context)
     OpenPullRequestPlugin,
     // Close / reopen a pull request (authorized, merge-safe transition)
