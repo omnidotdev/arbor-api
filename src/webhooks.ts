@@ -1,8 +1,14 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 import { eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
+import { applyDecision } from "lib/beta/decisionConsumer";
 import app from "lib/config/app.config";
-import { STRIPE_WEBHOOK_SECRET } from "lib/config/env.config";
+import {
+  STRIPE_WEBHOOK_SECRET,
+  VORTEX_WEBHOOK_SECRET,
+} from "lib/config/env.config";
 import { dbPool as db } from "lib/db/db";
 import { organizationTable } from "lib/db/schema";
 import entitlementsWebhook from "lib/entitlements/webhooks";
@@ -137,12 +143,111 @@ const stripeWebhook = new Elysia().post(
 );
 
 /**
+ * Verify an HMAC-SHA256 hex signature over the raw request body.
+ *
+ * Mirrors the entitlements/idp receivers and matches Vortex's delivery signing
+ * (hex-encoded HMAC-SHA256 of the exact body bytes, keyed by the subscription's
+ * hmacSecret). Constant-time comparison; any malformed input verifies false.
+ */
+const verifyVortexSignature = (
+  payload: string,
+  signature: string,
+  secret: string,
+): boolean => {
+  try {
+    const expected = createHmac("sha256", secret).update(payload).digest("hex");
+    const signatureBuffer = Buffer.from(signature, "hex");
+    const expectedBuffer = Buffer.from(expected, "hex");
+
+    if (signatureBuffer.length !== expectedBuffer.length) return false;
+
+    return timingSafeEqual(signatureBuffer, expectedBuffer);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Extract the CloudEvent `data` from a delivered body, handling both Vortex
+ * payload modes: "envelope" delivers `{ type, source, data, ... }`, "data"
+ * delivers the data object directly. Returns the inner data either way.
+ */
+const extractEventData = (body: unknown): Record<string, unknown> => {
+  if (
+    body &&
+    typeof body === "object" &&
+    "data" in body &&
+    typeof (body as { data: unknown }).data === "object" &&
+    (body as { data: unknown }).data !== null
+  ) {
+    return (body as { data: Record<string, unknown> }).data;
+  }
+  return (body ?? {}) as Record<string, unknown>;
+};
+
+/**
+ * Vortex webhook receiver.
+ *
+ * Consumes bifrost.application.decided (and ignores anything else) to flip the
+ * local tester_application row when staff approve or decline a closed-beta
+ * applicant. Signature-gated service-to-service: a missing/invalid signature is
+ * rejected 401 and never processed; a malformed but authentic body is logged
+ * and dropped with 200 (retrying would not help); an unexpected/infra failure
+ * returns 500 so Vortex retries.
+ */
+const vortexWebhook = new Elysia().post(
+  "/vortex",
+  async ({ request, headers, status }) => {
+    // Vortex delivery is signed; without a configured secret we cannot verify
+    // any event, so fail loudly rather than process an unverifiable payload
+    if (!VORTEX_WEBHOOK_SECRET) {
+      console.error(
+        "[Vortex Webhook] VORTEX_WEBHOOK_SECRET not set, cannot verify event",
+      );
+      return status(503, "Webhook signing secret not configured");
+    }
+
+    const signature = headers["x-vortex-signature"];
+    if (!signature) return status(401, "Missing signature");
+
+    try {
+      const rawBody = await request.text();
+
+      if (!verifyVortexSignature(rawBody, signature, VORTEX_WEBHOOK_SECRET)) {
+        return status(401, "Invalid signature");
+      }
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(rawBody);
+      } catch {
+        // authentic but unparseable: dropping is correct, a retry cannot fix it
+        console.warn("[Vortex Webhook] Malformed JSON body, dropping");
+        return status(200, "Ignored");
+      }
+
+      const result = await applyDecision({
+        db,
+        payload: extractEventData(parsed),
+      });
+
+      return status(200, result.outcome === "applied" ? "Applied" : "Ignored");
+    } catch (err) {
+      // unexpected/infra failure: return non-2xx so Vortex retries the delivery
+      console.error("[Vortex Webhook] Failed to process event:", err);
+      return status(500, "Internal Server Error");
+    }
+  },
+);
+
+/**
  * Webhooks Elysia instance (effectively used as a plugin).
  * @see https://hookdeck.com/webhooks/guides/what-are-webhooks-how-they-work
  */
 const webhooks = new Elysia({ prefix: "/webhooks" })
   .use(stripeWebhook)
   .use(entitlementsWebhook)
-  .use(idpWebhook);
+  .use(idpWebhook)
+  .use(vortexWebhook);
 
 export default webhooks;

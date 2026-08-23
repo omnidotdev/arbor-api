@@ -30,6 +30,9 @@ export const {
   // Vortex event emission
   VORTEX_API_URL,
   VORTEX_API_KEY,
+  // HMAC secret Vortex signs webhook deliveries with (the hmacSecret returned
+  // when the decision subscription is created). Verifies POST /webhooks/vortex
+  VORTEX_WEBHOOK_SECRET,
   // Billing bypass (org IDs that skip billing checks)
   BILLING_BYPASS_ORG_IDS,
   // Closed-beta gate: default-denied whitelist enforced across the app. Off by
