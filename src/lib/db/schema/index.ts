@@ -9,6 +9,7 @@ export * from "./repository.table";
 export * from "./repositoryCollaborator.table";
 export * from "./repositoryRelationship.table";
 export * from "./stack.table";
+export * from "./testerApplication.table";
 export * from "./topic.table";
 export * from "./user.table";
 export * from "./verificationCheck.table";
