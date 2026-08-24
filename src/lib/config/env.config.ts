@@ -33,6 +33,8 @@ export const {
   // HMAC secret Vortex signs webhook deliveries with (the hmacSecret returned
   // when the decision subscription is created). Verifies POST /webhooks/vortex
   VORTEX_WEBHOOK_SECRET,
+  // Public URL Vortex delivers webhooks to (this service's /webhooks/vortex)
+  WEBHOOK_TARGET_URL,
   // Billing bypass (org IDs that skip billing checks)
   BILLING_BYPASS_ORG_IDS,
   // Closed-beta gate: default-denied whitelist enforced across the app. Off by

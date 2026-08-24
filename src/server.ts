@@ -34,6 +34,7 @@ import {
   betaGatePlugin,
 } from "lib/graphql/plugins";
 import { rateLimit } from "lib/middleware/rateLimit";
+import ensureVortexSubscriptions from "lib/providers/subscriptions";
 import { initializeSearchIndexes, search } from "lib/search";
 import gitRoutes from "routes/git.routes";
 
@@ -100,6 +101,10 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
     console.warn("[Events] Schema registration failed:", err);
   });
 }
+
+// Ensure the Vortex webhook subscription exists (idempotent, guarded by env).
+// Not awaited: subscription registration must not sit on the boot path
+void ensureVortexSubscriptions();
 
 // Report whether the GraphQL connection can be constrained by row-level
 // security. Deliberately the GraphQL pool and not the internal one: the internal
