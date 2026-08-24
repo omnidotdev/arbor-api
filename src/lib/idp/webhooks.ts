@@ -8,12 +8,11 @@
  * Arbor only needs to handle deletion events for data cleanup.
  */
 
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 
 import { IDP_WEBHOOK_SECRET } from "lib/config/env.config";
+import { verifyHmacSignature } from "lib/crypto";
 import { dbPool } from "lib/db/db";
 import { organizationTable, userTable } from "lib/db/schema";
 
@@ -32,32 +31,6 @@ interface UserDeletedPayload {
 }
 
 type IdpWebhookPayload = OrganizationDeletedPayload | UserDeletedPayload;
-
-/**
- * Verify HMAC-SHA256 signature from IDP.
- */
-const verifySignature = (
-  payload: string,
-  signature: string,
-  secret: string,
-): boolean => {
-  try {
-    const expectedSignature = createHmac("sha256", secret)
-      .update(payload)
-      .digest("hex");
-
-    const signatureBuffer = Buffer.from(signature, "hex");
-    const expectedBuffer = Buffer.from(expectedSignature, "hex");
-
-    if (signatureBuffer.length !== expectedBuffer.length) {
-      return false;
-    }
-
-    return timingSafeEqual(signatureBuffer, expectedBuffer);
-  } catch {
-    return false;
-  }
-};
 
 /**
  * IDP webhook receiver.
@@ -80,7 +53,11 @@ const idpWebhook = new Elysia().post(
 
       // Verify signature if secret is configured
       if (IDP_WEBHOOK_SECRET && signature) {
-        const isValid = verifySignature(rawBody, signature, IDP_WEBHOOK_SECRET);
+        const isValid = verifyHmacSignature(
+          rawBody,
+          signature,
+          IDP_WEBHOOK_SECRET,
+        );
 
         if (!isValid) {
           set.status = 401;

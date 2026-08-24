@@ -1,8 +1,7 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 import { Elysia, t } from "elysia";
 
 import { BILLING_WEBHOOK_SECRET } from "lib/config/env.config";
+import { verifyHmacSignature } from "lib/crypto";
 import { invalidateCache } from "lib/entitlements";
 
 interface EntitlementWebhookPayload {
@@ -16,32 +15,6 @@ interface EntitlementWebhookPayload {
   timestamp: string;
   billingAccountId?: string;
 }
-
-/**
- * Verify HMAC-SHA256 signature from the entitlements service.
- */
-const verifySignature = (
-  payload: string,
-  signature: string,
-  secret: string,
-): boolean => {
-  try {
-    const expectedSignature = createHmac("sha256", secret)
-      .update(payload)
-      .digest("hex");
-
-    const signatureBuffer = Buffer.from(signature, "hex");
-    const expectedBuffer = Buffer.from(expectedSignature, "hex");
-
-    if (signatureBuffer.length !== expectedBuffer.length) {
-      return false;
-    }
-
-    return timingSafeEqual(signatureBuffer, expectedBuffer);
-  } catch {
-    return false;
-  }
-};
 
 /**
  * Entitlements webhook receiver.
@@ -68,7 +41,7 @@ const entitlementsWebhook = new Elysia().post(
 
       // Verify signature if secret is configured
       if (BILLING_WEBHOOK_SECRET && signature) {
-        const isValid = verifySignature(
+        const isValid = verifyHmacSignature(
           rawBody,
           signature,
           BILLING_WEBHOOK_SECRET,
