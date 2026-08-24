@@ -56,6 +56,17 @@ export const getMyTesterApplication = async ({
   return application ?? null;
 };
 
+/**
+ * A payload field plan that reads one property off the result row (or null).
+ * Collapses the identical per-field EXPORTABLE boilerplate.
+ */
+const rowField = (key: string) =>
+  EXPORTABLE(
+    (lambda, key) => ($row: any) =>
+      lambda($row, (r) => (r as any)?.[key] ?? null),
+    [lambda, key],
+  );
+
 const MyTesterApplicationPlugin = extendSchema(() => {
   return {
     typeDefs: /* GraphQL */ `
@@ -111,41 +122,13 @@ const MyTesterApplicationPlugin = extendSchema(() => {
     objects: {
       MyTesterApplication: {
         plans: {
-          rowId: EXPORTABLE(
-            (lambda) => ($row: any) =>
-              lambda($row, (r) => (r as any)?.id ?? null),
-            [lambda],
-          ),
-          status: EXPORTABLE(
-            (lambda) => ($row: any) =>
-              lambda($row, (r) => (r as any)?.status ?? null),
-            [lambda],
-          ),
-          reviewerNote: EXPORTABLE(
-            (lambda) => ($row: any) =>
-              lambda($row, (r) => (r as any)?.reviewerNote ?? null),
-            [lambda],
-          ),
-          ndaVersion: EXPORTABLE(
-            (lambda) => ($row: any) =>
-              lambda($row, (r) => (r as any)?.ndaVersion ?? null),
-            [lambda],
-          ),
-          ndaAcceptedAt: EXPORTABLE(
-            (lambda) => ($row: any) =>
-              lambda($row, (r) => (r as any)?.ndaAcceptedAt ?? null),
-            [lambda],
-          ),
-          createdAt: EXPORTABLE(
-            (lambda) => ($row: any) =>
-              lambda($row, (r) => (r as any)?.createdAt ?? null),
-            [lambda],
-          ),
-          updatedAt: EXPORTABLE(
-            (lambda) => ($row: any) =>
-              lambda($row, (r) => (r as any)?.updatedAt ?? null),
-            [lambda],
-          ),
+          rowId: rowField("id"),
+          status: rowField("status"),
+          reviewerNote: rowField("reviewerNote"),
+          ndaVersion: rowField("ndaVersion"),
+          ndaAcceptedAt: rowField("ndaAcceptedAt"),
+          createdAt: rowField("createdAt"),
+          updatedAt: rowField("updatedAt"),
         },
       },
 
