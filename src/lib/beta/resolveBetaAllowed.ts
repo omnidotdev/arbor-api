@@ -1,0 +1,55 @@
+import { getApplicationStatus } from "lib/beta/applicationStatus";
+import { isWhitelisted } from "lib/beta/whitelist";
+import { betaWhitelistUserIds } from "lib/config/env.config";
+import { billingBypassOrgIds } from "lib/graphql/plugins/authorization/constants";
+
+/**
+ * Resolve whether a caller may use arbor while the closed-beta gate is active.
+ *
+ * The shared allow/deny decision behind BOTH enforcement layers: the GraphQL
+ * Envelop gate (betaGate.plugin) and the git smart-http gate
+ * (gitAccess.isGitCallerBetaBlocked). It lives here in lib/beta, next to the
+ * whitelist/status primitives it composes, so the git layer does not have to
+ * reach into a GraphQL plugin for it and the two gates cannot drift.
+ *
+ * Combines the env whitelist with the internal billing-bypass org escape hatch.
+ * The two cheap in-memory checks (env whitelist, bypass-org membership) run first
+ * and short-circuit, so a rollout-seeded env-whitelisted user or a bypass-org
+ * member never pays for the DB lookup; only the approved-application case reaches
+ * getApplicationStatus. The env-whitelist ids and bypass org ids are injectable
+ * so the resolution is unit-testable, defaulting to the live config.
+ */
+export const resolveBetaAllowed = async (
+  {
+    observer,
+    organizations,
+    db,
+  }: {
+    observer: { id: string } | null | undefined;
+    organizations: ReadonlyArray<{ id: string }>;
+    db: Parameters<typeof getApplicationStatus>[0];
+  },
+  {
+    envIds = betaWhitelistUserIds,
+    bypassOrgIds = billingBypassOrgIds,
+  }: { envIds?: string[]; bypassOrgIds?: string[] } = {},
+): Promise<boolean> => {
+  // cheap in-memory check: an env-whitelisted user id
+  if (observer?.id && envIds.includes(observer.id)) return true;
+
+  // cheap in-memory check: the internal-org escape hatch, a member of a
+  // billing-bypass org is allowed through regardless of application status
+  if (organizations.some((org) => bypassOrgIds.includes(org.id))) return true;
+
+  // fail closed for an anonymous caller before touching the DB
+  if (!observer) return false;
+
+  // only now the DB lookup, for the approved-application case
+  const applicationStatus = await getApplicationStatus(db, observer.id);
+  return isWhitelisted({
+    gateEnabled: true,
+    userId: observer.id,
+    envIds,
+    applicationStatus,
+  });
+};

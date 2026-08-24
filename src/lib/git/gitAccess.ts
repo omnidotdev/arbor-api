@@ -5,10 +5,10 @@ import {
   resolveUserFromPat,
 } from "lib/auth/personalAccessToken";
 import { resolveUserFromToken } from "lib/auth/resolveUserFromToken";
+import { resolveBetaAllowed } from "lib/beta/resolveBetaAllowed";
 import { betaGateEnabled } from "lib/config/env.config";
 import { dbPool } from "lib/db/db";
 import { repositoryTable, userTable } from "lib/db/schema";
-import { resolveBetaAllowed } from "lib/graphql/plugins/betaGate.plugin";
 
 import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { ResolvedUser } from "lib/auth/resolveUserFromToken";
