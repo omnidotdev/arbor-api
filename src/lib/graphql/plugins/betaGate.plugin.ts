@@ -92,59 +92,6 @@ export const selectionIsBetaSafe = (
   });
 };
 
-/** Inputs to the pure beta-gate decision. */
-export interface BetaGateDecisionInput {
-  /** Whether the closed-beta gate is active at all */
-  gateEnabled: boolean;
-  /** Whether the caller is whitelisted or a billing-bypass org member */
-  allowed: boolean;
-  /** The operation being executed */
-  operation: OperationDefinitionNode;
-  /** The carve-out root field set */
-  carveOuts: ReadonlySet<string>;
-  /** Whether introspection root fields are permitted */
-  allowIntrospection: boolean;
-}
-
-/**
- * Pure allow/deny decision for the beta gate.
- *
- * Gate disabled -> allow. Allowed caller -> allow any field. Otherwise allow
- * only when every selected root field is in the carve-out set.
- */
-export const evaluateBetaGate = ({
-  gateEnabled,
-  allowed,
-  operation,
-  carveOuts,
-  allowIntrospection,
-}: BetaGateDecisionInput): { allow: boolean } => {
-  if (!gateEnabled) return { allow: true };
-  if (allowed) return { allow: true };
-  return {
-    allow: selectionIsBetaSafe(operation, carveOuts, { allowIntrospection }),
-  };
-};
-
-/**
- * Pure allow/deny decision for a SUBSCRIPTION under the beta gate.
- *
- * Subscriptions have no legitimate carve-out in the closed beta (there is no
- * subscription a non-whitelisted applicant needs to open to sign in, apply, or
- * check status), so a non-allowed caller is denied every subscription root
- * field. Gate-off and the allowed path stay identical to the query path.
- */
-export const evaluateSubscriptionBetaGate = ({
-  gateEnabled,
-  allowed,
-}: {
-  gateEnabled: boolean;
-  allowed: boolean;
-}): { allow: boolean } => {
-  if (!gateEnabled) return { allow: true };
-  return { allow: allowed };
-};
-
 /**
  * Resolve whether a caller may use arbor while the gate is active.
  *
@@ -230,19 +177,21 @@ export const betaGatePlugin: Plugin<GraphQLContext> = {
     );
     if (!operation) throw betaAccessRequiredError();
 
+    // cheap static check first: a carve-out-only operation (observer, apply,
+    // status, or dev introspection) is allowed regardless of whitelist status,
+    // so it never pays for the DB lookup resolveBetaAllowed would run
+    if (
+      selectionIsBetaSafe(operation, BETA_CARVE_OUT_FIELDS, {
+        // introspection allowed in non-prod only, so tooling works in dev
+        // without opening prod
+        allowIntrospection: !isProdEnv,
+      })
+    ) {
+      return;
+    }
+
     const allowed = await resolveAllowedFromContext(args.contextValue);
-
-    const { allow } = evaluateBetaGate({
-      gateEnabled: true,
-      allowed,
-      operation,
-      carveOuts: BETA_CARVE_OUT_FIELDS,
-      // introspection allowed in non-prod only, so tooling works in dev without
-      // opening prod
-      allowIntrospection: !isProdEnv,
-    });
-
-    if (!allow) throw betaAccessRequiredError();
+    if (!allowed) throw betaAccessRequiredError();
   },
 
   // subscriptions run through the onSubscribe path, not onExecute, so they must
@@ -254,13 +203,7 @@ export const betaGatePlugin: Plugin<GraphQLContext> = {
     if (!betaGateEnabled) return;
 
     const allowed = await resolveAllowedFromContext(args.contextValue);
-
-    const { allow } = evaluateSubscriptionBetaGate({
-      gateEnabled: true,
-      allowed,
-    });
-
-    if (!allow) throw betaAccessRequiredError();
+    if (!allowed) throw betaAccessRequiredError();
   },
 };
 

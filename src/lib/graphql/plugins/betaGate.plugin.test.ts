@@ -5,8 +5,6 @@ import { getOperationAST, parse } from "graphql";
 import {
   BETA_CARVE_OUT_FIELDS,
   betaGatePlugin,
-  evaluateBetaGate,
-  evaluateSubscriptionBetaGate,
   resolveBetaAllowed,
   selectionIsBetaSafe,
 } from "./betaGate.plugin";
@@ -132,98 +130,6 @@ describe("selectionIsBetaSafe", () => {
       selectionIsBetaSafe(withFragment, BETA_CARVE_OUT_FIELDS, {
         allowIntrospection: false,
       }),
-    ).toBe(false);
-  });
-});
-
-describe("evaluateBetaGate", () => {
-  const other = op("{ repositories { totalCount } }");
-  const carveOut = op("{ observer { rowId } }");
-
-  test("allows anything when the gate is disabled", () => {
-    expect(
-      evaluateBetaGate({
-        gateEnabled: false,
-        allowed: false,
-        operation: other,
-        carveOuts: BETA_CARVE_OUT_FIELDS,
-        allowIntrospection: false,
-      }).allow,
-    ).toBe(true);
-  });
-
-  test("allows any field for an allowed (whitelisted) caller", () => {
-    expect(
-      evaluateBetaGate({
-        gateEnabled: true,
-        allowed: true,
-        operation: other,
-        carveOuts: BETA_CARVE_OUT_FIELDS,
-        allowIntrospection: false,
-      }).allow,
-    ).toBe(true);
-  });
-
-  test("allows only carve-out fields for a non-allowed caller", () => {
-    expect(
-      evaluateBetaGate({
-        gateEnabled: true,
-        allowed: false,
-        operation: carveOut,
-        carveOuts: BETA_CARVE_OUT_FIELDS,
-        allowIntrospection: false,
-      }).allow,
-    ).toBe(true);
-  });
-
-  test("denies non-carve-out fields for a non-allowed caller", () => {
-    expect(
-      evaluateBetaGate({
-        gateEnabled: true,
-        allowed: false,
-        operation: other,
-        carveOuts: BETA_CARVE_OUT_FIELDS,
-        allowIntrospection: false,
-      }).allow,
-    ).toBe(false);
-  });
-});
-
-describe("evaluateSubscriptionBetaGate", () => {
-  test("allows any subscription when the gate is disabled", () => {
-    expect(
-      evaluateSubscriptionBetaGate({ gateEnabled: false, allowed: false })
-        .allow,
-    ).toBe(true);
-  });
-
-  test("allows an allowed (whitelisted / bypass-org) caller", () => {
-    expect(
-      evaluateSubscriptionBetaGate({ gateEnabled: true, allowed: true }).allow,
-    ).toBe(true);
-  });
-
-  test("denies a non-allowed caller", () => {
-    expect(
-      evaluateSubscriptionBetaGate({ gateEnabled: true, allowed: false }).allow,
-    ).toBe(false);
-  });
-
-  test("subscriptions have NO carve-out, unlike queries", () => {
-    // a query selecting only a carve-out field passes for a non-allowed caller
-    expect(
-      evaluateBetaGate({
-        gateEnabled: true,
-        allowed: false,
-        operation: op("{ observer { rowId } }"),
-        carveOuts: BETA_CARVE_OUT_FIELDS,
-        allowIntrospection: false,
-      }).allow,
-    ).toBe(true);
-    // the same non-allowed caller is denied on any subscription, even one whose
-    // root field shares a carve-out name
-    expect(
-      evaluateSubscriptionBetaGate({ gateEnabled: true, allowed: false }).allow,
     ).toBe(false);
   });
 });
