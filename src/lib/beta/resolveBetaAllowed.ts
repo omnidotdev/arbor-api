@@ -1,4 +1,5 @@
 import { getApplicationStatus } from "lib/beta/applicationStatus";
+import { isStaffEmail } from "lib/beta/staffEnrollment";
 import { isWhitelisted } from "lib/beta/whitelist";
 import { betaWhitelistUserIds } from "lib/config/env.config";
 import { billingBypassOrgIds } from "lib/graphql/plugins/authorization/constants";
@@ -25,17 +26,27 @@ export const resolveBetaAllowed = async (
     organizations,
     db,
   }: {
-    observer: { id: string } | null | undefined;
+    observer: { id: string; email?: string | null } | null | undefined;
     organizations: ReadonlyArray<{ id: string }>;
     db: Parameters<typeof getApplicationStatus>[0];
   },
   {
     envIds = betaWhitelistUserIds,
     bypassOrgIds = billingBypassOrgIds,
-  }: { envIds?: string[]; bypassOrgIds?: string[] } = {},
+    isStaff = isStaffEmail,
+  }: {
+    envIds?: string[];
+    bypassOrgIds?: string[];
+    isStaff?: (email: string | null | undefined) => boolean;
+  } = {},
 ): Promise<boolean> => {
   // cheap in-memory check: an env-whitelisted user id
   if (observer?.id && envIds.includes(observer.id)) return true;
+
+  // cheap in-memory check: an Omni staff email domain always passes, regardless
+  // of the tester_application row state, so staff access survives a bad bifrost
+  // decision later flipping their row
+  if (isStaff(observer?.email)) return true;
 
   // cheap in-memory check: the internal-org escape hatch, a member of a
   // billing-bypass org is allowed through regardless of application status

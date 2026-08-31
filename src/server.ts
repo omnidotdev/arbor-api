@@ -36,6 +36,7 @@ import {
 import { rateLimit } from "lib/middleware/rateLimit";
 import ensureVortexSubscriptions from "lib/providers/subscriptions";
 import { initializeSearchIndexes, search } from "lib/search";
+import applyRoutes from "routes/apply.routes";
 import gitRoutes from "routes/git.routes";
 
 const commit = (() => {
@@ -182,6 +183,8 @@ const app = new Elysia({
     }),
   )
   .use(webhooks)
+  // public applicant counter (unauthenticated, outside the GraphQL beta gate)
+  .use(applyRoutes)
   .use(gitRoutes)
   .use(mcpRoutes)
   .use(

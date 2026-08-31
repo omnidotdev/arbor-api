@@ -2,7 +2,9 @@ import { useExtendContext } from "@envelop/core";
 import { useGenericAuth } from "@envelop/generic-auth";
 
 import { resolveUserFromToken } from "lib/auth/resolveUserFromToken";
+import { ensureStaffEnrollment } from "lib/beta/staffEnrollment";
 import { protectRoutes } from "lib/config/env.config";
+import events from "lib/providers";
 
 import type { ResolveUserFn } from "@envelop/generic-auth";
 import type { OrganizationClaim } from "@omnidotdev/providers";
@@ -74,6 +76,16 @@ const resolveUser: ResolveUserFn<SelectUser, GraphQLContext> = async (ctx) => {
   requestOrganizationsCache.set(ctx.request, resolved.organizations);
   // and the identity the Postgres session runs under
   requestObserverIdCache.set(ctx.request, resolved.user.id);
+
+  // Auto-approve Omni staff into the closed beta on first sight, so they reach
+  // the app without hand-filling the apply form. Best-effort and self-guarding
+  // (never throws), a cheap existence check per request and a single write when
+  // absent, so it can never fail authentication
+  await ensureStaffEnrollment({
+    observer: resolved.user,
+    db: ctx.db,
+    emit: (event) => events.emit(event),
+  });
 
   return resolved.user;
 };

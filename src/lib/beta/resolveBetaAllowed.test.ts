@@ -106,6 +106,21 @@ describe("resolveBetaAllowed", () => {
     ).toBe(true);
   });
 
+  test("allows a staff-domain email without an approved application", async () => {
+    // throwingDb rejects if queried, so passing proves the staff fast-path
+    // short-circuited before getApplicationStatus even with no approved row
+    expect(
+      await resolveBetaAllowed(
+        {
+          observer: { id: "u1", email: "person@omni.dev" },
+          organizations: [],
+          db: throwingDb,
+        },
+        { isStaff: (email) => email === "person@omni.dev" },
+      ),
+    ).toBe(true);
+  });
+
   test("denies a member of an unrelated org", async () => {
     expect(
       await resolveBetaAllowed(

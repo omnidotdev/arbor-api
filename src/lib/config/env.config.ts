@@ -43,6 +43,10 @@ export const {
   // Comma-separated user IDs allowed through the closed-beta gate without an
   // approved application (env bypass alongside the billing-bypass admins)
   ARBOR_BETA_WHITELIST_USER_IDS,
+  // Comma-separated email domains treated as Omni staff. An authenticated
+  // caller whose email domain matches is auto-approved into the closed beta.
+  // Defaults to "omni.dev" when unset
+  STAFF_EMAIL_DOMAINS,
   // Meilisearch (unified search)
   MEILISEARCH_URL,
   MEILISEARCH_MASTER_KEY,
@@ -73,6 +77,17 @@ export const betaWhitelistUserIds: string[] =
     .map((id) => id.trim())
     .filter(Boolean) ?? [];
 
+/**
+ * Email domains treated as Omni staff, derived once from the comma-separated
+ * STAFF_EMAIL_DOMAINS env var. Falls back to "omni.dev" so staff auto-approval
+ * works out of the box without extra configuration. Normalized to lowercase so
+ * the domain match is case-insensitive
+ */
+export const staffEmailDomains: string[] = (STAFF_EMAIL_DOMAINS ?? "omni.dev")
+  .split(",")
+  .map((domain) => domain.trim().toLowerCase())
+  .filter(Boolean);
+
 /** Whether search indexing is enabled */
 export const isSearchEnabled = !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
 
@@ -102,3 +117,5 @@ if (!AUTHZ_API_URL)
 if (!VORTEX_API_URL)
   console.warn("VORTEX_API_URL not set, event streaming disabled");
 if (!MEILISEARCH_URL) console.warn("MEILISEARCH_URL not set, search disabled");
+if (!staffEmailDomains.length)
+  console.warn("STAFF_EMAIL_DOMAINS empty, staff auto-approval disabled");

@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, ne, or } from "drizzle-orm";
 
+import { STAFF_NOTE } from "lib/beta/staffEnrollment";
 import { testerApplicationTable } from "lib/db/schema";
 
 /**
@@ -98,7 +99,18 @@ export const applyDecision = async ({
       reviewerNote: payload.note ?? null,
       updatedAt: decidedAt,
     })
-    .where(eq(testerApplicationTable.userId, payload.userId))
+    // a staff auto-approved row (reviewerNote === STAFF_NOTE) is intentionally
+    // not overridable by a review decision, so a bad bifrost decision cannot
+    // downgrade staff access; the 0-affected case is handled below as ignored
+    .where(
+      and(
+        eq(testerApplicationTable.userId, payload.userId),
+        or(
+          isNull(testerApplicationTable.reviewerNote),
+          ne(testerApplicationTable.reviewerNote, STAFF_NOTE),
+        ),
+      ),
+    )
     .returning();
 
   // no local application for this user: nothing to flip. Not an error (the
