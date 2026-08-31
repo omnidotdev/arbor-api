@@ -12,6 +12,10 @@ export const {
   // DATABASE_URL, which is the current single-role behaviour
   GRAPHQL_DATABASE_URL,
   AUTH_BASE_URL,
+  // Bearer key presented to Gatekeeper's /api/stats for the public Omni
+  // userbase count shown on /apply (unset = falls back to the local applicant
+  // count)
+  STATS_SERVICE_KEY,
   GRAPHQL_MAX_COMPLEXITY_COST,
   CORS_ALLOWED_ORIGINS,
   PROTECT_ROUTES,
