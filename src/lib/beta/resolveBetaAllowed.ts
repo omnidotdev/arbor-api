@@ -1,7 +1,7 @@
 import { getApplicationStatus } from "lib/beta/applicationStatus";
 import { isStaffEmail } from "lib/beta/staffEnrollment";
 import { isWhitelisted } from "lib/beta/whitelist";
-import { betaWhitelistUserIds } from "lib/config/env.config";
+import { arborLaunched, betaWhitelistUserIds } from "lib/config/env.config";
 import { billingBypassOrgIds } from "lib/graphql/plugins/authorization/constants";
 
 /**
@@ -34,12 +34,19 @@ export const resolveBetaAllowed = async (
     envIds = betaWhitelistUserIds,
     bypassOrgIds = billingBypassOrgIds,
     isStaff = isStaffEmail,
+    launched = arborLaunched,
   }: {
     envIds?: string[];
     bypassOrgIds?: string[];
     isStaff?: (email: string | null | undefined) => boolean;
+    launched?: boolean;
   } = {},
 ): Promise<boolean> => {
+  // pre-launch "coming soon" mode: arbor is not open yet, so ONLY the founder
+  // whitelist (env user ids) may reach the app or git. Approved testers and Omni
+  // staff wait until launch, even though their applications keep collecting
+  if (!launched) return Boolean(observer?.id && envIds.includes(observer.id));
+
   // cheap in-memory check: an env-whitelisted user id
   if (observer?.id && envIds.includes(observer.id)) return true;
 

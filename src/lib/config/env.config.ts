@@ -51,6 +51,11 @@ export const {
   // caller whose email domain matches is auto-approved into the closed beta.
   // Defaults to "omni.dev" when unset
   STAFF_EMAIL_DOMAINS,
+  // Pre-launch "coming soon" switch. When "false", arbor is not open yet: only
+  // the founder whitelist (ARBOR_BETA_WHITELIST_USER_IDS) may reach the app or
+  // git; approved testers and Omni staff wait. Any other value (or unset) means
+  // launched, and the normal closed-beta gate applies
+  ARBOR_LAUNCHED,
   // Meilisearch (unified search)
   MEILISEARCH_URL,
   MEILISEARCH_MASTER_KEY,
@@ -70,7 +75,9 @@ export const isDevEnv = NODE_ENV === "development",
   protectRoutes = isProdEnv || PROTECT_ROUTES === "true",
   isAuthzEnabled = !!AUTHZ_API_URL,
   /** Whether the closed-beta whitelist gate is active */
-  betaGateEnabled = ARBOR_BETA_GATE_ENABLED === "true";
+  betaGateEnabled = ARBOR_BETA_GATE_ENABLED === "true",
+  /** Whether arbor is launched. When false, only founders reach the app */
+  arborLaunched = ARBOR_LAUNCHED !== "false";
 
 /**
  * User IDs allowed through the closed-beta gate without an approved application,
