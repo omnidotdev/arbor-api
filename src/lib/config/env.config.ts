@@ -39,6 +39,16 @@ export const {
   VORTEX_WEBHOOK_SECRET,
   // Public URL Vortex delivers webhooks to (this service's /webhooks/vortex)
   WEBHOOK_TARGET_URL,
+  // Herald transactional email (closed-beta lifecycle mail). Unset = noop
+  // provider (no email sent), so the beta flow degrades gracefully
+  HERALD_API_URL,
+  HERALD_API_KEY,
+  // Sender for beta emails (RFC 5322, may include a display name). Defaults to
+  // "Arbor <arbor@send.omni.dev>" when unset
+  NOTIFICATION_FROM_EMAIL,
+  // Public base URL of the arbor web app, linked as the CTA in beta emails.
+  // Defaults to https://arbor.omni.dev
+  APP_BASE_URL,
   // Billing bypass (org IDs that skip billing checks)
   BILLING_BYPASS_ORG_IDS,
   // Closed-beta gate: default-denied whitelist enforced across the app. Off by
@@ -119,6 +129,12 @@ export const useArborGit = USE_ARBOR_GIT === "true" && !!GIT_SERVICE_URL;
  */
 export const graphqlDatabaseUrl = GRAPHQL_DATABASE_URL || DATABASE_URL;
 
+/**
+ * Public base URL of the arbor web app, linked as the call to action in
+ * closed-beta emails. Defaults to production when unset.
+ */
+export const appBaseUrl = APP_BASE_URL || "https://arbor.omni.dev";
+
 // Startup warnings for optional integrations
 if (!STRIPE_API_KEY) console.warn("STRIPE_API_KEY not set, Stripe disabled");
 if (!BILLING_BASE_URL)
@@ -130,3 +146,5 @@ if (!VORTEX_API_URL)
 if (!MEILISEARCH_URL) console.warn("MEILISEARCH_URL not set, search disabled");
 if (!staffEmailDomains.length)
   console.warn("STAFF_EMAIL_DOMAINS empty, staff auto-approval disabled");
+if (!(HERALD_API_URL && HERALD_API_KEY))
+  console.warn("HERALD_API_URL/HERALD_API_KEY not set, beta emails disabled");

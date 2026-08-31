@@ -1,9 +1,10 @@
 import { Elysia } from "elysia";
 
-import { applyDecision } from "lib/beta/decisionConsumer";
-import { VORTEX_WEBHOOK_SECRET } from "lib/config/env.config";
+import { processApplicationDecision } from "lib/beta/processDecision";
+import { VORTEX_WEBHOOK_SECRET, appBaseUrl } from "lib/config/env.config";
 import { verifyHmacSignature } from "lib/crypto";
 import { dbPool } from "lib/db/db";
+import { notifications } from "lib/providers";
 
 import type { DecisionResult } from "lib/beta/decisionConsumer";
 
@@ -127,7 +128,13 @@ const vortexWebhook = new Elysia().post(
       rawBody,
       signature: headers["x-vortex-signature"],
       secret: VORTEX_WEBHOOK_SECRET,
-      apply: (payload) => applyDecision({ db: dbPool, payload }),
+      apply: (payload) =>
+        processApplicationDecision({
+          db: dbPool,
+          payload,
+          notify: (params) => notifications.sendEmail(params),
+          appUrl: appBaseUrl,
+        }),
     });
 
     return status(code, body);

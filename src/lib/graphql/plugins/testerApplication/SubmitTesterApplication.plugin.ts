@@ -4,9 +4,12 @@ import { GraphQLError } from "graphql";
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
+import { composeApplicationReceivedEmail } from "lib/beta/betaEmails";
+import { appBaseUrl } from "lib/config/env.config";
 import { testerApplicationTable } from "lib/db/schema";
-import events from "lib/providers";
+import events, { notifications } from "lib/providers";
 
+import type { EmailParams } from "@omnidotdev/providers/notifications";
 import type { SelectTesterApplication, SelectUser } from "lib/db/schema";
 import type { FieldArgs } from "postgraphile/grafast";
 
@@ -63,6 +66,14 @@ interface SubmitTesterApplicationArgs {
   input: SubmitTesterApplicationInput;
   db: SubmitTesterApplicationDb;
   emit: (event: EmittableEvent) => Promise<unknown>;
+  /**
+   * Best-effort email sender (notifications.sendEmail). When provided, a
+   * confirmation email is sent to the applicant after a successful submit. Omit
+   * (or leave the provider a noop) to skip email.
+   */
+  notify?: (params: EmailParams) => Promise<unknown>;
+  /** Public base URL of the arbor app, linked in the confirmation email. */
+  appUrl?: string;
   /** Injectable clock so the acceptance timestamp is deterministic in tests. */
   now?: () => Date;
 }
@@ -87,6 +98,8 @@ export const submitTesterApplication = async ({
   input,
   db,
   emit,
+  notify,
+  appUrl,
   now = () => new Date(),
 }: SubmitTesterApplicationArgs): Promise<SelectTesterApplication> => {
   if (!observer) {
@@ -171,6 +184,19 @@ export const submitTesterApplication = async ({
       },
     },
   }).catch((err) => console.warn("[arbor] Event emit failed", err));
+
+  // best-effort application-received confirmation, mirroring the emit above: it
+  // must not fail the mutation, and is skipped when no sender is wired
+  if (notify && observer.email) {
+    notify(
+      composeApplicationReceivedEmail({
+        to: observer.email,
+        appUrl: appUrl ?? "https://arbor.omni.dev",
+      }),
+    ).catch((err) =>
+      console.warn("[arbor] Application confirmation email failed", err),
+    );
+  }
 
   return application;
 };
@@ -276,7 +302,15 @@ const SubmitTesterApplicationPlugin = extendSchema(() => {
       Mutation: {
         plans: {
           submitTesterApplication: EXPORTABLE(
-            (lambda, object, context, events, submitTesterApplication) =>
+            (
+              lambda,
+              object,
+              context,
+              events,
+              notifications,
+              appBaseUrl,
+              submitTesterApplication,
+            ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
@@ -290,10 +324,20 @@ const SubmitTesterApplicationPlugin = extendSchema(() => {
                       input: args.input,
                       db: args.db,
                       emit: (event) => events.emit(event),
+                      notify: (params) => notifications.sendEmail(params),
+                      appUrl: appBaseUrl,
                     }),
                 );
               },
-            [lambda, object, context, events, submitTesterApplication],
+            [
+              lambda,
+              object,
+              context,
+              events,
+              notifications,
+              appBaseUrl,
+              submitTesterApplication,
+            ],
           ),
         },
       },

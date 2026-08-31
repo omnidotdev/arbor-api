@@ -4,6 +4,7 @@ import { GraphQLError } from "graphql";
 
 import { submitTesterApplication } from "./SubmitTesterApplication.plugin";
 
+import type { EmailParams } from "@omnidotdev/providers/notifications";
 import type { SelectTesterApplication } from "lib/db/schema";
 
 const observer = {
@@ -118,6 +119,48 @@ describe("submitTesterApplication", () => {
       }),
     ).rejects.toBeInstanceOf(GraphQLError);
     expect(emit).not.toHaveBeenCalled();
+  });
+
+  test("emails the applicant a confirmation on a successful submit", async () => {
+    const emit = mock(async () => ({}));
+    const sent: EmailParams[] = [];
+    const notify = async (params: EmailParams) => {
+      sent.push(params);
+      return { success: true };
+    };
+
+    await submitTesterApplication({
+      observer,
+      input: validInput,
+      db: makeDb() as never,
+      emit,
+      notify,
+      appUrl: "https://arbor.omni.dev",
+      now,
+    });
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.to).toBe("octocat@example.com");
+    expect(sent[0]?.subject).toMatch(/received|application/i);
+  });
+
+  test("does not fail the submit when the confirmation email throws", async () => {
+    const emit = mock(async () => ({}));
+    const db = makeDb();
+    const result = await submitTesterApplication({
+      observer,
+      input: validInput,
+      db: db as never,
+      emit,
+      notify: async () => {
+        throw new Error("herald down");
+      },
+      appUrl: "https://arbor.omni.dev",
+      now,
+    });
+
+    expect(result).toBeDefined();
+    expect(db.calls.inserted).toBeDefined();
   });
 
   test("inserts a pending row and returns it when none exists", async () => {
