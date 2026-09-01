@@ -631,3 +631,83 @@ export const uploadPackViaBackend = (
     call.write({ data: input });
     call.end();
   });
+
+/**
+ * Stream git-upload-pack (clone/fetch) through the backend without buffering.
+ *
+ * Opens the same UploadPack stream as `uploadPackViaBackend`, sends the
+ * repository then the client's request bytes, and yields each response frame as
+ * it arrives so a large clone/fetch never has to be held in memory all at once.
+ * An internal queue plus a wake promise preserve arrival order and let the
+ * consumer apply backpressure. A stream error is thrown to the consumer rather
+ * than swallowed, since a partial pack must not look like a complete one.
+ */
+export async function* uploadPackStreamViaBackend(
+  client: Client,
+  owner: string,
+  repo: string,
+  input: Buffer,
+): AsyncGenerator<Buffer> {
+  const call = (
+    client as unknown as {
+      uploadPack: () => {
+        write: (message: unknown) => void;
+        end: () => void;
+        cancel: () => void;
+        on: (event: string, handler: (arg: unknown) => void) => void;
+      };
+    }
+  ).uploadPack();
+
+  const queue: Buffer[] = [];
+  let ended = false;
+  let streamError: unknown;
+  let wake: () => void = () => {};
+  let wakePromise = new Promise<void>((resolve) => {
+    wake = resolve;
+  });
+  const notify = () => {
+    wake();
+    wakePromise = new Promise<void>((resolve) => {
+      wake = resolve;
+    });
+  };
+
+  call.on("data", (response: unknown) => {
+    const data = (response as { data?: Buffer | Uint8Array }).data;
+    if (data && data.length > 0) queue.push(Buffer.from(data));
+    notify();
+  });
+  call.on("end", () => {
+    ended = true;
+    notify();
+  });
+  call.on("error", (error: unknown) => {
+    console.error("[arbor-git] upload_pack stream failed:", error);
+    streamError = error ?? new Error("upload_pack stream failed");
+    notify();
+  });
+
+  call.write({ init: { repository: { owner, name: repo } } });
+  call.write({ data: input });
+  call.end();
+
+  try {
+    while (true) {
+      while (queue.length > 0) {
+        const chunk = queue.shift();
+        if (chunk) yield chunk;
+      }
+      if (streamError) throw streamError;
+      if (ended) return;
+      await wakePromise;
+    }
+  } finally {
+    // Cancel the backend call on any exit from the loop. When the consumer stops
+    // early (the ReadableStream `cancel` drives the generator's `return`), this
+    // stops the backend generating the rest of the pack into an abandoned queue;
+    // after a normal `end` or a thrown error the call is already finished, so the
+    // cancel is a harmless no-op
+    call.cancel();
+  }
+}

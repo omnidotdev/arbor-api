@@ -7,6 +7,7 @@ import {
   getArborGitClient,
   isArborGitEnabled,
   receivePackViaBackend,
+  uploadPackStreamViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
@@ -192,6 +193,68 @@ export async function uploadPack(
     return uploadPackViaBackend(client, owner, repo, input);
   }
   return executeGitService(owner, repo, "git-upload-pack", input);
+}
+
+/**
+ * Stream git-upload-pack (clone/fetch) without buffering the whole response.
+ *
+ * Mirrors the gate in `uploadPack`: when the arbor-git backend is on and the
+ * request is buffered, it delegates to the gRPC stream; otherwise it runs the
+ * in-process `git-upload-pack` and exposes its stdout as an async iterable of
+ * chunks. Either way the pack is emitted frame by frame, so a large clone is
+ * never held in memory all at once. A non-zero exit from the in-process path is
+ * thrown after stdout drains, so a truncated pack never reads as complete.
+ */
+export async function* uploadPackStream(
+  owner: string,
+  repo: string,
+  input: Buffer | Readable,
+): AsyncGenerator<Buffer> {
+  const client = getArborGitClient();
+  if (isArborGitEnabled() && client && Buffer.isBuffer(input)) {
+    yield* uploadPackStreamViaBackend(client, owner, repo, input);
+    return;
+  }
+
+  const repoPath = getRepositoryPath(owner, repo);
+  const gitProcess = spawn("git-upload-pack", ["--stateless-rpc", repoPath], {
+    env: { ...process.env, GIT_PROTOCOL: "version=2" },
+  });
+
+  gitProcess.stderr.on("data", (chunk: Buffer) => {
+    console.error("[git git-upload-pack] stderr:", chunk.toString());
+  });
+
+  // Resolve on a clean exit and reject otherwise, so a spawn failure or a
+  // non-zero exit surfaces to the consumer instead of silently truncating
+  const exited = new Promise<void>((resolve, reject) => {
+    gitProcess.on("error", reject);
+    gitProcess.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`git-upload-pack exited with code ${code}`));
+        return;
+      }
+      resolve();
+    });
+  });
+
+  // Feed the client's request to the plumbing's stdin. When upload-pack has
+  // already exited (e.g. a missing or broken repo), writing here raises EPIPE on
+  // stdin; swallow it so the authoritative non-zero exit from the close handler is
+  // what reaches the consumer, never a transport-level write error masking it
+  gitProcess.stdin.on("error", () => {});
+  if (Buffer.isBuffer(input)) {
+    gitProcess.stdin.end(input);
+  } else {
+    input.pipe(gitProcess.stdin);
+  }
+
+  // `child.stdout` is an async iterable of Buffer chunks in Node/Bun
+  for await (const chunk of gitProcess.stdout) {
+    yield chunk as Buffer;
+  }
+
+  await exited;
 }
 
 /**

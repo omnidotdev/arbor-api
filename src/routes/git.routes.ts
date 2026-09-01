@@ -23,7 +23,7 @@ import {
   parseGitService,
   receivePack,
   resolveRepositorySummary,
-  uploadPack,
+  uploadPackStream,
 } from "lib/git";
 import {
   getOrganizationStorageBytes,
@@ -523,18 +523,37 @@ const gitRoutes = new Elysia({ prefix: "/git" })
       if (!gate.authorized) return gate.body;
 
       const body = Buffer.from(await request.arrayBuffer());
-      const result = await uploadPack(owner, repo, body);
 
-      if (!result.success) {
-        set.status = 500;
-        return { error: "Upload pack failed" };
-      }
+      // Stream the pack end to end rather than buffering it: a large clone or
+      // fetch response is emitted frame by frame straight to the client. The
+      // generator (backend gRPC stream or in-process git stdout) is pulled on
+      // demand, so consumer backpressure flows all the way back. A mid-stream
+      // failure errors the ReadableStream, which aborts the response; the git
+      // client then fails rather than receiving a silently truncated pack
+      const packStream = uploadPackStream(owner, repo, body);
+      const readable = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          try {
+            const { value, done } = await packStream.next();
+            if (done) {
+              controller.close();
+              return;
+            }
+            controller.enqueue(new Uint8Array(value));
+          } catch (error) {
+            controller.error(error);
+          }
+        },
+        async cancel() {
+          await packStream.return?.(undefined);
+        },
+      });
 
       set.headers["content-type"] =
         getServiceResultContentType("git-upload-pack");
       set.headers["cache-control"] = "no-cache";
 
-      return new Response(new Uint8Array(result.data));
+      return new Response(readable);
     },
     {
       params: t.Object({
