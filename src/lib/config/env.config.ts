@@ -107,7 +107,12 @@ export const isSearchEnabled = !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
  * the flag on and a service URL; actual use is gated further by a boot-time
  * health check (graceful degradation to the in-process path if unreachable).
  */
-export const useArborGit = USE_ARBOR_GIT === "true" && !!GIT_SERVICE_URL;
+export const deriveUseArborGit = (
+  flag: string | undefined,
+  serviceUrl: string | undefined,
+): boolean => flag === "true" && !!serviceUrl;
+
+export const useArborGit = deriveUseArborGit(USE_ARBOR_GIT, GIT_SERVICE_URL);
 
 /**
  * Connection string for GraphQL query execution.
