@@ -1,3 +1,4 @@
+import { submitApplication } from "@omnidotdev/providers/events";
 import { eq } from "drizzle-orm";
 import { EXPORTABLE } from "graphile-export";
 import { GraphQLError } from "graphql";
@@ -166,22 +167,18 @@ export const submitTesterApplication = async ({
 
   // fire-and-forget with a catch, mirroring OpenPullRequest.plugin.ts: the emit
   // must not fail the mutation, and the provider no-ops when Vortex is
-  // unconfigured
-  emit({
-    type: "arbor.application.submitted",
-    subject: application.id,
-    data: {
-      applicationId: application.id,
-      userId: observer.id,
-      handle: observer.username,
-      email: observer.email,
-      product: "arbor",
-      answers: application.answers,
-      nda: {
-        accepted: application.ndaAccepted,
-        version: application.ndaVersion,
-        acceptedAt: application.ndaAcceptedAt,
-      },
+  // unconfigured. submitApplication owns the shared contract Bifrost ingests
+  submitApplication(emit, {
+    product: "arbor",
+    applicationId: application.id,
+    userId: observer.id,
+    handle: observer.username,
+    email: observer.email,
+    answers: application.answers,
+    nda: {
+      accepted: application.ndaAccepted,
+      version: application.ndaVersion,
+      acceptedAt: application.ndaAcceptedAt,
     },
   }).catch((err) => console.warn("[arbor] Event emit failed", err));
 
