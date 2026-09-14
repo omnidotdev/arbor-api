@@ -40,7 +40,8 @@ export const getOmniUserbase = async (
     // omniAccounts is the count of @omni.dev accounts (the auto-applied Omni
     // cohort), not the full userbase, so the waitlist count reflects those
     const body = (await response.json()) as { omniAccounts?: number };
-    const value = typeof body.omniAccounts === "number" ? body.omniAccounts : null;
+    const value =
+      typeof body.omniAccounts === "number" ? body.omniAccounts : null;
     cache = { at: now, value };
     return value;
   } catch (err) {
