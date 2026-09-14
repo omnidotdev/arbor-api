@@ -45,7 +45,7 @@
     "@grpc/proto-loader": "^0.8.1",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@omnidotdev/providers": "github:omnidotdev/providers#1673bff",
-    "@omnidotdev/search": "github:omnidotdev/search#8acefe7",
+    "@omnidotdev/search": "github:omnidotdev/search#02bb5c1",
     "@tanstack/query-core": "^5.101.4",
     "diff": "^9.0.0",
     "drizzle-orm": "^0.45.2",
