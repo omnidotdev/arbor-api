@@ -6,7 +6,10 @@ import { useOpenTelemetry } from "@envelop/opentelemetry";
 import { useParserCache } from "@envelop/parser-cache";
 import { useValidationCache } from "@envelop/validation-cache";
 import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection";
-import { registerSchemas } from "@omnidotdev/providers/events";
+import {
+  applicationSubmittedSchemaRegistration,
+  registerSchemas,
+} from "@omnidotdev/providers/events";
 import { Elysia } from "elysia";
 import { useGrafast } from "grafast/envelop";
 import { makeSchema } from "postgraphile";
@@ -92,12 +95,9 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
       description:
         "A change landed, carrying linked issue/task references for Backfeed/Runa",
     },
-    {
-      name: "arbor.application.submitted",
-      source: "omni.arbor",
-      description:
-        "A user submitted a closed-beta tester application; Bifrost ingests it for review",
-    },
+    // shared cross-product contract: registers the validated payload schema
+    // (required identity, non-empty handle) Bifrost ingests, not a bare name
+    applicationSubmittedSchemaRegistration("arbor", "omni.arbor"),
   ]).catch((err) => {
     console.warn("[Events] Schema registration failed:", err);
   });

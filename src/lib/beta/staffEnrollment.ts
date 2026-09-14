@@ -1,3 +1,5 @@
+import { submitApplication } from "@omnidotdev/providers/events";
+
 import { staffEmailDomains } from "lib/config/env.config";
 import { testerApplicationTable } from "lib/db/schema";
 
@@ -121,22 +123,18 @@ export const ensureStaffEnrollment = async ({
 
     // fire-and-forget with a catch, mirroring SubmitTesterApplication.plugin:
     // the emit must not fail enrollment, and the provider no-ops when Vortex is
-    // unconfigured
-    emit({
-      type: "arbor.application.submitted",
-      subject: application.id,
-      data: {
-        applicationId: application.id,
-        userId: observer.id,
-        handle: observer.username,
-        email: observer.email,
-        product: "arbor",
-        answers: application.answers,
-        nda: {
-          accepted: application.ndaAccepted,
-          version: application.ndaVersion,
-          acceptedAt: application.ndaAcceptedAt,
-        },
+    // unconfigured. submitApplication owns the shared contract Bifrost ingests
+    submitApplication(emit, {
+      product: "arbor",
+      applicationId: application.id,
+      userId: observer.id,
+      handle: observer.username,
+      email: observer.email,
+      answers: application.answers,
+      nda: {
+        accepted: application.ndaAccepted,
+        version: application.ndaVersion,
+        acceptedAt: application.ndaAcceptedAt,
       },
     }).catch((err) =>
       console.warn("[arbor] Staff enrollment emit failed", err),
