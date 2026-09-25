@@ -58,7 +58,7 @@ type ReadGate =
       authorized: true;
       repository: Awaited<ReturnType<typeof resolveRepositorySummary>>;
     }
-  | { authorized: false; body: typeof NOT_FOUND };
+  | { authorized: false; body: { error: string } };
 
 /**
  * Gate a READ endpoint.
@@ -82,8 +82,27 @@ const gateRead = async (
 
   const caller = await authenticateGitRequest(request);
 
-  // Closed-beta gate: a non-whitelisted caller (anonymous included) sees the
-  // same 404 as a missing repo, so the gate leaks nothing about what exists
+  // When no credentials were presented and the repository is not readable
+  // anonymously (private, or the closed-beta gate is active), challenge with 401
+  // and WWW-Authenticate so the git CLI retries WITH credentials. Returning 404
+  // here instead breaks every CLI clone/fetch: git probes info/refs
+  // unauthenticated first and treats a 404 as a hard "repository does not exist",
+  // so it never sends the token even for a whitelisted user. Matches gateWrite
+  // and how hosted forges prompt for a private clone. A public repo the beta gate
+  // permits still falls through to an anonymous read below.
+  if (!caller) {
+    const readableAnonymously =
+      !(await isGitCallerBetaBlocked(null)) &&
+      (await canReadRepository(null, repository));
+    if (!readableAnonymously) {
+      set.status = 401;
+      set.headers["WWW-Authenticate"] = GIT_AUTH_REALM;
+      return { authorized: false, body: { error: "Authentication required" } };
+    }
+  }
+
+  // Closed-beta gate: a non-whitelisted authenticated caller sees the same 404 as
+  // a missing repo, so the gate leaks nothing about what exists
   if (await isGitCallerBetaBlocked(caller)) {
     set.status = 404;
     return { authorized: false, body: NOT_FOUND };
