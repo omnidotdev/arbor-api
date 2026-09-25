@@ -207,7 +207,7 @@ describe("git routes read authorization", () => {
     expect(res.status).toBe(200);
   });
 
-  test("private repo read is 404 for anonymous (no info leak)", async () => {
+  test("private repo read is 401 for anonymous (prompts credentials)", async () => {
     state.repo = {
       id: "r1",
       visibility: "private",
@@ -220,7 +220,11 @@ describe("git routes read authorization", () => {
     const res = await makeApp().handle(
       new Request("http://localhost/git/alice/repo/branches"),
     );
-    expect(res.status).toBe(404);
+    // 401, not 404: git probes info/refs unauthenticated first and treats a 404
+    // as a hard "does not exist", never retrying with the token. Challenging lets
+    // a whitelisted caller authenticate and clone
+    expect(res.status).toBe(401);
+    expect(res.headers.get("WWW-Authenticate")).toBe('Basic realm="Arbor"');
   });
 
   test("private repo read is 200 for the owner", async () => {
@@ -279,7 +283,7 @@ describe("git routes read authorization", () => {
     expect(res.status).toBe(404);
   });
 
-  test("closed-beta gate: a public repo read is 404 for a blocked caller", async () => {
+  test("closed-beta gate: an anonymous read is 401 (prompts credentials)", async () => {
     state.repo = {
       id: "r1",
       visibility: "public",
@@ -288,14 +292,37 @@ describe("git routes read authorization", () => {
     };
     state.canRead = true;
     state.betaBlocked = true;
+    state.authedUser = null;
 
     const res = await makeApp().handle(
       new Request("http://localhost/git/alice/repo/branches"),
     );
+    // gate active + no credentials => challenge so the git CLI sends its token
+    expect(res.status).toBe(401);
+    expect(res.headers.get("WWW-Authenticate")).toBe('Basic realm="Arbor"');
+  });
+
+  test("closed-beta gate: an authenticated non-whitelisted read is 404 (no info leak)", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    state.canRead = true;
+    state.betaBlocked = true;
+    state.authedUser = { id: "stranger" };
+
+    const res = await makeApp().handle(
+      new Request("http://localhost/git/alice/repo/branches", {
+        headers: { authorization: "Bearer tok" },
+      }),
+    );
+    // credentials presented but still gated => 404, leaking nothing
     expect(res.status).toBe(404);
   });
 
-  test("private repo upload-pack info/refs is 404 for anonymous", async () => {
+  test("private repo upload-pack info/refs is 401 for anonymous", async () => {
     state.repo = {
       id: "r1",
       visibility: "private",
@@ -309,7 +336,8 @@ describe("git routes read authorization", () => {
         "http://localhost/git/alice/repo/info/refs?service=git-upload-pack",
       ),
     );
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
+    expect(res.headers.get("WWW-Authenticate")).toBe('Basic realm="Arbor"');
   });
 });
 
