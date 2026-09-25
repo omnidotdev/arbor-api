@@ -72,6 +72,13 @@ const gateRead = async (
   repo: string,
   request: Request,
   set: GitSet,
+  // Smart-HTTP transport (info/refs, git-upload-pack) sets this so an
+  // unauthenticated caller gets a 401 + WWW-Authenticate Basic challenge, which
+  // the git CLI needs to then send credentials. The browser-facing JSON read
+  // endpoints (tree, blob, branches, commits) leave it false: a Basic challenge
+  // there makes the browser pop its native auth dialog on any 401, so those fall
+  // through to a 404 instead and the app authenticates them with a Bearer token.
+  { challenge = false }: { challenge?: boolean } = {},
 ): Promise<ReadGate> => {
   const repository = await resolveRepositorySummary(owner, repo);
 
@@ -82,22 +89,28 @@ const gateRead = async (
 
   const caller = await authenticateGitRequest(request);
 
-  // When no credentials were presented and the repository is not readable
-  // anonymously (private, or the closed-beta gate is active), challenge with 401
-  // and WWW-Authenticate so the git CLI retries WITH credentials. Returning 404
-  // here instead breaks every CLI clone/fetch: git probes info/refs
-  // unauthenticated first and treats a 404 as a hard "repository does not exist",
-  // so it never sends the token even for a whitelisted user. Matches gateWrite
-  // and how hosted forges prompt for a private clone. A public repo the beta gate
-  // permits still falls through to an anonymous read below.
+  // No credentials presented and the repository is not readable anonymously
+  // (private, or the closed-beta gate is active). For the git CLI (challenge)
+  // return 401 + WWW-Authenticate so it retries WITH credentials; a 404 there
+  // breaks every clone/fetch (git treats the unauthenticated info/refs 404 as
+  // "repository does not exist" and never sends the token). For browser JSON
+  // reads, return 404 with NO challenge so the browser does not show its native
+  // Basic-auth dialog. A public repo the beta gate permits falls through below.
   if (!caller) {
     const readableAnonymously =
       !(await isGitCallerBetaBlocked(null)) &&
       (await canReadRepository(null, repository));
     if (!readableAnonymously) {
-      set.status = 401;
-      set.headers["WWW-Authenticate"] = GIT_AUTH_REALM;
-      return { authorized: false, body: { error: "Authentication required" } };
+      if (challenge) {
+        set.status = 401;
+        set.headers["WWW-Authenticate"] = GIT_AUTH_REALM;
+        return {
+          authorized: false,
+          body: { error: "Authentication required" },
+        };
+      }
+      set.status = 404;
+      return { authorized: false, body: NOT_FOUND };
     }
   }
 
@@ -501,7 +514,10 @@ const gitRoutes = new Elysia({ prefix: "/git" })
         const gate = await gateWrite(owner, repo, request, set);
         if (!gate.authorized) return gate.body;
       } else {
-        const gate = await gateRead(owner, repo, request, set);
+        // smart-HTTP transport: challenge so the git CLI sends credentials
+        const gate = await gateRead(owner, repo, request, set, {
+          challenge: true,
+        });
         if (!gate.authorized) return gate.body;
       }
 
@@ -538,7 +554,10 @@ const gitRoutes = new Elysia({ prefix: "/git" })
       const { owner } = params;
       const repo = params.repo.replace(/\.git$/, "");
 
-      const gate = await gateRead(owner, repo, request, set);
+      // smart-HTTP transport: challenge so the git CLI sends credentials
+      const gate = await gateRead(owner, repo, request, set, {
+        challenge: true,
+      });
       if (!gate.authorized) return gate.body;
 
       const body = Buffer.from(await request.arrayBuffer());

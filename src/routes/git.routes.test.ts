@@ -207,7 +207,7 @@ describe("git routes read authorization", () => {
     expect(res.status).toBe(200);
   });
 
-  test("private repo read is 401 for anonymous (prompts credentials)", async () => {
+  test("private repo JSON read is 404 for anonymous, with no Basic challenge", async () => {
     state.repo = {
       id: "r1",
       visibility: "private",
@@ -220,11 +220,12 @@ describe("git routes read authorization", () => {
     const res = await makeApp().handle(
       new Request("http://localhost/git/alice/repo/branches"),
     );
-    // 401, not 404: git probes info/refs unauthenticated first and treats a 404
-    // as a hard "does not exist", never retrying with the token. Challenging lets
-    // a whitelisted caller authenticate and clone
-    expect(res.status).toBe(401);
-    expect(res.headers.get("WWW-Authenticate")).toBe('Basic realm="Arbor"');
+    // Browser JSON endpoints must NOT send WWW-Authenticate: Basic, or the
+    // browser pops its native auth dialog on any 401. 404, no challenge; the app
+    // authenticates these with a Bearer token. The Basic challenge is reserved
+    // for the smart-HTTP transport (info/refs), asserted separately below.
+    expect(res.status).toBe(404);
+    expect(res.headers.get("WWW-Authenticate")).toBeNull();
   });
 
   test("private repo read is 200 for the owner", async () => {
@@ -283,7 +284,7 @@ describe("git routes read authorization", () => {
     expect(res.status).toBe(404);
   });
 
-  test("closed-beta gate: an anonymous read is 401 (prompts credentials)", async () => {
+  test("closed-beta gate: an anonymous JSON read is 404 with no Basic challenge", async () => {
     state.repo = {
       id: "r1",
       visibility: "public",
@@ -297,9 +298,10 @@ describe("git routes read authorization", () => {
     const res = await makeApp().handle(
       new Request("http://localhost/git/alice/repo/branches"),
     );
-    // gate active + no credentials => challenge so the git CLI sends its token
-    expect(res.status).toBe(401);
-    expect(res.headers.get("WWW-Authenticate")).toBe('Basic realm="Arbor"');
+    // browser JSON endpoint: 404, never a Basic challenge (see the smart-HTTP
+    // info/refs test below for the CLI's 401 challenge)
+    expect(res.status).toBe(404);
+    expect(res.headers.get("WWW-Authenticate")).toBeNull();
   });
 
   test("closed-beta gate: an authenticated non-whitelisted read is 404 (no info leak)", async () => {
