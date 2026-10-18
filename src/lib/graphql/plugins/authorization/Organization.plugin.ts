@@ -48,7 +48,7 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
                 getDefaultOrganization(organizations)?.id;
 
               if (!targetOrgId) {
-                throw new Error("No organization available");
+                throw new Error("No workspace available");
               }
 
               // Validate org exists in IDP (fail-open if IDP unavailable)
@@ -56,7 +56,7 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
               const { validateOrgExists } = await import("lib/idp/validateOrg");
               const orgExists = await validateOrgExists(targetOrgId);
               if (!orgExists) {
-                throw new Error("Organization not found in identity provider");
+                throw new Error("Workspace not found in identity provider");
               }
 
               // Org ID is valid, allow organization record creation

@@ -37,7 +37,7 @@ const resolveOrganizationIdpId = async (
   const organization = await db.query.organizationTable.findFirst({
     where: (table, { eq }) => eq(table.id, organizationId),
   });
-  if (!organization) throw new Error("Organization not found");
+  if (!organization) throw new Error("Workspace not found");
   return organization.idpOrganizationId;
 };
 

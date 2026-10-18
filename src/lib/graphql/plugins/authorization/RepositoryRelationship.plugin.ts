@@ -201,7 +201,7 @@ const validateTypePermissions = (propName: string, scope: MutationScope) =>
                 where: (table, { eq }) => eq(table.id, organizationId),
               });
 
-              if (!organization) throw new Error("Organization not found");
+              if (!organization) throw new Error("Workspace not found");
 
               // Check admin+ role via IDP claims
               if (
@@ -226,7 +226,7 @@ const validateTypePermissions = (propName: string, scope: MutationScope) =>
                 where: (table, { eq }) => eq(table.id, relTypeOrgId),
               });
 
-              if (!organization) throw new Error("Organization not found");
+              if (!organization) throw new Error("Workspace not found");
 
               // Check admin+ role via IDP claims
               if (

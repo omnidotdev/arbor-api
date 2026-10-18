@@ -99,7 +99,7 @@ export const createRepository = async ({
       with: { repositories: true },
     });
 
-    if (!organization) return failure("Organization not found");
+    if (!organization) return failure("Workspace not found");
 
     // Membership comes from the caller's claims, which for an access token are
     // served from the membership mirror rather than a live token

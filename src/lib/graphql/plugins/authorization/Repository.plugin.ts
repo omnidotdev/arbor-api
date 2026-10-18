@@ -95,7 +95,7 @@ const createRepositoryWrapper = EXPORTABLE(
             where: (table, { eq }) => eq(table.id, organizationId),
           });
 
-          if (!organization) throw new Error("Organization not found");
+          if (!organization) throw new Error("Workspace not found");
 
           // Check membership via IDP claims (from JWT)
           // Organizations array contains the user's org memberships from Gatekeeper
