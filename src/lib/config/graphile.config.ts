@@ -37,6 +37,7 @@ import {
   RepositoryDefaultBranchPlugin,
   RepositoryDeletePlugin,
   RepositoryRenamePlugin,
+  WorkspaceRepositoryCreatePlugin,
 } from "lib/graphql/plugins/git";
 import { MergeQueueMutationsPlugin } from "lib/graphql/plugins/mergeQueue";
 import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
@@ -101,6 +102,7 @@ const graphilePreset: GraphileConfig.Preset = {
     // Git diff exposure (PullRequest / Commit changedFiles + fileDiff)
     GitDiffPlugin,
     RepositoryCreatePlugin,
+    WorkspaceRepositoryCreatePlugin,
     // Git storage cleanup on delete (removes the on-disk bare repository)
     RepositoryDeletePlugin,
     // Repository rename (moves the on-disk bare repository with the slug)

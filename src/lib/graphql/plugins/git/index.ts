@@ -5,3 +5,4 @@ export { default as RepositoryCreatePlugin } from "./RepositoryCreate.plugin";
 export { default as RepositoryDefaultBranchPlugin } from "./RepositoryDefaultBranch.plugin";
 export { default as RepositoryDeletePlugin } from "./RepositoryDelete.plugin";
 export { default as RepositoryRenamePlugin } from "./RepositoryRename.plugin";
+export { default as WorkspaceRepositoryCreatePlugin } from "./WorkspaceRepositoryCreate.plugin";

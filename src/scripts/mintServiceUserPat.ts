@@ -1,5 +1,6 @@
 /**
- * @file One-shot: mint the long-lived write PAT for a first-party service user.
+ * @file One-shot: mint the long-lived PAT for a first-party service user, with
+ * the permission its definition declares (`patPermission`).
  *
  * ============================ OPERATOR SCRIPT ============================
  * This is NOT a boot step and is deliberately NOT wired into `start`. It mints
@@ -89,13 +90,14 @@ const run = async () => {
     process.exit(1);
   }
 
-  // Long-lived (no expiry) and unconfined write scope: the publisher must create
-  // repos and push to any site repo it owns. Repository confinement is omitted,
-  // so the token reaches everything its owning user can reach
+  // Long-lived (no expiry) and unconfined: a product's reach comes from the
+  // repositories it owns or was granted as a collaborator, and a reader's PAT
+  // is read-only. Repository confinement is omitted, so the token reaches
+  // everything its owning user can reach, at the declared permission
   const payload = await createPersonalAccessTokenRecord({
     observer: { id: user.id },
     name: def.patName,
-    permission: "write",
+    permission: def.patPermission,
     db: dbPool,
   });
 
@@ -106,9 +108,9 @@ const run = async () => {
       `service user : ${username} (${def.email})`,
       `local user id: ${user.id}`,
       `   -> add to ARBOR_BETA_WHITELIST_USER_IDS (arbor IaC)`,
-      `PAT name     : ${payload.name}`,
+      `PAT name     : ${payload.name} (${def.patPermission})`,
       `PAT (secret) : ${payload.token}`,
-      `   -> pulumi config set --secret keystone:arbor-service-token '<PAT>'`,
+      `   -> pulumi config set --secret <its infra config key> '<PAT>'`,
       "===========================================================",
       "",
     ].join("\n"),
