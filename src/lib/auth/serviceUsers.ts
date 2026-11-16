@@ -34,6 +34,17 @@ export interface ServiceUserDef {
    * with this name is minted at most once per user.
    */
   patName: string;
+  /**
+   * What that PAT may do: `write` for a product that pushes, `read` for a
+   * principal that only clones (the mint script honors it)
+   */
+  patPermission: "read" | "write";
+  /**
+   * Whether this product may create workspace repositories on a member's
+   * behalf (`createWorkspaceRepository`), receiving write on each one it
+   * creates. Off for read-only principals
+   */
+  actsForMembers: boolean;
 }
 
 /**
@@ -44,14 +55,31 @@ export interface ServiceUserDef {
  */
 export const FIRST_PARTY_SERVICE_USERS: ServiceUserDef[] = [
   {
-    // Keystone's hosted-publish principal. Keystone creates, owns, and pushes
-    // every published site repo AS this account, so end users never need their
-    // own Arbor access. The identityProviderId is the Gatekeeper sub the
+    // Keystone's publishing principal. Keystone creates each published site's
+    // repository in the WORKSPACE that owns the site, on a member's behalf
+    // (createWorkspaceRepository), and pushes to it as a write collaborator on
+    // that repository only. The identityProviderId is the Gatekeeper sub the
     // gatekeeper-app service-user seed pins for keystone-publisher@omni.dev
     identityProviderId: "17362f35-7ff9-44e3-9fd3-99ed4adf36d9",
     username: "keystone",
     name: "Keystone Publisher",
     email: "keystone-publisher@omni.dev",
     patName: "keystone-publisher",
+    patPermission: "write",
+    actsForMembers: true,
+  },
+  {
+    // Fractal's build reader. Fractal clones Arbor-hosted sources with this
+    // principal's READ-only PAT, which the platform provides to every project
+    // namespace as the per-host git credential for git.arbor.omni.dev. It
+    // never writes and never acts for members. The identityProviderId is the
+    // Gatekeeper sub the gatekeeper-app seed pins for fractal-builds@omni.dev
+    identityProviderId: "a62c31cb-2e76-4c3e-b1de-3766669398fd",
+    username: "fractal-builds",
+    name: "Fractal Builds",
+    email: "fractal-builds@omni.dev",
+    patName: "fractal-builds-read",
+    patPermission: "read",
+    actsForMembers: false,
   },
 ];

@@ -40,4 +40,24 @@ describe("FIRST_PARTY_SERVICE_USERS", () => {
     expect(keystone?.email).toBe("keystone-publisher@omni.dev");
     expect(keystone?.patName).toBe("keystone-publisher");
   });
+
+  test("pins the Fractal build reader to its Gatekeeper sub, read-only", () => {
+    const fractal = FIRST_PARTY_SERVICE_USERS.find(
+      (d) => d.username === "fractal-builds",
+    );
+    // Must match gatekeeper-app FIRST_PARTY_SERVICE_USERS fractal-builds.id
+    expect(fractal?.identityProviderId).toBe(
+      "a62c31cb-2e76-4c3e-b1de-3766669398fd",
+    );
+    expect(fractal?.patPermission).toBe("read");
+    expect(fractal?.actsForMembers).toBe(false);
+  });
+
+  test("only the Keystone publisher acts for members", () => {
+    expect(
+      FIRST_PARTY_SERVICE_USERS.filter((d) => d.actsForMembers).map(
+        (d) => d.username,
+      ),
+    ).toEqual(["keystone"]);
+  });
 });

@@ -38,6 +38,8 @@ declare global {
       authzCache: Map<string, boolean>;
       /** Postgres subscription client, read by the grafast `listen` step */
       pgSubscriber: PgSubscriber | null;
+      /** Network request, for headers a plan reads (never logged) */
+      request: Request;
     }
   }
 }

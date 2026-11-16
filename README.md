@@ -55,6 +55,12 @@ A repository may define conventions for agents in a root `AGENTS.md`. `get_agent
 
 Arbor recognizes `AGENTS.md` only, not vendor-specific filenames, and reads it from the repository root. A repository that defines none gets `present: false`, which is a normal answer rather than an error.
 
+## Workspace repositories for Omni products
+
+An Omni product keeps what it produces for a workspace in a repository the workspace owns. Its service user (see `src/lib/auth/serviceUsers.ts`, `actsForMembers`) calls `createWorkspaceRepository` with a member's own access token in the `X-Arbor-Member-Token` header. The member must belong to the workspace; the repository is created as if the member created it (owned by the workspace's organization, cloned at `<member>/<slug>`), and the product is added as a `write` collaborator on that repository only. Workspace members reach it through normal organization access, and an admin can revoke the product by removing the collaborator. The call is idempotent per workspace and slug.
+
+Service-user PATs are minted once with `bun db:mint-service-pat <username>`, at the permission the definition declares (`patPermission`): the Fractal build reader (`fractal-builds`) is read-only and is what Fractal clones Arbor sources with.
+
 ## Dev commands
 
 | Command | Description |
