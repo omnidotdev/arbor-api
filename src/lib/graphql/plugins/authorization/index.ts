@@ -1,4 +1,6 @@
+export { default as AgentPlugin } from "./Agent.plugin";
 export { default as BranchProtectionRulePlugin } from "./BranchProtectionRule.plugin";
+export { default as ImmutableReferencesPlugin } from "./ImmutableReferences.plugin";
 export { default as NoNodeIdMutationsPlugin } from "./NoNodeIdMutations.plugin";
 export { default as OrganizationPlugin } from "./Organization.plugin";
 export { default as PrimaryKeyMutationsOnlyPlugin } from "./PrimaryKeyMutationsOnly.plugin";
@@ -10,6 +12,8 @@ export { default as RepositoryPlugin } from "./Repository.plugin";
 export { default as RepositoryCollaboratorPlugin } from "./RepositoryCollaborator.plugin";
 export { default as RepositoryReadPlugin } from "./RepositoryRead.plugin";
 export { default as RepositoryRelationshipPlugin } from "./RepositoryRelationship.plugin";
+export { default as ServerOnlyMutationsPlugin } from "./ServerOnlyMutations.plugin";
 export { default as SmartTagPlugin } from "./SmartTag.plugin";
+export { default as StackPlugin } from "./Stack.plugin";
 export { default as TopicPlugin } from "./Topic.plugin";
 export { default as UserPlugin } from "./User.plugin";

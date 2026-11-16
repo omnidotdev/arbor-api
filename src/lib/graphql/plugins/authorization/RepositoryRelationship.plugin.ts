@@ -2,10 +2,10 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
-import type {
-  InsertRepositoryRelationship,
-  InsertRepositoryRelationshipMetadata,
-} from "lib/db/schema";
+import { authorizeRelationshipCreate } from "./generatedMutationAuthorization";
+import { guardMutation } from "./guardMutation";
+
+import type { InsertRepositoryRelationshipMetadata } from "lib/db/schema";
 import type { PlanWrapperFn } from "postgraphile/utils";
 import type { MutationScope } from "./types";
 
@@ -38,15 +38,15 @@ const hasWriteAccess = async (
 };
 
 /**
- * Validate repository relationship permissions.
- *
- * - Create: Requires write access to source repository
- * - Update: Requires write access to source repository
- * - Delete: Requires write access to source repository
+ * Validate repository relationship update and delete permissions: write access
+ * to the source repository. Create is authorized by
+ * `authorizeRelationshipCreate`, which also checks the target and the type. The
+ * source, target, and type are fixed after creation
+ * (ImmutableReferences.plugin.ts)
  */
-const validatePermissions = (propName: string, scope: MutationScope) =>
+const validatePermissions = (propName: string) =>
   EXPORTABLE(
-    (context, sideEffect, propName, scope, hasWriteAccess): PlanWrapperFn =>
+    (context, sideEffect, propName, hasWriteAccess): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
         const $observer = context().get("observer");
@@ -55,39 +55,24 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
         sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
           if (!observer) throw new Error("Unauthorized");
 
-          if (scope === "create") {
-            const { sourceRepositoryId } =
-              input as InsertRepositoryRelationship;
+          const relationship =
+            await db.query.repositoryRelationshipTable.findFirst({
+              where: (table, { eq }) => eq(table.id, input),
+            });
 
-            if (!sourceRepositoryId) throw new Error("Unauthorized");
+          if (!relationship) throw new Error("Unauthorized");
 
-            const canWrite = await hasWriteAccess(
-              db,
-              sourceRepositoryId,
-              observer.id,
-            );
-            if (!canWrite) throw new Error("Unauthorized");
-          } else {
-            // Update or delete - fetch the relationship first
-            const relationship =
-              await db.query.repositoryRelationshipTable.findFirst({
-                where: (table, { eq }) => eq(table.id, input),
-              });
-
-            if (!relationship) throw new Error("Unauthorized");
-
-            const canWrite = await hasWriteAccess(
-              db,
-              relationship.sourceRepositoryId,
-              observer.id,
-            );
-            if (!canWrite) throw new Error("Unauthorized");
-          }
+          const canWrite = await hasWriteAccess(
+            db,
+            relationship.sourceRepositoryId,
+            observer.id,
+          );
+          if (!canWrite) throw new Error("Unauthorized");
         });
 
         return plan();
       },
-    [context, sideEffect, propName, scope, hasWriteAccess],
+    [context, sideEffect, propName, hasWriteAccess],
   );
 
 /**
@@ -302,12 +287,12 @@ const validateExternalDependencyPermissions = (
 const RepositoryRelationshipPlugin = wrapPlans({
   Mutation: {
     // Repository relationships
-    createRepositoryRelationship: validatePermissions(
-      "repositoryRelationship",
-      "create",
+    createRepositoryRelationship: guardMutation(
+      [["input", "repositoryRelationship"]],
+      authorizeRelationshipCreate,
     ),
-    updateRepositoryRelationship: validatePermissions("rowId", "update"),
-    deleteRepositoryRelationship: validatePermissions("rowId", "delete"),
+    updateRepositoryRelationship: validatePermissions("rowId"),
+    deleteRepositoryRelationship: validatePermissions("rowId"),
 
     // Relationship metadata
     createRepositoryRelationshipMetadatum: validateMetadataPermissions(
