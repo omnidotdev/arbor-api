@@ -51,6 +51,14 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
                 throw new Error("No workspace available");
               }
 
+              // The caller must belong to the organization they register. An
+              // existence check alone let anyone claim another workspace's
+              // Arbor organization row and the details it carries
+              const isMember = organizations.some(
+                (org: { id: string }) => org.id === targetOrgId,
+              );
+              if (!isMember) throw new Error("Unauthorized");
+
               // Validate org exists in IDP (fail-open if IDP unavailable)
               // Dynamic import to avoid graphile-export serialization issues
               const { validateOrgExists } = await import("lib/idp/validateOrg");

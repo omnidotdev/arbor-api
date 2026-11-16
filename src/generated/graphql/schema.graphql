@@ -13216,50 +13216,6 @@ input RepositoryRelationshipMetadatumInput {
   createdAt: Datetime
 }
 
-"""The output of our create `OrganizationMember` mutation."""
-type CreateOrganizationMemberPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `OrganizationMember` that was created by this mutation."""
-  organizationMember: OrganizationMember
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `OrganizationMember`. May be used by Relay 1."""
-  organizationMemberEdge(
-    """The method to use when ordering `OrganizationMember`."""
-    orderBy: [OrganizationMemberOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): OrganizationMemberEdge
-}
-
-"""All input for the create `OrganizationMember` mutation."""
-input CreateOrganizationMemberInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `OrganizationMember` to be created by this mutation."""
-  organizationMember: OrganizationMemberInput!
-}
-
-"""An input for mutations affecting `OrganizationMember`"""
-input OrganizationMemberInput {
-  rowId: UUID
-  userId: UUID!
-  organizationId: UUID!
-  roles: JSON
-  syncedAt: Datetime
-}
-
 """The output of our create `MergeBatch` mutation."""
 type CreateMergeBatchPayload {
   """
@@ -14279,55 +14235,6 @@ input RepositoryRelationshipMetadatumPatch {
   key: String
   value: String
   createdAt: Datetime
-}
-
-"""The output of our update `OrganizationMember` mutation."""
-type UpdateOrganizationMemberPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `OrganizationMember` that was updated by this mutation."""
-  organizationMember: OrganizationMember
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `OrganizationMember`. May be used by Relay 1."""
-  organizationMemberEdge(
-    """The method to use when ordering `OrganizationMember`."""
-    orderBy: [OrganizationMemberOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): OrganizationMemberEdge
-}
-
-"""All input for the `updateOrganizationMember` mutation."""
-input UpdateOrganizationMemberInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `OrganizationMember` being updated.
-  """
-  patch: OrganizationMemberPatch!
-}
-
-"""
-Represents an update to a `OrganizationMember`. Fields that are set will be updated.
-"""
-input OrganizationMemberPatch {
-  rowId: UUID
-  userId: UUID
-  organizationId: UUID
-  roles: JSON
-  syncedAt: Datetime
 }
 
 """The output of our update `MergeBatch` mutation."""
@@ -15682,8 +15589,6 @@ Represents an update to a `Repository`. Fields that are set will be updated.
 """
 input RepositoryPatch {
   rowId: UUID
-  ownerId: UUID
-  organizationId: UUID
   name: String
   slug: String
   description: String
@@ -15851,40 +15756,6 @@ type DeleteRepositoryRelationshipMetadatumPayload {
 
 """All input for the `deleteRepositoryRelationshipMetadatum` mutation."""
 input DeleteRepositoryRelationshipMetadatumInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-}
-
-"""The output of our delete `OrganizationMember` mutation."""
-type DeleteOrganizationMemberPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `OrganizationMember` that was deleted by this mutation."""
-  organizationMember: OrganizationMember
-  deletedOrganizationMemberId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `OrganizationMember`. May be used by Relay 1."""
-  organizationMemberEdge(
-    """The method to use when ordering `OrganizationMember`."""
-    orderBy: [OrganizationMemberOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): OrganizationMemberEdge
-}
-
-"""All input for the `deleteOrganizationMember` mutation."""
-input DeleteOrganizationMemberInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -18542,14 +18413,6 @@ type Mutation {
     input: CreateRepositoryRelationshipMetadatumInput!
   ): CreateRepositoryRelationshipMetadatumPayload
 
-  """Creates a single `OrganizationMember`."""
-  createOrganizationMember(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateOrganizationMemberInput!
-  ): CreateOrganizationMemberPayload
-
   """Creates a single `MergeBatch`."""
   createMergeBatch(
     """
@@ -18719,14 +18582,6 @@ type Mutation {
     """
     input: UpdateRepositoryRelationshipMetadatumInput!
   ): UpdateRepositoryRelationshipMetadatumPayload
-
-  """Updates a single `OrganizationMember` using a unique key and a patch."""
-  updateOrganizationMember(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateOrganizationMemberInput!
-  ): UpdateOrganizationMemberPayload
 
   """Updates a single `MergeBatch` using a unique key and a patch."""
   updateMergeBatch(
@@ -18919,14 +18774,6 @@ type Mutation {
     """
     input: DeleteRepositoryRelationshipMetadatumInput!
   ): DeleteRepositoryRelationshipMetadatumPayload
-
-  """Deletes a single `OrganizationMember` using a unique key."""
-  deleteOrganizationMember(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteOrganizationMemberInput!
-  ): DeleteOrganizationMemberPayload
 
   """Deletes a single `MergeBatch` using a unique key."""
   deleteMergeBatch(

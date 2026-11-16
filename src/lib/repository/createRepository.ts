@@ -1,5 +1,9 @@
 import { eq } from "drizzle-orm";
 
+import {
+  INSUFFICIENT_ROLE_MESSAGE,
+  organizationRepositoryCreateDenial,
+} from "lib/auth/organizationRoles";
 import { repositoryTable } from "lib/db/schema";
 import { isWithinLimit } from "lib/entitlements";
 import { repositoryService } from "lib/git";
@@ -16,7 +20,7 @@ import type { dbPool } from "lib/db/db";
  * Repository creation.
  *
  * The single correct way to create a repository: it enforces organization
- * membership and the private-repository entitlement, writes the row, and
+ * membership with an owner or admin role, the private-repository entitlement, writes the row, and
  * initializes git storage on disk. The auto-generated `createRepository`
  * mutation is hidden precisely because it does only the row, leaving a
  * repository that can never be cloned or pushed to.
@@ -101,12 +105,17 @@ export const createRepository = async ({
 
     if (!organization) return failure("Workspace not found");
 
-    // Membership comes from the caller's claims, which for an access token are
-    // served from the membership mirror rather than a live token
-    const isMember = organizations.some(
-      (org) => org.id === organization.idpOrganizationId,
+    // Membership and role come from the caller's claims, which for an access
+    // token are served from the membership mirror rather than a live token. A
+    // non-member learns nothing beyond "Unauthorized"
+    const denial = organizationRepositoryCreateDenial(
+      organizations,
+      organization.idpOrganizationId,
     );
-    if (!isMember) return failure("Unauthorized");
+    if (denial === "not_member") return failure("Unauthorized");
+    if (denial === "insufficient_role") {
+      return failure(INSUFFICIENT_ROLE_MESSAGE);
+    }
 
     // The catalog limit governs private repositories only, so public ones are
     // unlimited and are not counted
