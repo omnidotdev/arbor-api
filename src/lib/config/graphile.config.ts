@@ -6,7 +6,9 @@ import { PostGraphileConnectionFilterPreset } from "postgraphile-plugin-connecti
 
 import { pgSubscriber } from "lib/db/pubsub";
 import {
+  AgentPlugin,
   BranchProtectionRulePlugin,
+  ImmutableReferencesPlugin,
   NoNodeIdMutationsPlugin,
   OrganizationPlugin,
   PrimaryKeyMutationsOnlyPlugin,
@@ -18,7 +20,9 @@ import {
   RepositoryPlugin,
   RepositoryReadPlugin,
   RepositoryRelationshipPlugin,
+  ServerOnlyMutationsPlugin,
   SmartTagPlugin,
+  StackPlugin,
   TopicPlugin,
   UserPlugin,
 } from "lib/graphql/plugins/authorization";
@@ -91,6 +95,13 @@ const graphilePreset: GraphileConfig.Preset = {
     RepositoryRelationshipPlugin,
     // Branch protection rules (admin-gated merge policy)
     BranchProtectionRulePlugin,
+    // Agents, and stacks with their changes and verification checks
+    AgentPlugin,
+    StackPlugin,
+    // Refuse writes to server-written tables (also hidden by smart tags)
+    ServerOnlyMutationsPlugin,
+    // Key columns (primary and foreign keys) are not patchable
+    ImmutableReferencesPlugin,
     SmartTagPlugin,
     UserPlugin,
     // Personal access tokens (git HTTPS credentials)

@@ -13216,51 +13216,6 @@ input RepositoryRelationshipMetadatumInput {
   createdAt: Datetime
 }
 
-"""The output of our create `MergeBatch` mutation."""
-type CreateMergeBatchPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `MergeBatch` that was created by this mutation."""
-  mergeBatch: MergeBatch
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `MergeBatch`. May be used by Relay 1."""
-  mergeBatchEdge(
-    """The method to use when ordering `MergeBatch`."""
-    orderBy: [MergeBatchOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): MergeBatchEdge
-}
-
-"""All input for the create `MergeBatch` mutation."""
-input CreateMergeBatchInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `MergeBatch` to be created by this mutation."""
-  mergeBatch: MergeBatchInput!
-}
-
-"""An input for mutations affecting `MergeBatch`"""
-input MergeBatchInput {
-  rowId: UUID
-  repositoryId: UUID!
-  speculativeBranch: String
-  ciStatus: String
-  createdAt: Datetime
-  updatedAt: Datetime
-}
-
 """The output of our create `ExternalDependency` mutation."""
 type CreateExternalDependencyPayload {
   """
@@ -13634,56 +13589,6 @@ input StackInput {
   updatedAt: Datetime
 }
 
-"""The output of our create `MergeQueueEntry` mutation."""
-type CreateMergeQueueEntryPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `MergeQueueEntry` that was created by this mutation."""
-  mergeQueueEntry: MergeQueueEntry
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `MergeQueueEntry`. May be used by Relay 1."""
-  mergeQueueEntryEdge(
-    """The method to use when ordering `MergeQueueEntry`."""
-    orderBy: [MergeQueueEntryOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): MergeQueueEntryEdge
-}
-
-"""All input for the create `MergeQueueEntry` mutation."""
-input CreateMergeQueueEntryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `MergeQueueEntry` to be created by this mutation."""
-  mergeQueueEntry: MergeQueueEntryInput!
-}
-
-"""An input for mutations affecting `MergeQueueEntry`"""
-input MergeQueueEntryInput {
-  rowId: UUID
-  repositoryId: UUID!
-  stackId: UUID
-  pullRequestId: UUID
-  batchId: UUID
-  state: String
-  position: Int
-  targetBranch: String
-  enqueuedAt: Datetime
-  createdAt: Datetime
-  updatedAt: Datetime
-}
-
 """The output of our create `PullRequestComment` mutation."""
 type CreatePullRequestCommentPayload {
   """
@@ -13832,55 +13737,6 @@ input RepositoryRelationshipInput {
   updatedAt: Datetime
 }
 
-"""The output of our create `TesterApplication` mutation."""
-type CreateTesterApplicationPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `TesterApplication` that was created by this mutation."""
-  testerApplication: TesterApplication
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `TesterApplication`. May be used by Relay 1."""
-  testerApplicationEdge(
-    """The method to use when ordering `TesterApplication`."""
-    orderBy: [TesterApplicationOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): TesterApplicationEdge
-}
-
-"""All input for the create `TesterApplication` mutation."""
-input CreateTesterApplicationInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `TesterApplication` to be created by this mutation."""
-  testerApplication: TesterApplicationInput!
-}
-
-"""An input for mutations affecting `TesterApplication`"""
-input TesterApplicationInput {
-  rowId: UUID
-  userId: UUID!
-  answers: JSON
-  status: String
-  reviewerNote: String
-  ndaAccepted: Boolean
-  ndaVersion: String
-  ndaAcceptedAt: Datetime
-  createdAt: Datetime
-  updatedAt: Datetime
-}
-
 """The output of our create `Change` mutation."""
 type CreateChangePayload {
   """
@@ -14024,67 +13880,10 @@ input OrganizationInput {
   slug: String
   description: String
   avatarUrl: String
-  subscriptionId: String
-  billingAccountId: String
   createdAt: Datetime
   updatedAt: Datetime
   deletedAt: Datetime
   deletionReason: String
-}
-
-"""The output of our create `PullRequest` mutation."""
-type CreatePullRequestPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `PullRequest` that was created by this mutation."""
-  pullRequest: PullRequest
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `PullRequest`. May be used by Relay 1."""
-  pullRequestEdge(
-    """The method to use when ordering `PullRequest`."""
-    orderBy: [PullRequestOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): PullRequestEdge
-}
-
-"""All input for the create `PullRequest` mutation."""
-input CreatePullRequestInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-
-  """The `PullRequest` to be created by this mutation."""
-  pullRequest: PullRequestInput!
-}
-
-"""An input for mutations affecting `PullRequest`"""
-input PullRequestInput {
-  rowId: UUID
-  number: Int!
-  repositoryId: UUID!
-  authorId: UUID!
-  authoredByAgentId: UUID
-  title: String!
-  description: String
-  state: String
-  sourceBranch: String!
-  targetBranch: String!
-  mergeCommitSha: String
-  mergedAt: Datetime
-  mergedById: UUID
-  closedAt: Datetime
-  createdAt: Datetime
-  updatedAt: Datetime
 }
 
 """The output of our update `TopicPullRequest` mutation."""
@@ -14129,9 +13928,6 @@ input UpdateTopicPullRequestInput {
 Represents an update to a `TopicPullRequest`. Fields that are set will be updated.
 """
 input TopicPullRequestPatch {
-  rowId: UUID
-  topicId: UUID
-  pullRequestId: UUID
   createdAt: Datetime
 }
 
@@ -14177,9 +13973,6 @@ input UpdateProjectRepositoryInput {
 Represents an update to a `ProjectRepository`. Fields that are set will be updated.
 """
 input ProjectRepositoryPatch {
-  rowId: UUID
-  projectId: UUID
-  repositoryId: UUID
   detectionSource: String
   createdAt: Datetime
 }
@@ -14230,61 +14023,9 @@ input UpdateRepositoryRelationshipMetadatumInput {
 Represents an update to a `RepositoryRelationshipMetadatum`. Fields that are set will be updated.
 """
 input RepositoryRelationshipMetadatumPatch {
-  rowId: UUID
-  relationshipId: UUID
   key: String
   value: String
   createdAt: Datetime
-}
-
-"""The output of our update `MergeBatch` mutation."""
-type UpdateMergeBatchPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `MergeBatch` that was updated by this mutation."""
-  mergeBatch: MergeBatch
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `MergeBatch`. May be used by Relay 1."""
-  mergeBatchEdge(
-    """The method to use when ordering `MergeBatch`."""
-    orderBy: [MergeBatchOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): MergeBatchEdge
-}
-
-"""All input for the `updateMergeBatch` mutation."""
-input UpdateMergeBatchInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `MergeBatch` being updated.
-  """
-  patch: MergeBatchPatch!
-}
-
-"""
-Represents an update to a `MergeBatch`. Fields that are set will be updated.
-"""
-input MergeBatchPatch {
-  rowId: UUID
-  repositoryId: UUID
-  speculativeBranch: String
-  ciStatus: String
-  createdAt: Datetime
-  updatedAt: Datetime
 }
 
 """The output of our update `ExternalDependency` mutation."""
@@ -14329,8 +14070,6 @@ input UpdateExternalDependencyInput {
 Represents an update to a `ExternalDependency`. Fields that are set will be updated.
 """
 input ExternalDependencyPatch {
-  rowId: UUID
-  repositoryId: UUID
   packageManager: String
   packageName: String
   versionConstraint: String
@@ -14380,9 +14119,6 @@ input UpdateTopicInput {
 Represents an update to a `Topic`. Fields that are set will be updated.
 """
 input TopicPatch {
-  rowId: UUID
-  ownerId: UUID
-  organizationId: UUID
   title: String
   description: String
   status: String
@@ -14433,8 +14169,6 @@ input UpdateRepositoryCollaboratorInput {
 Represents an update to a `RepositoryCollaborator`. Fields that are set will be updated.
 """
 input RepositoryCollaboratorPatch {
-  repositoryId: UUID
-  userId: UUID
   permission: Permission
   createdAt: Datetime
   updatedAt: Datetime
@@ -14482,11 +14216,9 @@ input UpdateRepositoryRelationshipTypeInput {
 Represents an update to a `RepositoryRelationshipType`. Fields that are set will be updated.
 """
 input RepositoryRelationshipTypePatch {
-  rowId: UUID
   name: String
   description: String
   isDirected: Boolean
-  organizationId: UUID
   createdAt: Datetime
 }
 
@@ -14532,8 +14264,6 @@ input UpdateBranchProtectionRuleInput {
 Represents an update to a `BranchProtectionRule`. Fields that are set will be updated.
 """
 input BranchProtectionRulePatch {
-  rowId: UUID
-  repositoryId: UUID
   refPattern: String
   requiredApprovals: Int
   requirePassingChecks: Boolean
@@ -14939,7 +14669,6 @@ input UpdateUserInput {
 
 """Represents an update to a `User`. Fields that are set will be updated."""
 input UserPatch {
-  rowId: UUID
   name: String
   username: String
   avatarUrl: String
@@ -14990,9 +14719,6 @@ input UpdateAgentInput {
 Represents an update to a `Agent`. Fields that are set will be updated.
 """
 input AgentPatch {
-  rowId: UUID
-  ownerId: UUID
-  organizationId: UUID
   name: String
   slug: String
   description: String
@@ -15044,9 +14770,6 @@ input UpdatePullRequestReviewInput {
 Represents an update to a `PullRequestReview`. Fields that are set will be updated.
 """
 input PullRequestReviewPatch {
-  rowId: UUID
-  pullRequestId: UUID
-  reviewerId: UUID
   state: String
   body: String
   submittedAt: Datetime
@@ -15096,69 +14819,10 @@ input UpdateStackInput {
 Represents an update to a `Stack`. Fields that are set will be updated.
 """
 input StackPatch {
-  rowId: UUID
-  repositoryId: UUID
-  authorId: UUID
-  authoredByAgentId: UUID
   title: String
   description: String
   baseBranch: String
   status: String
-  createdAt: Datetime
-  updatedAt: Datetime
-}
-
-"""The output of our update `MergeQueueEntry` mutation."""
-type UpdateMergeQueueEntryPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `MergeQueueEntry` that was updated by this mutation."""
-  mergeQueueEntry: MergeQueueEntry
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `MergeQueueEntry`. May be used by Relay 1."""
-  mergeQueueEntryEdge(
-    """The method to use when ordering `MergeQueueEntry`."""
-    orderBy: [MergeQueueEntryOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): MergeQueueEntryEdge
-}
-
-"""All input for the `updateMergeQueueEntry` mutation."""
-input UpdateMergeQueueEntryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `MergeQueueEntry` being updated.
-  """
-  patch: MergeQueueEntryPatch!
-}
-
-"""
-Represents an update to a `MergeQueueEntry`. Fields that are set will be updated.
-"""
-input MergeQueueEntryPatch {
-  rowId: UUID
-  repositoryId: UUID
-  stackId: UUID
-  pullRequestId: UUID
-  batchId: UUID
-  state: String
-  position: Int
-  targetBranch: String
-  enqueuedAt: Datetime
   createdAt: Datetime
   updatedAt: Datetime
 }
@@ -15205,15 +14869,11 @@ input UpdatePullRequestCommentInput {
 Represents an update to a `PullRequestComment`. Fields that are set will be updated.
 """
 input PullRequestCommentPatch {
-  rowId: UUID
-  pullRequestId: UUID
-  authorId: UUID
   body: String
   path: String
   line: Int
   side: String
   commitSha: String
-  replyToId: UUID
   createdAt: Datetime
   updatedAt: Datetime
 }
@@ -15260,8 +14920,6 @@ input UpdateVerificationCheckInput {
 Represents an update to a `VerificationCheck`. Fields that are set will be updated.
 """
 input VerificationCheckPatch {
-  rowId: UUID
-  changeId: UUID
   name: String
   category: String
   status: String
@@ -15314,68 +14972,10 @@ input UpdateRepositoryRelationshipInput {
 Represents an update to a `RepositoryRelationship`. Fields that are set will be updated.
 """
 input RepositoryRelationshipPatch {
-  rowId: UUID
-  sourceRepositoryId: UUID
-  targetRepositoryId: UUID
-  relationshipTypeId: UUID
   detectionSource: String
   confidence: Float
   versionConstraint: String
   branch: String
-  createdAt: Datetime
-  updatedAt: Datetime
-}
-
-"""The output of our update `TesterApplication` mutation."""
-type UpdateTesterApplicationPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `TesterApplication` that was updated by this mutation."""
-  testerApplication: TesterApplication
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `TesterApplication`. May be used by Relay 1."""
-  testerApplicationEdge(
-    """The method to use when ordering `TesterApplication`."""
-    orderBy: [TesterApplicationOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): TesterApplicationEdge
-}
-
-"""All input for the `updateTesterApplication` mutation."""
-input UpdateTesterApplicationInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-
-  """
-  An object where the defined keys will be set on the `TesterApplication` being updated.
-  """
-  patch: TesterApplicationPatch!
-}
-
-"""
-Represents an update to a `TesterApplication`. Fields that are set will be updated.
-"""
-input TesterApplicationPatch {
-  rowId: UUID
-  userId: UUID
-  answers: JSON
-  status: String
-  reviewerNote: String
-  ndaAccepted: Boolean
-  ndaVersion: String
-  ndaAcceptedAt: Datetime
   createdAt: Datetime
   updatedAt: Datetime
 }
@@ -15422,9 +15022,6 @@ input UpdateChangeInput {
 Represents an update to a `Change`. Fields that are set will be updated.
 """
 input ChangePatch {
-  rowId: UUID
-  stackId: UUID
-  repositoryId: UUID
   parentChangeId: UUID
   commitSha: String
   headBranch: String
@@ -15432,7 +15029,6 @@ input ChangePatch {
   description: String
   position: Int
   status: String
-  pullRequestId: UUID
   createdAt: Datetime
   updatedAt: Datetime
 }
@@ -15479,9 +15075,6 @@ input UpdateProjectInput {
 Represents an update to a `Project`. Fields that are set will be updated.
 """
 input ProjectPatch {
-  rowId: UUID
-  ownerId: UUID
-  organizationId: UUID
   name: String
   slug: String
   description: String
@@ -15532,14 +15125,10 @@ input UpdateOrganizationInput {
 Represents an update to a `Organization`. Fields that are set will be updated.
 """
 input OrganizationPatch {
-  rowId: UUID
-  idpOrganizationId: String
   name: String
   slug: String
   description: String
   avatarUrl: String
-  subscriptionId: String
-  billingAccountId: String
   createdAt: Datetime
   updatedAt: Datetime
   deletedAt: Datetime
@@ -15588,7 +15177,6 @@ input UpdateRepositoryInput {
 Represents an update to a `Repository`. Fields that are set will be updated.
 """
 input RepositoryPatch {
-  rowId: UUID
   name: String
   slug: String
   description: String
@@ -15640,20 +15228,10 @@ input UpdatePullRequestInput {
 Represents an update to a `PullRequest`. Fields that are set will be updated.
 """
 input PullRequestPatch {
-  rowId: UUID
-  number: Int
-  repositoryId: UUID
-  authorId: UUID
-  authoredByAgentId: UUID
   title: String
   description: String
-  state: String
   sourceBranch: String
   targetBranch: String
-  mergeCommitSha: String
-  mergedAt: Datetime
-  mergedById: UUID
-  closedAt: Datetime
   createdAt: Datetime
   updatedAt: Datetime
 }
@@ -15756,40 +15334,6 @@ type DeleteRepositoryRelationshipMetadatumPayload {
 
 """All input for the `deleteRepositoryRelationshipMetadatum` mutation."""
 input DeleteRepositoryRelationshipMetadatumInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-}
-
-"""The output of our delete `MergeBatch` mutation."""
-type DeleteMergeBatchPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `MergeBatch` that was deleted by this mutation."""
-  mergeBatch: MergeBatch
-  deletedMergeBatchId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `MergeBatch`. May be used by Relay 1."""
-  mergeBatchEdge(
-    """The method to use when ordering `MergeBatch`."""
-    orderBy: [MergeBatchOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): MergeBatchEdge
-}
-
-"""All input for the `deleteMergeBatch` mutation."""
-input DeleteMergeBatchInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -16137,40 +15681,6 @@ input DeleteStackInput {
   rowId: UUID!
 }
 
-"""The output of our delete `MergeQueueEntry` mutation."""
-type DeleteMergeQueueEntryPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `MergeQueueEntry` that was deleted by this mutation."""
-  mergeQueueEntry: MergeQueueEntry
-  deletedMergeQueueEntryId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `MergeQueueEntry`. May be used by Relay 1."""
-  mergeQueueEntryEdge(
-    """The method to use when ordering `MergeQueueEntry`."""
-    orderBy: [MergeQueueEntryOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): MergeQueueEntryEdge
-}
-
-"""All input for the `deleteMergeQueueEntry` mutation."""
-input DeleteMergeQueueEntryInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-}
-
 """The output of our delete `PullRequestComment` mutation."""
 type DeletePullRequestCommentPayload {
   """
@@ -16265,40 +15775,6 @@ type DeleteRepositoryRelationshipPayload {
 
 """All input for the `deleteRepositoryRelationship` mutation."""
 input DeleteRepositoryRelationshipInput {
-  """
-  An arbitrary string value with no semantic meaning. Will be included in the
-  payload verbatim. May be used to track mutations by the client.
-  """
-  clientMutationId: String
-  rowId: UUID!
-}
-
-"""The output of our delete `TesterApplication` mutation."""
-type DeleteTesterApplicationPayload {
-  """
-  The exact same `clientMutationId` that was provided in the mutation input,
-  unchanged and unused. May be used by a client to track mutations.
-  """
-  clientMutationId: String
-
-  """The `TesterApplication` that was deleted by this mutation."""
-  testerApplication: TesterApplication
-  deletedTesterApplicationId: ID
-
-  """
-  Our root query field type. Allows us to run any query from our mutation payload.
-  """
-  query: Query
-
-  """An edge for our `TesterApplication`. May be used by Relay 1."""
-  testerApplicationEdge(
-    """The method to use when ordering `TesterApplication`."""
-    orderBy: [TesterApplicationOrderBy!]! = [PRIMARY_KEY_ASC]
-  ): TesterApplicationEdge
-}
-
-"""All input for the `deleteTesterApplication` mutation."""
-input DeleteTesterApplicationInput {
   """
   An arbitrary string value with no semantic meaning. Will be included in the
   payload verbatim. May be used to track mutations by the client.
@@ -18413,14 +17889,6 @@ type Mutation {
     input: CreateRepositoryRelationshipMetadatumInput!
   ): CreateRepositoryRelationshipMetadatumPayload
 
-  """Creates a single `MergeBatch`."""
-  createMergeBatch(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateMergeBatchInput!
-  ): CreateMergeBatchPayload
-
   """Creates a single `ExternalDependency`."""
   createExternalDependency(
     """
@@ -18485,14 +17953,6 @@ type Mutation {
     input: CreateStackInput!
   ): CreateStackPayload
 
-  """Creates a single `MergeQueueEntry`."""
-  createMergeQueueEntry(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateMergeQueueEntryInput!
-  ): CreateMergeQueueEntryPayload
-
   """Creates a single `PullRequestComment`."""
   createPullRequestComment(
     """
@@ -18517,14 +17977,6 @@ type Mutation {
     input: CreateRepositoryRelationshipInput!
   ): CreateRepositoryRelationshipPayload
 
-  """Creates a single `TesterApplication`."""
-  createTesterApplication(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreateTesterApplicationInput!
-  ): CreateTesterApplicationPayload
-
   """Creates a single `Change`."""
   createChange(
     """
@@ -18548,14 +18000,6 @@ type Mutation {
     """
     input: CreateOrganizationInput!
   ): CreateOrganizationPayload
-
-  """Creates a single `PullRequest`."""
-  createPullRequest(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: CreatePullRequestInput!
-  ): CreatePullRequestPayload
 
   """Updates a single `TopicPullRequest` using a unique key and a patch."""
   updateTopicPullRequest(
@@ -18582,14 +18026,6 @@ type Mutation {
     """
     input: UpdateRepositoryRelationshipMetadatumInput!
   ): UpdateRepositoryRelationshipMetadatumPayload
-
-  """Updates a single `MergeBatch` using a unique key and a patch."""
-  updateMergeBatch(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateMergeBatchInput!
-  ): UpdateMergeBatchPayload
 
   """Updates a single `ExternalDependency` using a unique key and a patch."""
   updateExternalDependency(
@@ -18669,14 +18105,6 @@ type Mutation {
     input: UpdateStackInput!
   ): UpdateStackPayload
 
-  """Updates a single `MergeQueueEntry` using a unique key and a patch."""
-  updateMergeQueueEntry(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateMergeQueueEntryInput!
-  ): UpdateMergeQueueEntryPayload
-
   """Updates a single `PullRequestComment` using a unique key and a patch."""
   updatePullRequestComment(
     """
@@ -18702,14 +18130,6 @@ type Mutation {
     """
     input: UpdateRepositoryRelationshipInput!
   ): UpdateRepositoryRelationshipPayload
-
-  """Updates a single `TesterApplication` using a unique key and a patch."""
-  updateTesterApplication(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: UpdateTesterApplicationInput!
-  ): UpdateTesterApplicationPayload
 
   """Updates a single `Change` using a unique key and a patch."""
   updateChange(
@@ -18774,14 +18194,6 @@ type Mutation {
     """
     input: DeleteRepositoryRelationshipMetadatumInput!
   ): DeleteRepositoryRelationshipMetadatumPayload
-
-  """Deletes a single `MergeBatch` using a unique key."""
-  deleteMergeBatch(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteMergeBatchInput!
-  ): DeleteMergeBatchPayload
 
   """Deletes a single `ExternalDependency` using a unique key."""
   deleteExternalDependency(
@@ -18863,14 +18275,6 @@ type Mutation {
     input: DeleteStackInput!
   ): DeleteStackPayload
 
-  """Deletes a single `MergeQueueEntry` using a unique key."""
-  deleteMergeQueueEntry(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteMergeQueueEntryInput!
-  ): DeleteMergeQueueEntryPayload
-
   """Deletes a single `PullRequestComment` using a unique key."""
   deletePullRequestComment(
     """
@@ -18894,14 +18298,6 @@ type Mutation {
     """
     input: DeleteRepositoryRelationshipInput!
   ): DeleteRepositoryRelationshipPayload
-
-  """Deletes a single `TesterApplication` using a unique key."""
-  deleteTesterApplication(
-    """
-    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
-    """
-    input: DeleteTesterApplicationInput!
-  ): DeleteTesterApplicationPayload
 
   """Deletes a single `Change` using a unique key."""
   deleteChange(

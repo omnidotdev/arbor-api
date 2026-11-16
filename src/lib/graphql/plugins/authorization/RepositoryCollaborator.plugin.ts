@@ -13,8 +13,15 @@ import type { PlanWrapperFn } from "postgraphile/utils";
  *
  * - Create: Owner or admin collaborator can add collaborators (with tier limits)
  * - Update: Owner or admin collaborator can change permissions
+ *
+ * `inputPath` locates the repository and user ids: the new row on create, and on
+ * update the mutation's own key arguments. Update once read them from the
+ * patch, which was not the row being changed: a caller authorized on their own
+ * repository could name another repository's collaborator row as the key and
+ * move it out. Key columns are no longer patchable at all
+ * (ImmutableReferences.plugin.ts)
  */
-const validatePermissions = (propName: string, scope: "create" | "update") =>
+const validatePermissions = (inputPath: string[], scope: "create" | "update") =>
   EXPORTABLE(
     (
       context,
@@ -22,11 +29,11 @@ const validatePermissions = (propName: string, scope: "create" | "update") =>
       isWithinLimit,
       FEATURE_KEYS,
       billingBypassOrgIds,
-      propName,
+      inputPath,
       scope,
     ): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
-        const $input = fieldArgs.getRaw(["input", propName]);
+        const $input = fieldArgs.getRaw(inputPath);
         const $observer = context().get("observer");
         const $db = context().get("db");
 
@@ -91,7 +98,7 @@ const validatePermissions = (propName: string, scope: "create" | "update") =>
       isWithinLimit,
       FEATURE_KEYS,
       billingBypassOrgIds,
-      propName,
+      inputPath,
       scope,
     ],
   );
@@ -155,10 +162,10 @@ const validateDeletePermissions = (): PlanWrapperFn =>
 const RepositoryCollaboratorPlugin = wrapPlans({
   Mutation: {
     createRepositoryCollaborator: validatePermissions(
-      "repositoryCollaborator",
+      ["input", "repositoryCollaborator"],
       "create",
     ),
-    updateRepositoryCollaborator: validatePermissions("patch", "update"),
+    updateRepositoryCollaborator: validatePermissions(["input"], "update"),
     deleteRepositoryCollaborator: validateDeletePermissions(),
   },
 });

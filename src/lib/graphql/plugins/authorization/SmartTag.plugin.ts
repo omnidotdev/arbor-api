@@ -67,6 +67,106 @@ const SmartTagPlugin = jsonPgSmartTags({
           behavior: "-insert -update -delete",
         },
       },
+      organization: {
+        attribute: {
+          // The identity-provider id is what membership and roles are matched
+          // on, so repointing it would hand this organization's repositories to
+          // the members of whichever organization it was pointed at
+          idp_organization_id: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+          // Billing linkage is server-managed. A client value could attach
+          // another workspace's subscription to this organization
+          subscription_id: {
+            tags: {
+              behavior: "-insert -update",
+            },
+          },
+          billing_account_id: {
+            tags: {
+              behavior: "-insert -update",
+            },
+          },
+        },
+      },
+      // Server-written tables. The merge queue service creates and advances
+      // batches and entries (enqueueStack and processMergeQueue gate on write
+      // access); a client write could enqueue into, reorder, or evict from
+      // another workspace's queue. Tester applications are created by
+      // submitTesterApplication and decided by the decision consumer; an
+      // approved row admits a user to the beta, so a client write would let
+      // anyone approve themselves. Reads stay. ServerOnlyMutations.plugin.ts
+      // refuses each mutation as well, in case a tag is dropped
+      merge_batch: {
+        tags: {
+          behavior: "-insert -update -delete",
+        },
+      },
+      merge_queue_entry: {
+        tags: {
+          behavior: "-insert -update -delete",
+        },
+      },
+      tester_application: {
+        tags: {
+          behavior: "-insert -update -delete",
+        },
+      },
+      pull_request: {
+        tags: {
+          // Pull requests are opened through openPullRequest, which assigns the
+          // per-repository number and binds the author to the caller. The
+          // generated insert let a caller pick both, and the initial state.
+          // A class behavior tag replaces the node-id removals
+          // NoNodeIdMutations.plugin.ts adds, so they are restated here;
+          // without them the unwrapped updatePullRequestById and
+          // deletePullRequestById reappear
+          behavior: "-insert -nodeId:resource:update -nodeId:resource:delete",
+        },
+        attribute: {
+          // Lifecycle columns move only through closePullRequest,
+          // reopenPullRequest, and mergePullRequest; patching them would fake
+          // a merge or a close
+          number: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+          state: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+          merge_commit_sha: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+          merged_at: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+          closed_at: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+        },
+      },
+      pull_request_comment: {
+        attribute: {
+          // A reply belongs to its thread. The column carries no foreign key, so
+          // ImmutableReferences.plugin.ts does not cover it
+          reply_to_id: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+        },
+      },
       repository_collaborator: {
         attribute: {
           permission: {
