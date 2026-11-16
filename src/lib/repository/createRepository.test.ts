@@ -117,10 +117,101 @@ describe("createRepository", () => {
     expect(result.error).toBe("Unauthorized");
   });
 
+  test("refuses a member without an owner or admin role", async () => {
+    const captured: { values?: Record<string, unknown> } = {};
+    let initialized = false;
+
+    const result = await createRepository({
+      observer: { id: "user-1" },
+      organizations: [orgClaim("idp-org-1", ["member"])],
+      input: { ...baseInput, organizationId: "org-1" },
+      db: makeDb({
+        organization: {
+          id: "org-1",
+          idpOrganizationId: "idp-org-1",
+          repositories: [],
+        },
+        captured,
+      }),
+      initStorage: async () => {
+        initialized = true;
+        return true;
+      },
+    });
+
+    expect(result.error).toMatch(/owners and admins/);
+    // refused before anything is written
+    expect(captured.values).toBeUndefined();
+    expect(initialized).toBe(false);
+  });
+
+  test("a non-member is refused before the role is considered", async () => {
+    const result = await createRepository({
+      observer: { id: "user-1" },
+      // owner of a different organization
+      organizations: [orgClaim("idp-other", ["owner"])],
+      input: { ...baseInput, organizationId: "org-1" },
+      db: makeDb({
+        organization: {
+          id: "org-1",
+          idpOrganizationId: "idp-org-1",
+          repositories: [],
+        },
+      }),
+      initStorage: async () => true,
+    });
+
+    // a non-member learns nothing about the organization
+    expect(result.error).toBe("Unauthorized");
+  });
+
+  test("a caller with no organization claims (a delegated service user) cannot create in an organization", async () => {
+    const result = await createRepository({
+      observer: { id: "svc-keystone" },
+      organizations: [],
+      input: { ...baseInput, organizationId: "org-1" },
+      db: makeDb({
+        organization: {
+          id: "org-1",
+          idpOrganizationId: "idp-org-1",
+          repositories: [],
+        },
+      }),
+      initStorage: async () => true,
+    });
+
+    expect(result.error).toBe("Unauthorized");
+  });
+
+  for (const role of ["owner", "admin"]) {
+    test(`an organization ${role} creates a repository in it`, async () => {
+      const captured: { values?: Record<string, unknown> } = {};
+
+      const result = await createRepository({
+        observer: { id: "user-1" },
+        organizations: [orgClaim("idp-org-1", [role])],
+        input: { ...baseInput, organizationId: "org-1" },
+        db: makeDb({
+          organization: {
+            id: "org-1",
+            idpOrganizationId: "idp-org-1",
+            repositories: [],
+          },
+          captured,
+        }),
+        initStorage: async () => true,
+      });
+
+      expect(result.error).toBeNull();
+      expect(captured.values?.organizationId).toBe("org-1");
+      expect(captured.values?.ownerId).toBe("user-1");
+    });
+  }
+
   test("refuses a private repository over the plan limit", async () => {
     const result = await createRepository({
       observer: { id: "user-1" },
-      organizations: [orgClaim("idp-org-1")],
+      organizations: [orgClaim("idp-org-1", ["admin"])],
       input: { ...baseInput, visibility: "private", organizationId: "org-1" },
       db: makeDb({
         organization: {
@@ -141,7 +232,7 @@ describe("createRepository", () => {
 
     const result = await createRepository({
       observer: { id: "user-1" },
-      organizations: [orgClaim("idp-org-1")],
+      organizations: [orgClaim("idp-org-1", ["owner"])],
       input: { ...baseInput, visibility: "public", organizationId: "org-1" },
       db: makeDb({
         organization: {

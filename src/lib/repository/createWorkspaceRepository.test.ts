@@ -153,6 +153,51 @@ describe("createWorkspaceRepository", () => {
     expect(recorded.inserts).toEqual([]);
   });
 
+  test("refuses a member without an owner or admin role, writing nothing", async () => {
+    const recorded: Recorded = { inserts: [] };
+    let created = false;
+    const result = await createWorkspaceRepository({
+      observer: product,
+      memberToken: "t",
+      input,
+      db: makeDb({ organization: null, recorded }),
+      resolveMember: async () => member([claim("idp-acme", ["member"])]),
+      create: (async () => {
+        created = true;
+        return okCreate({} as never);
+      }) as unknown as typeof createRepository,
+    });
+
+    expect(result.error).toMatch(/owners and admins/);
+    expect(created).toBe(false);
+    // no organization row, mirrored membership, or product grant
+    expect(recorded.inserts).toEqual([]);
+  });
+
+  test("a plain member cannot reach an existing workspace repository through the product", async () => {
+    const recorded: Recorded = { inserts: [] };
+    const result = await createWorkspaceRepository({
+      observer: product,
+      memberToken: "t",
+      input,
+      db: makeDb({
+        organization: { id: "org-1", slug: "acme" },
+        repository: {
+          id: "repo-9",
+          slug: "site-1",
+          owner: { username: "bob" },
+          collaborators: [{ permission: "write" }],
+        },
+        recorded,
+      }),
+      resolveMember: async () => member([claim("idp-acme", ["member"])]),
+      create: okCreate,
+    });
+
+    expect(result.error).toMatch(/owners and admins/);
+    expect(result.rowId).toBeNull();
+  });
+
   test("creates the repository as the member, owned by the workspace, and grants the product write", async () => {
     const recorded: Recorded = { inserts: [] };
     let createdWith: Parameters<typeof createRepository>[0] | undefined;
@@ -202,7 +247,7 @@ describe("createWorkspaceRepository", () => {
         },
         recorded,
       }),
-      resolveMember: async () => member([claim("idp-acme")]),
+      resolveMember: async () => member([claim("idp-acme", ["admin"])]),
       create: (async () => {
         created = true;
         return okCreate({} as never);
@@ -234,7 +279,7 @@ describe("createWorkspaceRepository", () => {
         },
         recorded,
       }),
-      resolveMember: async () => member([claim("idp-acme")]),
+      resolveMember: async () => member([claim("idp-acme", ["owner"])]),
       create: okCreate,
     });
 

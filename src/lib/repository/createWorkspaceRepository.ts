@@ -1,3 +1,7 @@
+import {
+  INSUFFICIENT_ROLE_MESSAGE,
+  organizationRepositoryCreateDenial,
+} from "lib/auth/organizationRoles";
 import { FIRST_PARTY_SERVICE_USERS } from "lib/auth/serviceUsers";
 import {
   organizationMemberTable,
@@ -19,7 +23,8 @@ import type { CreateRepositoryResult } from "./createRepository";
  * An Omni product (Keystone, for one) keeps work it produces for a workspace in
  * a repository the WORKSPACE owns, not in one the product owns. The product's
  * service user cannot be a workspace member, so it calls this with the
- * member's own access token: the member must belong to the workspace, the
+ * member's own access token: the member must belong to the workspace with an
+ * owner or admin role (the role that may create repositories there), the
  * repository is created exactly as if the member had created it (owned by the
  * workspace's organization, under the member's path), and the product is then
  * added as a `write` collaborator on that one repository. That grant is the
@@ -130,6 +135,19 @@ export const createWorkspaceRepository = async ({
     (org) => org.id === input.idpOrganizationId,
   );
   if (!claim) return failure("Unauthorized");
+
+  // and hold a role that may create repositories there. Checked before the
+  // re-publish branch too: the product writes to the workspace repository on
+  // the member's say-so, so a member who could not create it directly must
+  // not reach it through the product either
+  if (
+    organizationRepositoryCreateDenial(
+      member.organizations,
+      input.idpOrganizationId,
+    ) !== null
+  ) {
+    return failure(INSUFFICIENT_ROLE_MESSAGE);
+  }
 
   const organization = await ensureOrganization(db, claim);
 

@@ -2,8 +2,13 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
+import {
+  INSUFFICIENT_ROLE_MESSAGE,
+  organizationRepositoryCreateDenial,
+} from "lib/auth/organizationRoles";
 import { isWithinLimit } from "lib/entitlements";
 import { FEATURE_KEYS, billingBypassOrgIds } from "./constants";
+import { repositoryPatchChangesOwnership } from "./repositoryOwnership";
 
 import type { InsertRepository } from "lib/db/schema";
 import type { PlanWrapperFn } from "postgraphile/utils";
@@ -12,49 +17,69 @@ import type { MutationScope } from "./types";
 /**
  * Validate repository permissions for update/delete.
  *
- * - Update: Owner or admin collaborator can update
+ * - Update: Owner or admin collaborator can update, but never the owner or
+ *   organization (a transfer)
  * - Delete: Owner only
  */
 const validatePermissions = (propName: string, scope: MutationScope) =>
   EXPORTABLE(
-    (context, sideEffect, propName, scope): PlanWrapperFn =>
+    (
+      context,
+      sideEffect,
+      repositoryPatchChangesOwnership,
+      propName,
+      scope,
+    ): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
+        const $patch = fieldArgs.getRaw(["input", "patch"]);
         const $observer = context().get("observer");
         const $db = context().get("db");
 
-        sideEffect([$input, $observer, $db], async ([input, observer, db]) => {
-          if (!observer) throw new Error("Unauthorized");
+        sideEffect(
+          [$input, $patch, $observer, $db],
+          async ([input, patch, observer, db]) => {
+            if (!observer) throw new Error("Unauthorized");
 
-          // Update or delete
-          const repository = await db.query.repositoryTable.findFirst({
-            where: (table, { eq }) => eq(table.id, input),
-            with: {
-              collaborators: {
-                where: (table, { eq }) => eq(table.userId, observer.id),
+            // Ownership is fixed at creation. Moving a repository to another
+            // owner or into an organization is a transfer, which needs the
+            // destination's consent and role checks that a patch cannot carry,
+            // so a patch may never change either. The schema hides both fields
+            // from RepositoryPatch (SmartTag.plugin.ts); this is the backstop
+            if (repositoryPatchChangesOwnership(patch)) {
+              throw new Error("Repository ownership cannot be changed");
+            }
+
+            // Update or delete
+            const repository = await db.query.repositoryTable.findFirst({
+              where: (table, { eq }) => eq(table.id, input),
+              with: {
+                collaborators: {
+                  where: (table, { eq }) => eq(table.userId, observer.id),
+                },
               },
-            },
-          });
+            });
 
-          if (!repository) throw new Error("Unauthorized");
+            if (!repository) throw new Error("Unauthorized");
 
-          const isOwner = repository.ownerId === observer.id;
-          const collaborator = repository.collaborators[0];
-          const isAdminCollaborator = collaborator?.permission === "admin";
+            const isOwner = repository.ownerId === observer.id;
+            const collaborator = repository.collaborators[0];
+            const isAdminCollaborator = collaborator?.permission === "admin";
 
-          if (scope === "delete") {
-            // Only owner can delete
-            if (!isOwner) throw new Error("Unauthorized");
-          } else if (scope === "update") {
-            // Owner or admin collaborator can update
-            if (!isOwner && !isAdminCollaborator)
-              throw new Error("Unauthorized");
-          }
-        });
+            if (scope === "delete") {
+              // Only owner can delete
+              if (!isOwner) throw new Error("Unauthorized");
+            } else if (scope === "update") {
+              // Owner or admin collaborator can update
+              if (!isOwner && !isAdminCollaborator)
+                throw new Error("Unauthorized");
+            }
+          },
+        );
 
         return plan();
       },
-    [context, sideEffect, propName, scope],
+    [context, sideEffect, repositoryPatchChangesOwnership, propName, scope],
   );
 
 /**
@@ -71,6 +96,8 @@ const createRepositoryWrapper = EXPORTABLE(
     isWithinLimit,
     FEATURE_KEYS,
     billingBypassOrgIds,
+    organizationRepositoryCreateDenial,
+    INSUFFICIENT_ROLE_MESSAGE,
   ): PlanWrapperFn =>
     (plan, _, fieldArgs) => {
       const $input = fieldArgs.getRaw(["input", "repository"]);
@@ -97,13 +124,16 @@ const createRepositoryWrapper = EXPORTABLE(
 
           if (!organization) throw new Error("Workspace not found");
 
-          // Check membership via IDP claims (from JWT)
-          // Organizations array contains the user's org memberships from Gatekeeper
-          const isMember = organizations.some(
-            (org: { id: string }) => org.id === organization.idpOrganizationId,
+          // Membership and an owner or admin role, from the caller's claims
+          const denial = organizationRepositoryCreateDenial(
+            organizations,
+            organization.idpOrganizationId,
           );
 
-          if (!isMember) throw new Error("Unauthorized");
+          if (denial === "not_member") throw new Error("Unauthorized");
+          if (denial === "insufficient_role") {
+            throw new Error(INSUFFICIENT_ROLE_MESSAGE);
+          }
 
           // Check tier limits via Aether entitlements.
           // The catalog limit (max_private_repos) only governs private repos,
@@ -140,15 +170,23 @@ const createRepositoryWrapper = EXPORTABLE(
 
       return plan();
     },
-  [context, sideEffect, isWithinLimit, FEATURE_KEYS, billingBypassOrgIds],
+  [
+    context,
+    sideEffect,
+    isWithinLimit,
+    FEATURE_KEYS,
+    billingBypassOrgIds,
+    organizationRepositoryCreateDenial,
+    INSUFFICIENT_ROLE_MESSAGE,
+  ],
 );
 
 /**
  * Authorization plugin for repositories.
  *
- * - Create: Any authenticated user (with tier limits for org repos)
- *   + Auto-initializes git repository on disk after creation
- * - Update: Owner or admin collaborator
+ * - Create: Any authenticated user for a personal repository; an organization
+ *   repository needs an owner or admin role there (plus tier limits)
+ * - Update: Owner or admin collaborator, never changing owner or organization
  * - Rename: Owner or admin collaborator (update-level permission)
  * - Delete: Owner only
  */

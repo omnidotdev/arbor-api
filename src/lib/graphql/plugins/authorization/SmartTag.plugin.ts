@@ -39,6 +39,32 @@ const SmartTagPlugin = jsonPgSmartTags({
               behavior: "+orderBy",
             },
           },
+          // Ownership is fixed at creation. Patching either column moved a
+          // repository into any organization (or to any user) with no check
+          // that the destination consented, so neither is updatable. The
+          // updateRepository wrapper refuses both as a backstop
+          owner_id: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+          organization_id: {
+            tags: {
+              behavior: "-update",
+            },
+          },
+        },
+      },
+      organization_member: {
+        tags: {
+          // The membership mirror is written only by the server, from a
+          // session's identity-provider claims (lib/auth/organizationMembership)
+          // and the workspace-repository path. The generated mutations let any
+          // caller insert themselves into any organization with any role,
+          // which an access token then honors as real membership: create,
+          // read, and push in that organization's repositories. Reads stay
+          // (RepositoryRead.plugin.ts scopes them)
+          behavior: "-insert -update -delete",
         },
       },
       repository_collaborator: {
