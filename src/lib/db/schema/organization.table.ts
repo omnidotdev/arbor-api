@@ -41,7 +41,6 @@ export const organizationTable = pgTable(
     description: text(),
     avatarUrl: text(),
     // Cached from Aether, synced via webhook
-    subscriptionId: text(),
     billingAccountId: text(),
     createdAt: generateDefaultDate(),
     updatedAt: generateDefaultDate(),

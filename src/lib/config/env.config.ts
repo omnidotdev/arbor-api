@@ -20,8 +20,6 @@ export const {
   CORS_ALLOWED_ORIGINS,
   PROTECT_ROUTES,
   AUTH_DEBUG,
-  STRIPE_API_KEY,
-  STRIPE_WEBHOOK_SECRET,
   // Billing entitlements
   BILLING_BASE_URL,
   BILLING_WEBHOOK_SECRET,
@@ -136,7 +134,6 @@ export const graphqlDatabaseUrl = GRAPHQL_DATABASE_URL || DATABASE_URL;
 export const appBaseUrl = APP_BASE_URL || "https://arbor.omni.dev";
 
 // Startup warnings for optional integrations
-if (!STRIPE_API_KEY) console.warn("STRIPE_API_KEY not set, Stripe disabled");
 if (!BILLING_BASE_URL)
   console.warn("BILLING_BASE_URL not set, billing disabled");
 if (!AUTHZ_API_URL)
