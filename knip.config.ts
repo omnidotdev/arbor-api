@@ -16,8 +16,6 @@ const knipConfig: KnipConfig = {
     "src/lib/db/util/**",
     "src/lib/git/**",
     "src/lib/graphql/**",
-    "src/lib/payments.ts",
-    "src/webhooks.ts",
     "src/lib/providers/index.ts",
   ],
   ignoreDependencies: [
