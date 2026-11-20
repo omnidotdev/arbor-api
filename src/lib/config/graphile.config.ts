@@ -42,6 +42,7 @@ import {
   RepositoryDeletePlugin,
   RepositoryRenamePlugin,
   WorkspaceRepositoryCreatePlugin,
+  WorkspaceRepositoryTransferPlugin,
 } from "lib/graphql/plugins/git";
 import { MergeQueueMutationsPlugin } from "lib/graphql/plugins/mergeQueue";
 import ObserverPlugin from "lib/graphql/plugins/observer.plugin";
@@ -114,6 +115,8 @@ const graphilePreset: GraphileConfig.Preset = {
     GitDiffPlugin,
     RepositoryCreatePlugin,
     WorkspaceRepositoryCreatePlugin,
+    // Workspace repository transfer (moves storage, keeps the old path)
+    WorkspaceRepositoryTransferPlugin,
     // Git storage cleanup on delete (removes the on-disk bare repository)
     RepositoryDeletePlugin,
     // Repository rename (moves the on-disk bare repository with the slug)

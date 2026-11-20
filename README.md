@@ -59,6 +59,8 @@ Arbor recognizes `AGENTS.md` only, not vendor-specific filenames, and reads it f
 
 An Omni product keeps what it produces for a workspace in a repository the workspace owns. Its service user (see `src/lib/auth/serviceUsers.ts`, `actsForMembers`) calls `createWorkspaceRepository` with a member's own access token in the `X-Arbor-Member-Token` header. The member must belong to the workspace; the repository is created as if the member created it (owned by the workspace's organization, cloned at `<member>/<slug>`), and the product is added as a `write` collaborator on that repository only. Workspace members reach it through normal organization access, and an admin can revoke the product by removing the collaborator. The call is idempotent per workspace and slug.
 
+The same product can move such a repository to another of the member's workspaces with `transferWorkspaceRepository` (same header), when the member is an owner or admin of both and the product holds write on the repository. The repository keeps its id, history, collaborators and the product's grant; its organization becomes the target and its owner the transferring member, so its storage moves to `<member>/<slug>` (arbor-git `RenameRepository` with `new_owner`). The old `<owner>/<slug>` path is kept in `repository_redirect`, so clone, fetch and push through it keep working; a repository that actually lives at a path always wins over a redirect. Idempotent, with a `dryRun` that only checks.
+
 Service-user PATs are minted once with `bun db:mint-service-pat <username>`, at the permission the definition declares (`patPermission`): the Fractal build reader (`fractal-builds`) is read-only and is what Fractal clones Arbor sources with.
 
 ## Dev commands

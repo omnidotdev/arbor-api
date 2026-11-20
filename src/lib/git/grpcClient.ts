@@ -177,6 +177,25 @@ export const renameRepositoryViaBackend = (
   );
 
 /**
+ * Move a repository to another owner path through the backend
+ * (RenameRepository with a new owner). Refused (false) when the source is
+ * missing or the target exists
+ */
+export const relocateRepositoryViaBackend = (
+  client: Client,
+  owner: string,
+  name: string,
+  newOwner: string,
+  newName: string,
+): Promise<boolean> =>
+  unaryBool(
+    client,
+    "renameRepository",
+    { repository: { owner, name }, newName, newOwner },
+    "renamed",
+  );
+
+/**
  * Land a stacked change onto a target branch through the backend (MergeChange).
  * Returns the resulting tip and the mode, or null on error so the caller can
  * surface a generic failure. The backend takes the change's tree wholesale,

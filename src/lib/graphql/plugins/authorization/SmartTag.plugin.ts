@@ -55,6 +55,23 @@ const SmartTagPlugin = jsonPgSmartTags({
           },
         },
       },
+      repository_redirect: {
+        tags: {
+          // Old repository paths, written only by a repository transfer and
+          // read only by the git transport to keep old clone URLs working.
+          // Nothing about them belongs in the API: which paths a repository
+          // used to live at is not for any caller to list or change
+          behavior: "-*",
+        },
+        constraint: {
+          repository_redirect_repository_id_repository_id_fk: {
+            tags: { behavior: "-*" },
+          },
+          repository_redirect_organization_id_organization_id_fk: {
+            tags: { behavior: "-*" },
+          },
+        },
+      },
       organization_member: {
         tags: {
           // The membership mirror is written only by the server, from a
