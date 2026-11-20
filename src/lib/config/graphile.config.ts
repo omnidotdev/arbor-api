@@ -37,10 +37,12 @@ import {
   GitDiffPlugin,
   GitMutationsPlugin,
   GitTypesPlugin,
+  MovedRepositoryPlugin,
   RepositoryCreatePlugin,
   RepositoryDefaultBranchPlugin,
   RepositoryDeletePlugin,
   RepositoryRenamePlugin,
+  RepositoryTransferPlugin,
   WorkspaceRepositoryCreatePlugin,
   WorkspaceRepositoryTransferPlugin,
 } from "lib/graphql/plugins/git";
@@ -117,6 +119,10 @@ const graphilePreset: GraphileConfig.Preset = {
     WorkspaceRepositoryCreatePlugin,
     // Workspace repository transfer (moves storage, keeps the old path)
     WorkspaceRepositoryTransferPlugin,
+    // Where a moved repository lives now (old web links redirect)
+    MovedRepositoryPlugin,
+    // Member-facing repository transfer between workspaces
+    RepositoryTransferPlugin,
     // Git storage cleanup on delete (removes the on-disk bare repository)
     RepositoryDeletePlugin,
     // Repository rename (moves the on-disk bare repository with the slug)
