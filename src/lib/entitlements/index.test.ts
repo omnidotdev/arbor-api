@@ -26,7 +26,16 @@ let entitlementsResponse: EntitlementsResponse | null = null;
 // shared entitlementsResponse for any id not in the map.
 let entitlementsByEntity: Record<string, EntitlementsResponse | null> = {};
 
+// Bun module mocks are process-wide and outlive this file, so every stub
+// carries the real module's other exports: a later file importing any of
+// them still links. Loaded cache-busted so it is the real module even when
+// another file mocked the specifier first
+const realProviders: typeof import("lib/providers") = await import(
+  `../providers/index.ts?real=${"entitlements-index"}`
+);
+
 mock.module("lib/providers", () => ({
+  ...realProviders,
   default: { emit: async () => {} },
   billing: {
     getEntitlements: async (_entityType: string, entityId: string) =>

@@ -42,6 +42,10 @@ const state: {
   // Default-branch HEAD before/after a push, to model whether it advanced
   headBefore: string;
   headAfter: string;
+  // A repository that moved away from `from` (owner/repo) to `to`
+  redirect: { from: string; to: { owner: string; repo: string } } | null;
+  // The owner/repo paths the routes asked the summary and storage for
+  paths: string[];
 } = {
   repo: null,
   canRead: false,
@@ -51,6 +55,8 @@ const state: {
   betaBlocked: false,
   headBefore: "head-sha",
   headAfter: "head-sha",
+  redirect: null,
+  paths: [],
 };
 
 // getHead is called twice per receive-pack (before, then after); alternate
@@ -64,7 +70,22 @@ const emittedEvents: { type: string; data?: unknown }[] = [];
 
 const noopResult = { success: true, data: new Uint8Array([1, 2, 3]) };
 
+// Bun module mocks are process-wide and outlive this file, so every stub
+// carries the real module's other exports: a later file importing any of
+// them still links. Loaded cache-busted so it is the real module even when
+// another file mocked the specifier first
+const realGit: typeof import("lib/git") = await import(
+  `../lib/git/index.ts?real=${"git.routes"}`
+);
+const realEntitlements: typeof import("lib/entitlements") = await import(
+  `../lib/entitlements/index.ts?real=${"git.routes"}`
+);
+const realProviders: typeof import("lib/providers") = await import(
+  `../lib/providers/index.ts?real=${"git.routes"}`
+);
+
 mock.module("lib/git", () => ({
+  ...realGit,
   repositoryService: {
     exists: async () => state.repo !== null,
   },
@@ -77,7 +98,10 @@ mock.module("lib/git", () => ({
     getHead: async () =>
       headCall++ % 2 === 0 ? state.headBefore : state.headAfter,
   },
-  advertiseRefs: async () => noopResult,
+  advertiseRefs: async (owner: string, repo: string) => {
+    state.paths.push(`${owner}/${repo}`);
+    return noopResult;
+  },
   uploadPack: async () => noopResult,
   receivePack: async () => noopResult,
   getServiceContentType: () => "application/x-git-upload-pack-advertisement",
@@ -85,7 +109,14 @@ mock.module("lib/git", () => ({
   parseGitService: (s?: string) =>
     s === "git-upload-pack" || s === "git-receive-pack" ? s : null,
   // git access boundary
-  resolveRepositorySummary: async () => state.repo,
+  resolveRepositorySummary: async (owner: string, repo: string) => {
+    state.paths.push(`${owner}/${repo}`);
+    return state.repo;
+  },
+  resolveRepositoryRedirect: async (owner: string, repo: string) =>
+    state.redirect && state.redirect.from === `${owner}/${repo}`
+      ? state.redirect.to
+      : null,
   authenticateGitRequest: async () =>
     state.authedUser ? { user: state.authedUser, scope: state.scope } : null,
   canReadRepository: async () => state.canRead,
@@ -139,12 +170,14 @@ mock.module("lib/dependencies", () => ({
 }));
 
 mock.module("lib/entitlements", () => ({
+  ...realEntitlements,
   isWithinLimit: async () => true,
 }));
 
 // Capture emitted CloudEvents (a push emits arbor.repository.pushed). billing is
 // exported by lib/providers too, so the whole-module stub must expose it
 mock.module("lib/providers", () => ({
+  ...realProviders,
   default: {
     emit: async (event: { type: string; data?: unknown }) => {
       emittedEvents.push(event);
@@ -184,12 +217,53 @@ const reset = () => {
   state.headBefore = "head-sha";
   state.headAfter = "head-sha";
   headCall = 0;
+  state.redirect = null;
+  state.paths = [];
   discoverCalls.length = 0;
   reconcileCalls.length = 0;
   emittedEvents.length = 0;
 };
 
 beforeEach(reset);
+
+describe("git routes after a repository moved owner", () => {
+  test("an old clone path reaches the repository where it lives now", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o2",
+      organizationId: "org-b",
+    };
+    state.canRead = true;
+    state.redirect = { from: "alice/repo", to: { owner: "bob", repo: "repo" } };
+
+    const res = await makeApp().handle(
+      new Request(
+        "http://localhost/git/alice/repo.git/info/refs?service=git-upload-pack",
+      ),
+    );
+    expect(res.status).toBe(200);
+    // Access checks and storage both ran against the current path
+    expect(state.paths).toEqual(["bob/repo", "bob/repo"]);
+  });
+
+  test("a path nothing moved away from is served as asked", async () => {
+    state.repo = {
+      id: "r1",
+      visibility: "public",
+      ownerId: "o1",
+      organizationId: null,
+    };
+    state.canRead = true;
+
+    await makeApp().handle(
+      new Request(
+        "http://localhost/git/alice/repo.git/info/refs?service=git-upload-pack",
+      ),
+    );
+    expect(state.paths).toEqual(["alice/repo", "alice/repo"]);
+  });
+});
 
 describe("git routes read authorization", () => {
   test("public repo read is allowed anonymously => 200", async () => {
