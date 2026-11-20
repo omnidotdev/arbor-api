@@ -29,7 +29,16 @@ const state: {
   defaultBranch: string;
 } = { repo: null, canRead: true, files: {}, defaultBranch: "master" };
 
+// Bun module mocks are process-wide and outlive this file, so every stub
+// carries the real module's other exports: a later file importing any of
+// them still links. Loaded cache-busted so it is the real module even when
+// another file mocked the specifier first
+const realGit: typeof import("lib/git") = await import(
+  `../git/index.ts?real=${"agentInstructions"}`
+);
+
 mock.module("lib/git", () => ({
+  ...realGit,
   resolveRepositorySummary: async () => state.repo,
   canReadRepository: async () => state.canRead,
   canWriteRepository: async () => false,
@@ -191,6 +200,7 @@ describe("AGENTS.md recognition", () => {
     state.files = { "master:AGENTS.md": "secret" };
 
     mock.module("lib/git", () => ({
+      ...realGit,
       resolveRepositorySummary: async () => state.repo,
       canReadRepository: async () => state.canRead,
       canWriteRepository: async () => false,

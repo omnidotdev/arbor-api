@@ -21,7 +21,16 @@ const state: {
   canWrite: boolean;
 } = { repo: null, canRead: true, canWrite: true };
 
+// Bun module mocks are process-wide and outlive this file, so every stub
+// carries the real module's other exports: a later file importing any of
+// them still links. Loaded cache-busted so it is the real module even when
+// another file mocked the specifier first
+const realGit: typeof import("lib/git") = await import(
+  `../git/index.ts?real=${"gates"}`
+);
+
 mock.module("lib/git", () => ({
+  ...realGit,
   resolveRepositorySummary: async () => state.repo,
   canReadRepository: async () => state.canRead,
   canWriteRepository: async () => state.canWrite,

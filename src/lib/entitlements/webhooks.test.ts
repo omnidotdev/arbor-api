@@ -30,7 +30,16 @@ const sign = (body: string) =>
   createHmac("sha256", SECRET).update(body).digest("hex");
 
 const invalidateCalls: string[] = [];
+// Bun module mocks are process-wide and outlive this file, so every stub
+// carries the real module's other exports: a later file importing any of
+// them still links. Loaded cache-busted so it is the real module even when
+// another file mocked the specifier first
+const realEntitlements: typeof import("lib/entitlements") = await import(
+  `./index.ts?real=${"webhooks"}`
+);
+
 mock.module("lib/entitlements", () => ({
+  ...realEntitlements,
   invalidateCache: (pattern: string) => {
     invalidateCalls.push(pattern);
   },
