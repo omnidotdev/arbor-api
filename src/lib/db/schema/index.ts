@@ -7,6 +7,7 @@ export * from "./project.table";
 export * from "./pullRequest.table";
 export * from "./repository.table";
 export * from "./repositoryCollaborator.table";
+export * from "./repositoryRedirect.table";
 export * from "./repositoryRelationship.table";
 export * from "./stack.table";
 export * from "./testerApplication.table";

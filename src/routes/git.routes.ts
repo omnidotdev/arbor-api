@@ -22,6 +22,7 @@ import {
   isGitCallerBetaBlocked,
   parseGitService,
   receivePack,
+  resolveRepositoryRedirect,
   resolveRepositorySummary,
   uploadPack,
 } from "lib/git";
@@ -228,6 +229,20 @@ const gateWrite = async (
  * available via GraphQL on the Repository type.
  */
 const gitRoutes = new Elysia({ prefix: "/git" })
+  // A repository that moved to another owner (a transfer between
+  // organizations) keeps its old path: rewrite the path to where it lives
+  // now before any route runs, so clone, fetch and push through an old URL
+  // reach the same repository under the same access checks
+  .onTransform(async ({ params }) => {
+    const path = params as { owner?: string; repo?: string } | undefined;
+    if (!path?.owner || !path.repo) return;
+    const suffix = path.repo.endsWith(".git") ? ".git" : "";
+    const repo = suffix ? path.repo.slice(0, -suffix.length) : path.repo;
+    const moved = await resolveRepositoryRedirect(path.owner, repo);
+    if (!moved) return;
+    path.owner = moved.owner;
+    path.repo = `${moved.repo}${suffix}`;
+  })
   // ============================================================
   // Repository Browsing API
   // ============================================================

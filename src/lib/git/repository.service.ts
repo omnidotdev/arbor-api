@@ -10,6 +10,7 @@ import {
   getRepositoryInfoViaBackend,
   initRepositoryViaBackend,
   isArborGitEnabled,
+  relocateRepositoryViaBackend,
   renameRepositoryViaBackend,
   repositoryExistsViaBackend,
 } from "./grpcClient";
@@ -149,6 +150,65 @@ export const repositoryService = {
     } catch (error) {
       console.error(
         `[Git] Failed to rename repository ${owner}/${oldSlug} to ${owner}/${newSlug}:`,
+        error,
+      );
+      return false;
+    }
+  },
+
+  /**
+   * Move a repository's on-disk storage to another owner path, as a transfer
+   * to a new owner does: `{owner}/{slug}.git` to `{newOwner}/{slug}.git`. The
+   * bare directory moves as-is, so every ref, object and its whole history
+   * comes along. Guarded like {@link rename}: refused when the target exists
+   * or the source is missing, and the result is checked afterwards, so a
+   * caller never assumes storage moved when it did not
+   */
+  async relocate(
+    owner: string,
+    slug: string,
+    newOwner: string,
+  ): Promise<boolean> {
+    if (owner === newOwner) return true;
+
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const moved = await relocateRepositoryViaBackend(
+        client,
+        owner,
+        slug,
+        newOwner,
+        slug,
+      );
+      // A backend that predates owner moves renames in place instead, so
+      // confirm the repository really is at the new path
+      return (
+        moved &&
+        (await repositoryExistsViaBackend(client, newOwner, slug)) &&
+        !(await repositoryExistsViaBackend(client, owner, slug))
+      );
+    }
+
+    const oldPath = getRepositoryPath(owner, slug);
+    const newPath = getRepositoryPath(newOwner, slug);
+
+    try {
+      const targetExists = await access(newPath)
+        .then(() => true)
+        .catch(() => false);
+      if (targetExists) {
+        console.error(
+          `[Git] Failed to move repository ${owner}/${slug}: target ${newOwner}/${slug} already exists`,
+        );
+        return false;
+      }
+
+      await ensureOwnerDirectory(newOwner);
+      await rename(oldPath, newPath);
+      return true;
+    } catch (error) {
+      console.error(
+        `[Git] Failed to move repository ${owner}/${slug} to ${newOwner}/${slug}:`,
         error,
       );
       return false;

@@ -59,6 +59,11 @@ if (VORTEX_API_URL && VORTEX_API_KEY) {
       description: "Repository created",
     },
     {
+      name: "arbor.repository.transferred",
+      source: "omni.arbor",
+      description: "Repository moved to another organization",
+    },
+    {
       name: "arbor.ref.created",
       source: "omni.arbor",
       description: "Branch or tag created",

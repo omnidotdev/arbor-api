@@ -8,7 +8,11 @@ import { resolveUserFromToken } from "lib/auth/resolveUserFromToken";
 import { resolveBetaAllowed } from "lib/beta/resolveBetaAllowed";
 import { betaGateEnabled } from "lib/config/env.config";
 import { dbPool } from "lib/db/db";
-import { repositoryTable, userTable } from "lib/db/schema";
+import {
+  repositoryRedirectTable,
+  repositoryTable,
+  userTable,
+} from "lib/db/schema";
 
 import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { ResolvedUser } from "lib/auth/resolveUserFromToken";
@@ -223,6 +227,40 @@ export const resolveRepositorySummary = async (
     .limit(1);
 
   return repository ?? null;
+};
+
+/**
+ * Where a repository that moved away from `owner/repo` lives now, as its
+ * current `{ owner, repo }` path, or null when nothing moved away from it. A
+ * repository that actually lives at `owner/repo` always wins, so a redirect
+ * never shadows a real repository (see `repositoryRedirect.table`)
+ */
+export const resolveRepositoryRedirect = async (
+  owner: string,
+  repo: string,
+  db: GitAccessDb = dbPool,
+): Promise<{ owner: string; repo: string } | null> => {
+  const [moved] = await db
+    .select({ owner: userTable.username, repo: repositoryTable.slug })
+    .from(repositoryRedirectTable)
+    .innerJoin(
+      repositoryTable,
+      eq(repositoryRedirectTable.repositoryId, repositoryTable.id),
+    )
+    .innerJoin(userTable, eq(repositoryTable.ownerId, userTable.id))
+    .where(
+      and(
+        eq(repositoryRedirectTable.ownerUsername, owner),
+        eq(repositoryRedirectTable.slug, repo),
+      ),
+    )
+    .limit(1);
+  if (!moved?.owner) return null;
+
+  // A real repository at the old path wins over the redirect
+  if (await resolveRepositorySummary(owner, repo, db)) return null;
+
+  return { owner: moved.owner, repo: moved.repo };
 };
 
 /** Fetch the caller's collaborator row for a repository, if any */
