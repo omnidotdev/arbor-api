@@ -96,6 +96,8 @@ const MUTATION_RULES: Record<string, string> = {
     "custom: personal, or owner/admin of the organization (tier limits)",
   createWorkspaceRepository:
     "custom: trusted product service on behalf of an owner/admin member",
+  transferRepository:
+    "custom: owner/admin of the source workspace (or personal repo owner) and of the target",
   transferWorkspaceRepository:
     "custom: trusted product service on behalf of an owner/admin of both organizations",
   initializeRepository: "custom: repository owner or admin",

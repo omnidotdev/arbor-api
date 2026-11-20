@@ -16375,6 +16375,27 @@ type TransferWorkspaceRepositoryPayload {
   error: String
 }
 
+"""Where a repository lives."""
+type RepositoryLocation {
+  """The owning workspace's slug, or the owner's username."""
+  ownerSlug: String!
+
+  """The repository slug."""
+  repoSlug: String!
+}
+
+"""Input for moving a repository to another workspace."""
+input TransferRepositoryInput {
+  """The repository row ID."""
+  rowId: UUID!
+
+  """The workspace to move it to, as its identity-provider organization id."""
+  toIdpOrganizationId: String!
+
+  """Run every check and change nothing."""
+  dryRun: Boolean
+}
+
 """Input for renaming a repository."""
 input RenameRepositoryInput {
   """The repository row ID."""
@@ -17852,6 +17873,13 @@ type Query implements Node {
   observer: Observer
 
   """
+  Where a repository that moved away from this path (an old workspace
+  slug or username, and slug) lives now. Null when nothing moved away from
+  it, a repository still lives there, or the caller may not read it.
+  """
+  movedRepository(ownerSlug: String!, repoSlug: String!): RepositoryLocation
+
+  """
   Returns the authenticated caller's own closed-beta tester application,
   or null when they have not applied.
   """
@@ -18468,6 +18496,19 @@ type Mutation {
     The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
     """
     input: TransferWorkspaceRepositoryInput!
+  ): TransferWorkspaceRepositoryPayload
+
+  """
+  Move a repository to another workspace. Takes an owner or admin of the
+  workspace it is in (or the owner of a personal repository) who is also
+  an owner or admin of the target. History and collaborators stay, the
+  caller becomes its owner, and its old clone path and links keep working.
+  """
+  transferRepository(
+    """
+    The exclusive input argument for this mutation. An object type, make sure to see documentation for this object’s fields.
+    """
+    input: TransferRepositoryInput!
   ): TransferWorkspaceRepositoryPayload
 
   """

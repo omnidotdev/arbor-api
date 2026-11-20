@@ -206,7 +206,7 @@ describe("transferWorkspaceRepository", () => {
     });
   });
 
-  test("the same owner keeps its path: no storage move, no redirect", async () => {
+  test("the same owner keeps its path: no storage move, the old workspace link redirects", async () => {
     const w = world();
     const { result, moves } = run(w, {
       who: member([claim("idp-a"), claim("idp-b")], {
@@ -217,7 +217,17 @@ describe("transferWorkspaceRepository", () => {
     const r = await result;
     expect(r.error).toBeNull();
     expect(moves).toEqual([]);
-    expect(w.writes.some((x) => x.table === "repository_redirect")).toBe(false);
+    const redirect = w.writes.find(
+      (x) => x.op === "insert" && x.table === "repository_redirect",
+    );
+    expect(redirect?.values).toEqual({
+      ownerUsername: "alice",
+      slug: "site-x",
+      organizationId: "org-a",
+      repositoryId: "repo-1",
+    });
+    // Nothing at the unchanged path is cleared
+    expect(w.writes.some((x) => x.op === "delete")).toBe(false);
   });
 
   test("takes an owner or admin of both workspaces", async () => {

@@ -61,6 +61,8 @@ An Omni product keeps what it produces for a workspace in a repository the works
 
 The same product can move such a repository to another of the member's workspaces with `transferWorkspaceRepository` (same header), when the member is an owner or admin of both and the product holds write on the repository. The repository keeps its id, history, collaborators and the product's grant; its organization becomes the target and its owner the transferring member, so its storage moves to `<member>/<slug>` (arbor-git `RenameRepository` with `new_owner`). The old `<owner>/<slug>` path is kept in `repository_redirect`, so clone, fetch and push through it keep working; a repository that actually lives at a path always wins over a redirect. Idempotent, with a `dryRun` that only checks.
 
+Members can move a repository themselves with `transferRepository` (from the repository's settings in Arbor): an owner or admin of the workspace it is in (or the owner of a personal repository) who is also an owner or admin of the target. The move is the same as a product's. Every move keeps the old path in `repository_redirect`, so old links into the previous workspace redirect too: `movedRepository(ownerSlug, repoSlug)` answers where a repository that moved away from a path lives now, only to callers who may read it, and the app redirects old `/@<workspace>/<repo>` links there.
+
 Service-user PATs are minted once with `bun db:mint-service-pat <username>`, at the permission the definition declares (`patPermission`): the Fractal build reader (`fractal-builds`) is read-only and is what Fractal clones Arbor sources with.
 
 ## Dev commands

@@ -1,20 +1,13 @@
-import { and, eq } from "drizzle-orm";
-
 import { organizationRepositoryCreateDenial } from "lib/auth/organizationRoles";
-import {
-  organizationMemberTable,
-  organizationTable,
-  repositoryRedirectTable,
-  repositoryTable,
-} from "lib/db/schema";
+import { organizationTable } from "lib/db/schema";
 import { isWithinLimit } from "lib/entitlements";
-import { invalidateRepositorySizeCache, repositoryService } from "lib/git";
+import { repositoryService } from "lib/git";
 import {
   FEATURE_KEYS,
   billingBypassOrgIds,
 } from "lib/graphql/plugins/authorization/constants";
-import events from "lib/providers";
 import { isFirstPartyServiceUser } from "./createWorkspaceRepository";
+import { moveRepositoryInto } from "./moveRepository";
 
 import type { OrganizationClaim } from "@omnidotdev/providers";
 import type { ResolvedUser } from "lib/auth/resolveUserFromToken";
@@ -103,7 +96,7 @@ const failure = (error: string): TransferWorkspaceRepositoryResult => ({
 });
 
 /** Find or create the Arbor organization row for a workspace claim */
-const ensureOrganization = async (
+export const ensureOrganization = async (
   db: typeof dbPool,
   claim: OrganizationClaim,
 ): Promise<{ id: string; slug: string | null }> => {
@@ -237,154 +230,27 @@ export const transferWorkspaceRepository = async ({
   if (!repository || !managedByProduct(repository.collaborators)) {
     return failure("Repository not found");
   }
-  const previousOwner = repository.owner?.username;
-  const newOwner = member.user.username;
-  if (!previousOwner || !newOwner) return failure("Invalid owner");
-
-  // The member's own path must be free for the repository to move onto it
-  if (member.user.id !== repository.ownerId) {
-    const clash = await db.query.repositoryTable.findFirst({
-      where: (table, { eq: eqOp, and: andOp }) =>
-        andOp(
-          eqOp(table.ownerId, member.user.id),
-          eqOp(table.slug, input.slug),
-        ),
-      columns: { id: true },
-    });
-    if (clash) {
-      return failure(
-        "You already have a repository with this name. Rename it first, then move this one.",
-      );
-    }
-  }
-
-  // The private-repository limit governs the target like a new repository
-  if (repository.visibility === "private" && target) {
-    const privateCount = (
-      await db.query.repositoryTable.findMany({
-        where: (table, { eq: eqOp, and: andOp }) =>
-          andOp(
-            eqOp(table.organizationId, target.id),
-            eqOp(table.visibility, "private"),
-          ),
-        columns: { id: true },
-      })
-    ).length;
-    if (!(await checkLimit(target.id, privateCount))) {
-      return failure(
-        "The target workspace has reached its plan's private repository limit",
-      );
-    }
-  }
-
-  if (input.dryRun || !target) {
-    return {
-      rowId: repository.id,
+  return moveRepositoryInto({
+    db,
+    repository: {
+      id: repository.id,
       slug: repository.slug,
-      ownerUsername: newOwner,
-      organizationSlug: targetSlug,
-      previousOwnerUsername: previousOwner,
-      error: null,
-    };
-  }
-
-  // Mirror both memberships now, so the member's later git access resolves
-  // the organizations without waiting for the next sign-in
-  for (const [organizationId, claim] of [
-    [source.id, fromClaim],
-    [target.id, toClaim],
-  ] as const) {
-    await db
-      .insert(organizationMemberTable)
-      .values({ userId: member.user.id, organizationId, roles: claim.roles })
-      .onConflictDoUpdate({
-        target: [
-          organizationMemberTable.userId,
-          organizationMemberTable.organizationId,
-        ],
-        set: { roles: claim.roles, syncedAt: new Date().toISOString() },
-      });
-  }
-
-  const ownerChanges = previousOwner !== newOwner;
-  if (
-    ownerChanges &&
-    !(await relocate(previousOwner, repository.slug, newOwner))
-  ) {
-    return failure("Failed to move the repository");
-  }
-
-  try {
-    await db.transaction(async (tx) => {
-      await tx
-        .update(repositoryTable)
-        .set({
-          ownerId: member.user.id,
-          organizationId: target.id,
-          updatedAt: new Date().toISOString(),
-        })
-        .where(eq(repositoryTable.id, repository.id));
-
-      if (!ownerChanges) return;
-
-      // The new path is a real repository now: no redirect may claim it
-      await tx
-        .delete(repositoryRedirectTable)
-        .where(
-          and(
-            eq(repositoryRedirectTable.ownerUsername, newOwner),
-            eq(repositoryRedirectTable.slug, repository.slug),
-          ),
-        );
-      // Keep the old path serving this repository
-      await tx
-        .insert(repositoryRedirectTable)
-        .values({
-          ownerUsername: previousOwner,
-          slug: repository.slug,
-          organizationId: source.id,
-          repositoryId: repository.id,
-        })
-        .onConflictDoUpdate({
-          target: [
-            repositoryRedirectTable.ownerUsername,
-            repositoryRedirectTable.slug,
-          ],
-          set: { repositoryId: repository.id, organizationId: source.id },
-        });
-    });
-  } catch (error) {
-    // Put storage back where the unchanged row says it is
-    if (ownerChanges) await relocate(newOwner, repository.slug, previousOwner);
-    console.error("[arbor] repository transfer failed", error);
-    return failure("Failed to move the repository");
-  }
-
-  if (ownerChanges) {
-    invalidateRepositorySizeCache(previousOwner, repository.slug);
-  }
-
-  events
-    .emit({
-      type: "arbor.repository.transferred",
-      data: {
-        repositoryId: repository.id,
-        slug: repository.slug,
-        fromOrganizationId: source.id,
-        toOrganizationId: target.id,
-        ownerId: member.user.id,
-      },
-      organizationId: target.id,
-      subject: repository.id,
-    })
-    .catch((err) => console.warn("[arbor] Event emit failed", err));
-
-  return {
-    rowId: repository.id,
-    slug: repository.slug,
-    ownerUsername: newOwner,
-    organizationSlug: targetSlug,
-    previousOwnerUsername: previousOwner,
-    error: null,
-  };
+      ownerId: repository.ownerId,
+      visibility: repository.visibility,
+      ownerUsername: repository.owner?.username ?? null,
+    },
+    member: { id: member.user.id, username: member.user.username ?? null },
+    memberships: target
+      ? [
+          { organizationId: source.id, roles: fromClaim.roles },
+          { organizationId: target.id, roles: toClaim.roles },
+        ]
+      : [],
+    sourceOrganizationId: source.id,
+    target: target ? { id: target.id, slug: targetSlug } : null,
+    targetSlug,
+    dryRun: !!input.dryRun,
+    relocate,
+    checkLimit,
+  });
 };
