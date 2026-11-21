@@ -11,7 +11,9 @@ const schema = readFileSync(
 
 /** Field names of a GraphQL input type in the generated schema */
 const inputFields = (typeName: string): string[] => {
-  const match = schema.match(new RegExp(`\\ninput ${typeName} \\{([\\s\\S]*?)\\n\\}`));
+  const match = schema.match(
+    new RegExp(`\\ninput ${typeName} \\{([\\s\\S]*?)\\n\\}`),
+  );
   if (!match?.[1]) throw new Error(`input ${typeName} not in schema.graphql`);
   return [...match[1].matchAll(/^ {2}(\w+):/gm)].map((m) => m[1] as string);
 };

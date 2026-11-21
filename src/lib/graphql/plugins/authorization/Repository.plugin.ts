@@ -24,10 +24,7 @@ export const REPOSITORY_MUTATION_INPUTS = {
   updateRepository: { rowId: "rowId", patch: "patch" },
   renameRepository: { rowId: "rowId", patch: null },
   deleteRepository: { rowId: "rowId", patch: null },
-} as const satisfies Record<
-  string,
-  { rowId: string; patch: string | null }
->;
+} as const satisfies Record<string, { rowId: string; patch: string | null }>;
 
 /**
  * Validate repository permissions for update/delete.
@@ -37,7 +34,10 @@ export const REPOSITORY_MUTATION_INPUTS = {
  * - Delete: Owner only
  */
 const validatePermissions = (
-  { rowId: propName, patch: patchName }: { rowId: string; patch: string | null },
+  {
+    rowId: propName,
+    patch: patchName,
+  }: { rowId: string; patch: string | null },
   scope: MutationScope,
 ) =>
   EXPORTABLE(
