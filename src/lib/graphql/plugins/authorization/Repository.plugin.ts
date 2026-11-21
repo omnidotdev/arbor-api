@@ -1,5 +1,5 @@
 import { EXPORTABLE } from "graphile-export";
-import { context, sideEffect } from "postgraphile/grafast";
+import { constant, context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
 import {
@@ -15,24 +15,47 @@ import type { PlanWrapperFn } from "postgraphile/utils";
 import type { MutationScope } from "./types";
 
 /**
+ * The input fields each guarded repository mutation reads: the row id, and the
+ * patch for the one mutation that has one. Reading a field an input type lacks
+ * fails the whole mutation at plan time, so this stays in step with the schema
+ * (checked against `schema.graphql` in a test)
+ */
+export const REPOSITORY_MUTATION_INPUTS = {
+  updateRepository: { rowId: "rowId", patch: "patch" },
+  renameRepository: { rowId: "rowId", patch: null },
+  deleteRepository: { rowId: "rowId", patch: null },
+} as const satisfies Record<
+  string,
+  { rowId: string; patch: string | null }
+>;
+
+/**
  * Validate repository permissions for update/delete.
  *
  * - Update: Owner or admin collaborator can update, but never the owner or
  *   organization (a transfer)
  * - Delete: Owner only
  */
-const validatePermissions = (propName: string, scope: MutationScope) =>
+const validatePermissions = (
+  { rowId: propName, patch: patchName }: { rowId: string; patch: string | null },
+  scope: MutationScope,
+) =>
   EXPORTABLE(
     (
+      constant,
       context,
       sideEffect,
       repositoryPatchChangesOwnership,
       propName,
+      patchName,
       scope,
     ): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $input = fieldArgs.getRaw(["input", propName]);
-        const $patch = fieldArgs.getRaw(["input", "patch"]);
+        // Only an update carries a patch; rename and delete inputs have none
+        const $patch = patchName
+          ? fieldArgs.getRaw(["input", patchName])
+          : constant(null);
         const $observer = context().get("observer");
         const $db = context().get("db");
 
@@ -79,7 +102,15 @@ const validatePermissions = (propName: string, scope: MutationScope) =>
 
         return plan();
       },
-    [context, sideEffect, repositoryPatchChangesOwnership, propName, scope],
+    [
+      constant,
+      context,
+      sideEffect,
+      repositoryPatchChangesOwnership,
+      propName,
+      patchName,
+      scope,
+    ],
   );
 
 /**
@@ -193,9 +224,18 @@ const createRepositoryWrapper = EXPORTABLE(
 const RepositoryPlugin = wrapPlans({
   Mutation: {
     createRepository: createRepositoryWrapper,
-    updateRepository: validatePermissions("rowId", "update"),
-    renameRepository: validatePermissions("rowId", "update"),
-    deleteRepository: validatePermissions("rowId", "delete"),
+    updateRepository: validatePermissions(
+      REPOSITORY_MUTATION_INPUTS.updateRepository,
+      "update",
+    ),
+    renameRepository: validatePermissions(
+      REPOSITORY_MUTATION_INPUTS.renameRepository,
+      "update",
+    ),
+    deleteRepository: validatePermissions(
+      REPOSITORY_MUTATION_INPUTS.deleteRepository,
+      "delete",
+    ),
   },
 });
 
