@@ -11,22 +11,13 @@ import type { ScopeBounds } from "./receivePackGuard";
 /**
  * gRPC client for the arbor-git backend (the Rust/gitoxide daemon).
  *
- * This is the plumbing only: it establishes the client and a boot-time health
- * check behind the `USE_ARBOR_GIT` flag, and never changes behavior on its own.
- * arbor-git is cluster-internal (no public auth), so the connection is insecure;
- * the auth/authz gates stay at the arbor-api edge either way.
+ * When `USE_ARBOR_GIT` is on, arbor-git is the repository of record: every git
+ * operation goes to it and there is no in-process fallback. arbor-git is
+ * cluster-internal (no public auth), so the connection is insecure; the
+ * auth/authz gates stay at the arbor-api edge either way.
  */
 
 const PROTO_PATH = path.join(import.meta.dir, "proto", "arbor_git.proto");
-
-/**
- * The backend is used only when it is both requested (flag + URL) and reachable.
- * Pure so the gate is testable; the health result comes from `checkArborGitHealth`.
- */
-export const resolveArborGitEnabled = (
-  flagRequested: boolean,
-  healthy: boolean,
-): boolean => flagRequested && healthy;
 
 /** Load the generated GitService constructor from the vendored proto. */
 const loadGitServiceCtor = () => {
@@ -43,16 +34,25 @@ const loadGitServiceCtor = () => {
   return pkg.arbor.git.v1.GitService;
 };
 
+/**
+ * Reconnect backoff for the backend channel. Capped low so arbor-api recovers
+ * within seconds once arbor-git comes back (e.g. both pods rescheduled together)
+ * instead of the multi-minute grpc-js default
+ */
+const CHANNEL_OPTIONS = {
+  "grpc.initial_reconnect_backoff_ms": 500,
+  "grpc.max_reconnect_backoff_ms": 5000,
+};
+
 /** Create a GitService client for a `host:port` address (insecure, cluster-internal). */
 export const createGitServiceClient = (url: string): Client => {
   const GitService = loadGitServiceCtor();
-  return new GitService(url, credentials.createInsecure());
+  return new GitService(url, credentials.createInsecure(), CHANNEL_OPTIONS);
 };
 
 /**
  * Whether the backend answers within the deadline. Resolves false rather than
- * throwing or hanging when it is unreachable, so a missing backend degrades to
- * the in-process path.
+ * throwing or hanging when it is unreachable.
  */
 export const checkArborGitHealth = (
   client: Client,
@@ -64,39 +64,48 @@ export const checkArborGitHealth = (
   });
 
 let backendClient: Client | null = null;
-let backendEnabled = false;
 
 /**
- * Initialize the backend at boot. Off unless `USE_ARBOR_GIT=true` with a
- * reachable `GIT_SERVICE_URL`; on failure it warns and leaves the in-process git
- * path in place (never throws, per the graceful-degradation rule).
+ * Whether git operations are served by arbor-git. Decided by configuration alone
+ * (`USE_ARBOR_GIT` plus `GIT_SERVICE_URL`), never by reachability: the in-process
+ * path under `GIT_REPOS_PATH` is not the repository of record once the backend
+ * is on, so an unreachable backend must fail requests rather than silently serve
+ * (or write to) that local copy.
+ */
+export const isArborGitEnabled = (): boolean => useArborGit;
+
+/**
+ * The GitService client, or null when the backend is not configured. Created on
+ * first use, so a request arriving before `initArborGitBackend` finishes still
+ * routes to the backend; grpc-js connects (and reconnects) the channel lazily.
+ */
+export const getArborGitClient = (): Client | null => {
+  if (!useArborGit) return null;
+  backendClient ??= createGitServiceClient(GIT_SERVICE_URL as string);
+  return backendClient;
+};
+
+/**
+ * Connect to the backend at boot and report its reachability. Never throws and
+ * never changes routing: when the backend is configured but not reachable yet,
+ * git requests fail until it is, instead of degrading to the in-process path.
  */
 export const initArborGitBackend = async (): Promise<void> => {
-  if (!useArborGit) {
+  const client = getArborGitClient();
+
+  if (!client) {
     console.warn("USE_ARBOR_GIT not enabled, using in-process git");
     return;
   }
 
-  const client = createGitServiceClient(GIT_SERVICE_URL as string);
-  const healthy = await checkArborGitHealth(client);
-  backendEnabled = resolveArborGitEnabled(useArborGit, healthy);
-
-  if (backendEnabled) {
-    backendClient = client;
-    console.info("arbor-git backend reachable, git delegation available");
+  if (await checkArborGitHealth(client)) {
+    console.info("arbor-git backend reachable, git delegated to arbor-git");
   } else {
     console.warn(
-      `GIT_SERVICE_URL (${GIT_SERVICE_URL}) unreachable, falling back to in-process git`,
+      `GIT_SERVICE_URL (${GIT_SERVICE_URL}) not reachable yet, git requests fail until it is (no in-process fallback)`,
     );
-    client.close();
   }
 };
-
-/** Whether git operations may be delegated to arbor-git (post health check). */
-export const isArborGitEnabled = (): boolean => backendEnabled;
-
-/** The connected GitService client, or null when the backend is not in use. */
-export const getArborGitClient = (): Client | null => backendClient;
 
 /** Helper for a unary GitService call that resolves a boolean from one response field. */
 const unaryBool = (
@@ -498,7 +507,7 @@ export const getTreeViaBackend = (
 /**
  * Fetch the Smart-HTTP ref advertisement from the backend (AdvertiseRefs). Returns
  * the raw `--advertise-refs` bytes (the caller prepends the `# service=` line), or
- * null on error so the caller can fall back to the in-process git CLI. `service`
+ * null on error so the caller can fail the request. `service`
  * is the plumbing name (`upload-pack` / `receive-pack`), not the `git-` form.
  */
 export const advertiseRefsViaBackend = (
@@ -521,6 +530,7 @@ export const advertiseRefsViaBackend = (
     ).advertiseRefs(
       { repository: { owner, name: repo }, service },
       (error, response) => {
+        if (error) console.error("[arbor-git] advertise_refs failed:", error);
         resolve(error || !response?.data ? null : Buffer.from(response.data));
       },
     );
@@ -614,7 +624,7 @@ export const receivePackViaBackend = (
  * UploadPack stream, sends the repository then the client's request bytes, and
  * concatenates the streamed response into a single buffer, matching the shape the
  * in-process `uploadPack` returns. On a stream error it resolves `success: false`
- * so the caller can fall back rather than throw.
+ * so the caller can fail the request rather than throw.
  */
 export const uploadPackViaBackend = (
   client: Client,

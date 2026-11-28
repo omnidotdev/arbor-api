@@ -72,8 +72,8 @@ export const {
   // would otherwise refuse to start under
   ALLOW_RLS_BYPASS,
   // arbor-git backend (Rust/gitoxide gRPC daemon). Off by default: when
-  // USE_ARBOR_GIT is "true" and GIT_SERVICE_URL is set and reachable, git
-  // operations are delegated to arbor-git; otherwise the in-process path is used
+  // USE_ARBOR_GIT is "true" and GIT_SERVICE_URL is set, git operations are
+  // delegated to arbor-git; otherwise the in-process path is used
   USE_ARBOR_GIT,
   GIT_SERVICE_URL,
 } = process.env;
@@ -111,9 +111,10 @@ export const staffEmailDomains: string[] = (STAFF_EMAIL_DOMAINS ?? "omni.dev")
 export const isSearchEnabled = !!MEILISEARCH_URL && !!MEILISEARCH_MASTER_KEY;
 
 /**
- * Whether delegating git to the arbor-git backend is requested. Requires both
- * the flag on and a service URL; actual use is gated further by a boot-time
- * health check (graceful degradation to the in-process path if unreachable).
+ * Whether git is delegated to the arbor-git backend. Requires both the flag on
+ * and a service URL. Once on, arbor-git is the repository of record: an
+ * unreachable backend fails git requests rather than falling back to the
+ * in-process path, whose local copies are not kept in sync.
  */
 export const useArborGit = USE_ARBOR_GIT === "true" && !!GIT_SERVICE_URL;
 

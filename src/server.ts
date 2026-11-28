@@ -224,9 +224,9 @@ ensureReposDirectory().catch((err) => {
   console.error("[Git] Failed to create repositories directory:", err);
 });
 
-// Establish the arbor-git backend connection when enabled (health-checked;
-// falls back to in-process git if unreachable). Not awaited: the boot path must
-// not block on an optional integration
+// Connect to the arbor-git backend when enabled and log its reachability. It
+// never changes routing (an unreachable backend fails git requests, it does not
+// fall back to in-process git). Not awaited: the boot path must not block on it
 initArborGitBackend().catch((err) => {
   console.error("[Git] arbor-git backend init failed:", err);
 });
