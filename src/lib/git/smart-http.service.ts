@@ -5,13 +5,13 @@ import { fileURLToPath } from "node:url";
 import {
   advertiseRefsViaBackend,
   getArborGitClient,
-  isArborGitEnabled,
   receivePackViaBackend,
   uploadPackViaBackend,
 } from "./grpcClient";
 import { getRepositoryPath } from "./storage.config";
 
 import type { Readable } from "node:stream";
+import type { Client } from "@grpc/grpc-js";
 import type { ScopeBounds } from "./receivePackGuard";
 
 /** Absolute path to this project's git hooks (contains `pre-receive`) */
@@ -46,7 +46,10 @@ export const buildReceivePackHookEnv = (
  * Git Smart HTTP Protocol Service.
  *
  * Implements the Git Smart HTTP protocol for clone, push, and pull operations.
- * This shells out to git commands for proper protocol handling.
+ * With the arbor-git backend configured every exchange (advertisement,
+ * upload-pack, receive-pack) is served by arbor-git over gRPC and never touches
+ * the local `GIT_REPOS_PATH` copy, even when the backend errors. Without it, this
+ * shells out to the git plumbing against the local repositories.
  *
  * @see https://git-scm.com/docs/http-protocol
  * @see https://git-scm.com/book/en/v2/Git-on-the-Server-Smart-HTTP
@@ -94,6 +97,17 @@ function pktLine(data: string): string {
  */
 const PKT_FLUSH = "0000";
 
+/** Collect a request body into one buffer for the backend's framed stream. */
+const toBuffer = async (input: Buffer | Readable): Promise<Buffer> => {
+  if (Buffer.isBuffer(input)) return input;
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of input) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+};
+
 /**
  * Advertise refs for a git service.
  * Used by: GET /info/refs?service=git-upload-pack (or git-receive-pack)
@@ -102,30 +116,32 @@ export async function advertiseRefs(
   owner: string,
   repo: string,
   service: GitService,
+  backend: Client | null = getArborGitClient(),
 ): Promise<{ data: Buffer; success: boolean }> {
-  const client = getArborGitClient();
-  if (isArborGitEnabled() && client) {
+  if (backend) {
     // the backend returns the raw `--advertise-refs` bytes; assemble the same
     // announcement + flush the in-process path builds below so the wire response
     // is identical. `service` is `git-upload-pack`/`git-receive-pack`; the backend
     // wants the bare plumbing name
     const gitOutput = await advertiseRefsViaBackend(
-      client,
+      backend,
       owner,
       repo,
       service.replace(/^git-/, "") as "upload-pack" | "receive-pack",
     );
-    if (gitOutput) {
-      return {
-        data: Buffer.concat([
-          Buffer.from(pktLine(`# service=${service}`)),
-          Buffer.from(PKT_FLUSH),
-          gitOutput,
-        ]),
-        success: true,
-      };
-    }
-    // backend error: fall through to the in-process advertisement
+
+    // a backend error fails the request: the local copy is not the repository
+    // of record, so falling back would advertise stale or missing refs
+    if (!gitOutput) return { data: Buffer.alloc(0), success: false };
+
+    return {
+      data: Buffer.concat([
+        Buffer.from(pktLine(`# service=${service}`)),
+        Buffer.from(PKT_FLUSH),
+        gitOutput,
+      ]),
+      success: true,
+    };
   }
 
   const repoPath = getRepositoryPath(owner, repo);
@@ -177,19 +193,19 @@ export async function advertiseRefs(
 /**
  * Execute git-upload-pack (for clone/fetch/pull).
  *
- * When the arbor-git backend is enabled and the input is a buffered request (the
- * smart-HTTP POST body), this is delegated to arbor-git over gRPC; otherwise it
- * runs the in-process `git-upload-pack`. The auth/visibility gate in front of
- * this call is unchanged either way.
+ * When the arbor-git backend is configured this is always delegated to arbor-git
+ * over gRPC (a streamed body is buffered first); otherwise it runs the in-process
+ * `git-upload-pack`. The auth/visibility gate in front of this call is unchanged
+ * either way.
  */
 export async function uploadPack(
   owner: string,
   repo: string,
   input: Buffer | Readable,
+  backend: Client | null = getArborGitClient(),
 ): Promise<{ data: Buffer; success: boolean }> {
-  const client = getArborGitClient();
-  if (isArborGitEnabled() && client && Buffer.isBuffer(input)) {
-    return uploadPackViaBackend(client, owner, repo, input);
+  if (backend) {
+    return uploadPackViaBackend(backend, owner, repo, await toBuffer(input));
   }
   return executeGitService(owner, repo, "git-upload-pack", input);
 }
@@ -209,19 +225,20 @@ export async function receivePack(
   bounds: ScopeBounds | null = null,
   userId = "",
   protectedRefPatterns: string[] = [],
+  backend: Client | null = getArborGitClient(),
 ): Promise<{ data: Buffer; success: boolean }> {
-  const client = getArborGitClient();
   // Confined and unconfined pushes both route to the backend: the token's bounds
   // and the repository's protected branches travel in the init and arbor-git
   // enforces them against the actual pushed objects via its own pre-receive
-  // boundary hook. The in-process path remains the fallback when the backend is off
-  if (isArborGitEnabled() && client && Buffer.isBuffer(input)) {
+  // boundary hook. A push must never land in the local copy while the backend is
+  // configured, so the in-process path runs only when it is not
+  if (backend) {
     return receivePackViaBackend(
-      client,
+      backend,
       owner,
       repo,
       userId,
-      input,
+      await toBuffer(input),
       bounds,
       protectedRefPatterns,
     );

@@ -3,8 +3,9 @@ import { describe, expect, test } from "bun:test";
 import {
   checkArborGitHealth,
   createGitServiceClient,
+  getArborGitClient,
+  isArborGitEnabled,
   receivePackViaBackend,
-  resolveArborGitEnabled,
 } from "./grpcClient";
 
 import type { Client } from "@grpc/grpc-js";
@@ -29,22 +30,59 @@ const captureInit = () => {
   return { client, getInit: () => init };
 };
 
-describe("resolveArborGitEnabled", () => {
-  test("is off when the flag is not requested, even if healthy", () => {
-    expect(resolveArborGitEnabled(false, true)).toBe(false);
+/**
+ * Boot grpcClient in a fresh process with the given backend env (the gate reads
+ * env at import, so it cannot be flipped inside this one), run `initArborGitBackend`,
+ * and report the resulting routing decision
+ */
+const bootGateWith = async (env: Record<string, string>) => {
+  const script = `
+    const m = await import(${JSON.stringify(`${import.meta.dir}/grpcClient.ts`)});
+    await m.initArborGitBackend();
+    console.log(JSON.stringify({
+      enabled: m.isArborGitEnabled(),
+      hasClient: m.getArborGitClient() !== null,
+    }));
+    process.exit(0);
+  `;
+  const proc = Bun.spawn([process.execPath, "-e", script], {
+    cwd: `${import.meta.dir}/../../..`,
+    env: { ...process.env, USE_ARBOR_GIT: "", GIT_SERVICE_URL: "", ...env },
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const out = await new Response(proc.stdout).text();
+  await proc.exited;
+  const last = out.trim().split("\n").at(-1) ?? "";
+  return JSON.parse(last) as { enabled: boolean; hasClient: boolean };
+};
+
+describe("arbor-git backend gate", () => {
+  test("is off without the flag, so the in-process path is used", () => {
+    // the suite runs without USE_ARBOR_GIT
+    expect(isArborGitEnabled()).toBe(false);
+    expect(getArborGitClient()).toBeNull();
   });
 
-  test("is off when the backend is unhealthy, even if requested", () => {
-    expect(resolveArborGitEnabled(true, false)).toBe(false);
-  });
+  test("stays on when the backend is unreachable at boot (no latched in-process fallback)", async () => {
+    // regression: a boot-time health check that lost the race against arbor-git
+    // starting used to latch arbor-api onto the stale local copies for the
+    // whole process lifetime
+    const gate = await bootGateWith({
+      USE_ARBOR_GIT: "true",
+      GIT_SERVICE_URL: "127.0.0.1:1",
+    });
+    expect(gate).toEqual({ enabled: true, hasClient: true });
+  }, 15_000);
 
-  test("is on only when both requested and healthy", () => {
-    expect(resolveArborGitEnabled(true, true)).toBe(true);
-  });
+  test("needs a service URL as well as the flag", async () => {
+    const gate = await bootGateWith({ USE_ARBOR_GIT: "true" });
+    expect(gate).toEqual({ enabled: false, hasClient: false });
+  }, 15_000);
 });
 
 describe("checkArborGitHealth", () => {
-  test("reports unhealthy for an unreachable service, so boot degrades gracefully", async () => {
+  test("reports unhealthy for an unreachable service rather than hanging or throwing", async () => {
     // nothing is listening on this port; the health check must resolve false
     // rather than hang or throw
     const client = createGitServiceClient("127.0.0.1:1");
