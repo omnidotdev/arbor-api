@@ -4,15 +4,20 @@ import { diffLines } from "diff";
 import git, { TREE } from "isomorphic-git";
 
 import {
+  createBranchViaBackend,
+  deleteBranchViaBackend,
   getArborGitClient,
   getBlobViaBackend,
   getCommitLogViaBackend,
   getCommitViaBackend,
   getDiffViaBackend,
+  getMergeBaseViaBackend,
   getTreeViaBackend,
   isArborGitEnabled,
+  isBackendNotFound,
   listRefsViaBackend,
   mergeChangeViaBackend,
+  recordMergeIntentViaBackend,
   resolveRefViaBackend,
   setDefaultBranchViaBackend,
 } from "./grpcClient";
@@ -79,6 +84,27 @@ const resolveBlobViaBackend = async (
   if (!entry) return null;
 
   return getBlobViaBackend(client, owner, repo, entry.oid);
+};
+
+/**
+ * {@link resolveBlobViaBackend}, but a path, ref or blob the backend reports
+ * missing reads as null, while any other backend error still rejects. Lets a
+ * caller treat an absent file (the base side of an added file, say) as absent
+ * and fail closed on a backend that could not answer
+ */
+const resolveBlobOrAbsentViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  ref: string,
+  path: string,
+): Promise<Buffer | null> => {
+  try {
+    return await resolveBlobViaBackend(client, owner, repo, ref, path);
+  } catch (error) {
+    if (isBackendNotFound(error)) return null;
+    throw error;
+  }
 };
 
 /** arbor-git TreeEntryMode enum -> git mode string. */
@@ -248,6 +274,34 @@ async function readBlobBytes(
 const decoder = new TextDecoder();
 
 /**
+ * Shape one file's old and new bytes into a FileDiffContent, or null when the
+ * path exists on neither side.
+ */
+function buildFileDiffContent(
+  path: string,
+  oldBytes: Uint8Array | null,
+  newBytes: Uint8Array | null,
+): FileDiffContent | null {
+  if (!newBytes && !oldBytes) return null;
+
+  let status: DiffStatus;
+  if (!oldBytes) status = "ADDED";
+  else if (!newBytes) status = "DELETED";
+  else status = "MODIFIED";
+
+  const sample = newBytes ?? oldBytes;
+  const isBinary = sample ? isBinaryContent(sample) : false;
+
+  return {
+    path,
+    status,
+    isBinary,
+    oldText: isBinary || !oldBytes ? null : decoder.decode(oldBytes),
+    newText: isBinary || !newBytes ? null : decoder.decode(newBytes),
+  };
+}
+
+/**
  * Collect the set of blob paths that changed between a base and head tree.
  *
  * A null baseOid is treated as an empty tree, so every blob path is returned
@@ -298,7 +352,13 @@ async function collectChangedPaths(
 }
 
 /**
- * Core git operations service using isomorphic-git.
+ * Core git operations service.
+ *
+ * With arbor-git configured (`USE_ARBOR_GIT` plus `GIT_SERVICE_URL`) every
+ * operation goes to it over gRPC and none reads or writes the local
+ * `GIT_REPOS_PATH` copy, which is not the repository of record; a backend
+ * error fails the operation instead of falling back. Without it (local dev)
+ * operations run in-process with isomorphic-git.
  *
  * NOTE: We use `gitdir` instead of `dir` for all isomorphic-git calls
  * because our repositories are bare (no working tree).
@@ -810,6 +870,17 @@ export const gitService = {
     repo: string,
     oid: string,
   ): Promise<Uint8Array | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      // A missing blob is a 404; a backend that cannot answer rejects
+      try {
+        return await getBlobViaBackend(client, owner, repo, oid);
+      } catch (error) {
+        if (isBackendNotFound(error)) return null;
+        throw error;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
     return readBlobBytes(gitdir, oid);
   },
@@ -916,6 +987,17 @@ export const gitService = {
     branchName: string,
     ref: string,
   ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        await createBranchViaBackend(client, owner, repo, branchName, ref);
+        return true;
+      } catch (error) {
+        console.error("[gitService.createBranch] arbor-git failed:", error);
+        return false;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -940,6 +1022,16 @@ export const gitService = {
     repo: string,
     branchName: string,
   ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        return await deleteBranchViaBackend(client, owner, repo, branchName);
+      } catch (error) {
+        console.error("[gitService.deleteBranch] arbor-git failed:", error);
+        return false;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -1006,6 +1098,38 @@ export const gitService = {
     author: { name: string; email: string },
     message: string,
   ): Promise<{ sha: string | null; error?: string }> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      // The in-process merge below lands the source tip onto the target with
+      // exactly MergeChange's semantics (fast-forward, else a merge commit
+      // taking the source tree, parented on both). arbor-git's Merge RPC is a
+      // stub that never writes a commit or moves the branch, so it is not used
+      const sourceSha = await resolveRefViaBackend(
+        client,
+        owner,
+        repo,
+        `refs/heads/${sourceBranch}`,
+      );
+      if (!sourceSha) {
+        return { sha: null, error: "Source branch could not be resolved" };
+      }
+
+      const result = await mergeChangeViaBackend(
+        client,
+        owner,
+        repo,
+        sourceSha,
+        targetBranch,
+        author,
+        message,
+      );
+      if (!result) return { sha: null, error: "Merge failed" };
+      if (result.mode === "already-merged") {
+        return { sha: null, error: "Source branch is already merged" };
+      }
+      return { sha: result.sha };
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -1122,6 +1246,25 @@ export const gitService = {
     changeId: string,
     oid: string,
   ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        return await recordMergeIntentViaBackend(
+          client,
+          owner,
+          repo,
+          changeId,
+          oid,
+        );
+      } catch (error) {
+        console.error(
+          `[Git] Failed to record merge intent for ${owner}/${repo} change ${changeId}:`,
+          error,
+        );
+        return false;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
     const ref = `refs/arbor/merge-intent/${changeId}`;
 
@@ -1243,6 +1386,8 @@ export const gitService = {
   /**
    * Find the merge base (most recent common ancestor) of two refs.
    * Returns null when either ref is unresolvable or no common ancestor exists.
+   * With arbor-git configured a backend error rejects rather than reading as
+   * "no merge base", so a diff is never computed against the wrong base.
    */
   async getMergeBase(
     owner: string,
@@ -1250,6 +1395,11 @@ export const gitService = {
     refA: string,
     refB: string,
   ): Promise<string | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return getMergeBaseViaBackend(client, owner, repo, refA, refB);
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -1408,6 +1558,10 @@ export const gitService = {
    * add/delete is null, and binary files return null on both sides (their bytes
    * are served separately over the raw HTTP endpoint). A null baseRef is treated
    * as an empty tree. Returns null when the path exists on neither side.
+   *
+   * With arbor-git configured a side the backend reports missing is absent,
+   * but any other backend error rejects, so a failed read never shows up as a
+   * spurious add or delete.
    */
   async getFileDiffContent(
     owner: string,
@@ -1416,6 +1570,28 @@ export const gitService = {
     headRef: string,
     path: string,
   ): Promise<FileDiffContent | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const newBytes = await resolveBlobOrAbsentViaBackend(
+        client,
+        owner,
+        repo,
+        headRef,
+        path,
+      );
+      const oldBytes =
+        baseRef === null
+          ? null
+          : await resolveBlobOrAbsentViaBackend(
+              client,
+              owner,
+              repo,
+              baseRef,
+              path,
+            );
+      return buildFileDiffContent(path, oldBytes, newBytes);
+    }
+
     try {
       const newBytes = await this.getFileRaw(owner, repo, headRef, path);
       const oldBytes =
@@ -1423,23 +1599,7 @@ export const gitService = {
           ? null
           : await this.getFileRaw(owner, repo, baseRef, path);
 
-      if (!newBytes && !oldBytes) return null;
-
-      let status: DiffStatus;
-      if (!oldBytes) status = "ADDED";
-      else if (!newBytes) status = "DELETED";
-      else status = "MODIFIED";
-
-      const sample = newBytes ?? oldBytes;
-      const isBinary = sample ? isBinaryContent(sample) : false;
-
-      return {
-        path,
-        status,
-        isBinary,
-        oldText: isBinary || !oldBytes ? null : decoder.decode(oldBytes),
-        newText: isBinary || !newBytes ? null : decoder.decode(newBytes),
-      };
+      return buildFileDiffContent(path, oldBytes, newBytes);
     } catch {
       return null;
     }

@@ -29,7 +29,11 @@ import graphilePreset from "lib/config/graphile.config";
 import { graphqlPgPool } from "lib/db/db";
 import { pgSubscriber } from "lib/db/pubsub";
 import { warnIfRowLevelSecurityIsBypassed } from "lib/db/rowLevelSecurity";
-import { ensureReposDirectory, initArborGitBackend } from "lib/git";
+import {
+  ensureReposDirectory,
+  initArborGitBackend,
+  isArborGitEnabled,
+} from "lib/git";
 import createGraphqlContext from "lib/graphql/createGraphqlContext";
 import {
   armorPlugin,
@@ -219,10 +223,13 @@ const app = new Elysia({
   )
   .listen(PORT);
 
-// Ensure git repositories directory exists
-ensureReposDirectory().catch((err) => {
-  console.error("[Git] Failed to create repositories directory:", err);
-});
+// Ensure the local git repositories directory exists, only for in-process git:
+// with arbor-git configured the repositories live on its volume instead
+if (!isArborGitEnabled()) {
+  ensureReposDirectory().catch((err) => {
+    console.error("[Git] Failed to create repositories directory:", err);
+  });
+}
 
 // Connect to the arbor-git backend when enabled and log its reachability. It
 // never changes routing (an unreachable backend fails git requests, it does not

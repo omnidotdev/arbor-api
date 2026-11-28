@@ -83,8 +83,8 @@ const prop =
  * - ChangedFile: the cheap per-file list (status, oids, counts, binary/image)
  * - FileDiffContent: per-file old/new text, fetched lazily
  *
- * Diffs are computed in-process with isomorphic-git via gitService. Plans close
- * over gitService directly (the schema is built at boot with makeSchema, so no
+ * Diffs are computed by gitService (arbor-git when configured, in-process
+ * isomorphic-git otherwise). Plans close over gitService directly (the schema is built at boot with makeSchema, so no
  * EXPORTABLE wrapping is required).
  */
 const GitDiffPlugin = extendSchema((_build) => {

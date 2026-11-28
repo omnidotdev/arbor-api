@@ -5,6 +5,7 @@ import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 
 import {
+  cloneRepositoryViaBackend,
   deleteRepositoryViaBackend,
   getArborGitClient,
   getRepositoryInfoViaBackend,
@@ -233,6 +234,22 @@ export const repositoryService = {
       }) => void;
     } = {},
   ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      // onProgress is not streamed back from the backend. The URL may carry
+      // credentials, so it is never logged
+      try {
+        await cloneRepositoryViaBackend(client, owner, repo, url, options);
+        return true;
+      } catch (error) {
+        console.error(
+          `[Git] Failed to clone repository ${owner}/${repo} via arbor-git:`,
+          error,
+        );
+        return false;
+      }
+    }
+
     const dir = getRepositoryPath(owner, repo);
 
     try {
