@@ -452,26 +452,26 @@ message MergeResponse {
   repeated ConflictInfo conflicts = 3;
 }
 
-// Land a stacked change onto a target branch, taking the change's tree wholesale
-// (fast-forward, or a merge commit parented on both). Not a 3-way content merge.
+// Land a change onto a target branch by fast-forward only. Never a merge commit
+// (no 3-way content merge exists), so no work only the target has is dropped.
 message MergeChangeRequest {
   RepositoryPath repository = 1;
   string commit_oid = 2;      // the change commit to land
   string target_branch = 3;   // short branch name to advance
   string author_name = 4;
   string author_email = 5;
-  string message = 6;         // merge commit message (used when a merge commit is created)
-  // Only advance the target by fast-forward: a diverged target is refused
-  // ("out-of-date") rather than given a merge commit that takes the change's
-  // tree, which would drop work only the target has
+  string message = 6;         // unused: landing never writes a merge commit
+  // Landing is always fast-forward only (a diverged target is refused as
+  // "out-of-date" rather than given a merge commit taking the change's tree,
+  // which would drop work only the target has). Accepted for compatibility
   bool fast_forward_only = 7;
 }
 
 message MergeChangeResponse {
   string sha = 1;             // the target's tip after landing (empty when refused)
-  // "fast-forward" | "merge-commit" | "already-merged", or a refusal that left
-  // the target untouched: "out-of-date" (diverged, fast_forward_only) or
-  // "unrelated-histories" (no common ancestor)
+  // "fast-forward" | "already-merged", or a refusal that left the target
+  // untouched: "out-of-date" (diverged) or "unrelated-histories" (no common
+  // ancestor)
   string mode = 2;
 }
 

@@ -24,6 +24,10 @@ function mergeErrorMessage(reason: string): string {
       return "The change below this one has not merged yet";
     case "repository-unavailable":
       return "Repository is not available";
+    case "out-of-date":
+      return "The change is out of date with its base branch, update it first and try again";
+    case "unrelated-histories":
+      return "No common ancestor found";
     default:
       return "Merge could not be completed";
   }

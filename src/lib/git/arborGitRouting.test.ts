@@ -222,6 +222,9 @@ const SCRIPT = `
     mergeUnrelated: await run(() =>
       gitService.merge("o", "r", "feature", "unrelated", author, "land"),
     ),
+    landOutOfDate: await run(() =>
+      gitService.mergeChangeIntoBranch("o", "r", HEAD, "diverged", author, "land"),
+    ),
     landUnrelated: await run(() =>
       gitService.mergeChangeIntoBranch("o", "r", HEAD, "unrelated", author, "land"),
     ),
@@ -395,6 +398,21 @@ describe("git operations with arbor-git configured", () => {
       expect(out.landUnrelated).toMatchObject({
         value: { sha: null, error: "No common ancestor found" },
       });
+      // stack landing is fast-forward only too
+      expect(out.landOutOfDate).toEqual({
+        value: {
+          sha: null,
+          mode: null,
+          refusal: "out-of-date",
+          error:
+            "The branch is out of date with its target, update it first and try again",
+        },
+      });
+      expect(
+        backend.calls
+          .filter((call) => call.method === "mergeChange")
+          .every((call) => call.request.fastForwardOnly === true),
+      ).toBe(true);
       expect(out.mergeAlreadyMerged).toEqual({
         value: { sha: null, error: "Source branch is already merged" },
       });
@@ -580,7 +598,12 @@ describe("git operations with arbor-git configured", () => {
       value: { sha: null, error: "No common ancestor found" },
     });
     expect(out.landUnrelated).toMatchObject({
-      value: { sha: null, error: "No common ancestor found" },
+      value: { sha: null, refusal: "unrelated-histories" },
+    });
+    // in-process stack landing refuses a diverged base rather than writing a
+    // merge commit over it
+    expect(out.landOutOfDate).toMatchObject({
+      value: { sha: null, refusal: "out-of-date" },
     });
     expect(git(["--git-dir", bare, "rev-parse", "refs/heads/diverged"])).toBe(
       localEnv.DIVERGED ?? "",

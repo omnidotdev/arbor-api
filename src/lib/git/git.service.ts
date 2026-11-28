@@ -1455,13 +1455,14 @@ export const gitService = {
   /**
    * Land a change commit onto its base branch and return the resulting tip.
    *
-   * Advances refs/heads/{targetBranch} forward to the change: a fast-forward
-   * when the base is an ancestor of the change, otherwise a merge commit whose
-   * parents are the base tip and the change commit. Both only move the branch
-   * forward, so no history is rewritten and no commits are lost; this is the
-   * same operation a pull request merge performs. Conflict resolution takes the
-   * change tree (the same simplification the pull request merge uses). Returns
-   * the new tip and the mode, or a typed error with details logged server-side.
+   * Fast-forward only, like a pull request merge: refs/heads/{targetBranch}
+   * advances to the change only when the base tip is an ancestor of it. A base
+   * that has moved on without the change is refused ("out-of-date") rather
+   * than given a merge commit taking the change's tree, which would silently
+   * drop work only the base has; histories with no common ancestor are refused
+   * ("unrelated-histories"). A refusal leaves the base untouched and carries
+   * `refusal` plus a client-facing `error`; other failures are logged
+   * server-side and return a generic error.
    */
   async mergeChangeIntoBranch(
     owner: string,
@@ -1472,7 +1473,8 @@ export const gitService = {
     message: string,
   ): Promise<{
     sha: string | null;
-    mode: "fast-forward" | "merge-commit" | "already-merged" | null;
+    mode: "fast-forward" | "already-merged" | null;
+    refusal?: "out-of-date" | "unrelated-histories";
     error?: string;
   }> {
     const client = getArborGitClient();
@@ -1485,21 +1487,25 @@ export const gitService = {
         targetBranch,
         author,
         message,
+        true,
       );
       if (!result) return { sha: null, mode: null, error: "merge failed" };
-      // Unrelated histories are refused with the target untouched
+      if (result.mode === "fast-forward" || result.mode === "already-merged") {
+        return { sha: result.sha, mode: result.mode };
+      }
+      // A refusal left the base untouched
       if (
-        result.mode !== "fast-forward" &&
-        result.mode !== "merge-commit" &&
-        result.mode !== "already-merged"
+        result.mode === "out-of-date" ||
+        result.mode === "unrelated-histories"
       ) {
         return {
           sha: null,
           mode: null,
-          error: MERGE_REFUSALS[result.mode] ?? "merge failed",
+          refusal: result.mode,
+          error: MERGE_REFUSALS[result.mode],
         };
       }
-      return { sha: result.sha, mode: result.mode };
+      return { sha: null, mode: null, error: "merge failed" };
     }
 
     const gitdir = getRepositoryPath(owner, repo);
@@ -1529,40 +1535,20 @@ export const gitService = {
         return { sha: commitOid, mode: "fast-forward" };
       }
 
-      // Histories with no common ancestor are never merged: the target's tree
-      // would be replaced wholesale
+      // Diverged: never replace the base with the change's tree. Refused as
+      // out of date, or as unrelated when the histories share nothing
       const [mergeBase] = await git.findMergeBase({
         fs,
         gitdir,
         oids: [commitOid, targetSha],
       });
-      if (!mergeBase) {
-        return {
-          sha: null,
-          mode: null,
-          error: MERGE_REFUSALS["unrelated-histories"],
-        };
-      }
-
-      // Diverged, create a merge commit taking the change tree, parented on both
-      const changeCommit = await git.readCommit({ fs, gitdir, oid: commitOid });
-      const mergeCommitSha = await git.commit({
-        fs,
-        gitdir,
-        message,
-        tree: changeCommit.commit.tree,
-        parent: [targetSha, commitOid],
-        author,
-        committer: author,
-      });
-      await git.writeRef({
-        fs,
-        gitdir,
-        ref,
-        value: mergeCommitSha,
-        force: true,
-      });
-      return { sha: mergeCommitSha, mode: "merge-commit" };
+      const refusal = mergeBase ? "out-of-date" : "unrelated-histories";
+      return {
+        sha: null,
+        mode: null,
+        refusal,
+        error: MERGE_REFUSALS[refusal],
+      };
     } catch (error) {
       console.error(
         `[Git] Failed to merge change ${commitOid} into ${owner}/${repo} ${targetBranch}:`,

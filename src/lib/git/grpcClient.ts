@@ -208,10 +208,10 @@ export const relocateRepositoryViaBackend = (
  * Land a change onto a target branch through the backend (MergeChange).
  * Returns the resulting tip and the mode, or null on a backend error so the
  * caller can surface a generic failure. A refusal that left the target
- * untouched comes back with an empty sha and mode "out-of-date" (diverged,
- * with `fastForwardOnly`) or "unrelated-histories" (no common ancestor).
- * Without `fastForwardOnly` a diverged target gets a merge commit taking the
- * change's tree, the stack-landing semantics.
+ * untouched comes back with an empty sha and mode "out-of-date" (diverged) or
+ * "unrelated-histories" (no common ancestor). Landing is fast-forward only;
+ * every caller passes `fastForwardOnly` so an older backend that still had a
+ * merge-commit path is held to it too.
  */
 export const mergeChangeViaBackend = (
   client: Client,
