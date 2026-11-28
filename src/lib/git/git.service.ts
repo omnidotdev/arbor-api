@@ -176,21 +176,71 @@ export interface ParsedRefName {
 }
 
 /**
- * Parse `refs/heads/{name}` or `refs/tags/{name}`. Anything else (another
- * namespace, or an empty short name) is null, so a caller can never mistake
- * one kind of ref for the other.
+ * Whether a fully qualified ref name is valid, by git's `check-ref-format`
+ * rules: no empty, `.`-leading or `.lock`-ending component, no `..`, `@{`,
+ * `//`, control character, space or any of `~ ^ : ? * [ \`, not ending in `/`
+ * or `.`, and not `@`.
+ */
+export function isValidRefName(name: string): boolean {
+  if (!name || name === "@" || name.endsWith("/") || name.endsWith(".")) {
+    return false;
+  }
+  if (name.includes("..") || name.includes("@{") || name.includes("//")) {
+    return false;
+  }
+  for (const char of name) {
+    const code = char.codePointAt(0) ?? 0;
+    if (code < 0x20 || code === 0x7f || " ~^:?*[\\".includes(char)) {
+      return false;
+    }
+  }
+  return name
+    .split("/")
+    .every(
+      (component) =>
+        component.length > 0 &&
+        !component.startsWith(".") &&
+        !component.endsWith(".lock"),
+    );
+}
+
+/**
+ * Parse `refs/heads/{name}` or `refs/tags/{name}`. Anything else is null:
+ * another namespace, an empty short name, a short name that is itself
+ * qualified (`refs/tags/refs/heads/master` must never address the default
+ * branch), `HEAD`, an option-like name, or an invalid ref name. So a caller
+ * can never mistake one kind of ref for the other.
  */
 export function parseRefName(name: string): ParsedRefName | null {
   for (const [prefix, kind] of [
     ["refs/heads/", "branch"],
     ["refs/tags/", "tag"],
   ] as const) {
-    if (name.startsWith(prefix)) {
-      const shortName = name.slice(prefix.length);
-      return shortName ? { kind, shortName } : null;
+    if (!name.startsWith(prefix)) continue;
+
+    const shortName = name.slice(prefix.length);
+    if (
+      !shortName ||
+      shortName.startsWith("refs/") ||
+      shortName === "HEAD" ||
+      shortName.startsWith("-") ||
+      !isValidRefName(name)
+    ) {
+      return null;
     }
+    return { kind, shortName };
   }
   return null;
+}
+
+/**
+ * Whether a short branch or tag name stays within its own kind once qualified
+ * (see {@link parseRefName}). The short-name git operations refuse anything
+ * else, so no caller can reach another ref through them.
+ */
+function isShortRefName(kind: "branch" | "tag", shortName: string): boolean {
+  const prefix = kind === "branch" ? "refs/heads/" : "refs/tags/";
+  return parseRefName(`${prefix}${shortName}`)?.shortName === shortName;
 }
 
 export interface TagInfo {
@@ -1013,6 +1063,8 @@ export const gitService = {
     branchName: string,
     ref: string,
   ): Promise<boolean> {
+    if (!isShortRefName("branch", branchName)) return false;
+
     const client = getArborGitClient();
     if (isArborGitEnabled() && client) {
       try {
@@ -1048,6 +1100,8 @@ export const gitService = {
     repo: string,
     branchName: string,
   ): Promise<boolean> {
+    if (!isShortRefName("branch", branchName)) return false;
+
     const client = getArborGitClient();
     if (isArborGitEnabled() && client) {
       try {
@@ -1077,6 +1131,8 @@ export const gitService = {
     tagName: string,
     target: string,
   ): Promise<boolean> {
+    if (!isShortRefName("tag", tagName)) return false;
+
     const client = getArborGitClient();
     if (isArborGitEnabled() && client) {
       try {
@@ -1107,6 +1163,8 @@ export const gitService = {
     repo: string,
     tagName: string,
   ): Promise<boolean> {
+    if (!isShortRefName("tag", tagName)) return false;
+
     const client = getArborGitClient();
     if (isArborGitEnabled() && client) {
       try {
