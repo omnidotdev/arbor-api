@@ -3,8 +3,7 @@ import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
 import { repositoryTable } from "lib/db/schema";
-import { repositoryService } from "lib/git";
-import { getOwnerSlug } from "./GitTypes.plugin";
+import { repositoryService, resolveStorageOwner } from "lib/git";
 
 import type { ExecutableStep, FieldArgs } from "postgraphile/grafast";
 
@@ -138,7 +137,7 @@ const RepositoryRenamePlugin = extendSchema(() => {
                   return { repository: null, error: "Repository not found" };
                 }
 
-                const owner = await getOwnerSlug(repository, db);
+                const owner = await resolveStorageOwner(repository, db);
 
                 if (!owner) {
                   return { repository: null, error: "Invalid owner" };

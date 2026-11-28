@@ -302,6 +302,10 @@ function mergeBlockDetail(reason: string): string {
       return "Change is no longer open";
     case "repository-unavailable":
       return "Repository is not available";
+    case "out-of-date":
+      return "Out of date with the base branch, update it first";
+    case "unrelated-histories":
+      return "No common ancestor with the base branch";
     default:
       return "Change could not be landed yet";
   }

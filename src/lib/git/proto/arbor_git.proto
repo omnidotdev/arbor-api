@@ -13,6 +13,8 @@ service GitService {
   rpc RepositoryExists(RepositoryExistsRequest) returns (RepositoryExistsResponse);
   rpc RenameRepository(RenameRepositoryRequest) returns (RenameRepositoryResponse);
   rpc GetRepositoryInfo(GetRepositoryInfoRequest) returns (RepositoryInfo);
+  rpc GetRepositorySize(GetRepositorySizeRequest) returns (GetRepositorySizeResponse);
+  rpc CloneRepository(CloneRepositoryRequest) returns (CloneRepositoryResponse);
 
   // References
   rpc ListRefs(ListRefsRequest) returns (ListRefsResponse);
@@ -22,11 +24,13 @@ service GitService {
   rpc SetDefaultBranch(SetDefaultBranchRequest) returns (SetDefaultBranchResponse);
   rpc CreateTag(CreateTagRequest) returns (CreateTagResponse);
   rpc DeleteTag(DeleteTagRequest) returns (DeleteTagResponse);
+  rpc RecordMergeIntent(RecordMergeIntentRequest) returns (RecordMergeIntentResponse);
 
   // Commits
   rpc GetCommit(GetCommitRequest) returns (Commit);
   rpc GetCommitLog(GetCommitLogRequest) returns (stream Commit);
   rpc GetCommitAncestors(GetCommitAncestorsRequest) returns (stream Commit);
+  rpc GetMergeBase(GetMergeBaseRequest) returns (GetMergeBaseResponse);
 
   // Trees & Blobs
   rpc GetTree(GetTreeRequest) returns (GetTreeResponse);
@@ -109,6 +113,30 @@ message RepositoryInfo {
   uint32 branch_count = 5;
   uint32 tag_count = 6;
   string head_oid = 7;
+}
+
+// On-disk size only, without the history walk GetRepositoryInfo does, so it is
+// cheap enough to run for every repository of an owner on each push
+message GetRepositorySizeRequest {
+  RepositoryPath repository = 1;
+}
+
+message GetRepositorySizeResponse {
+  uint64 size_bytes = 1;
+}
+
+// Create a bare repository by cloning a remote. Only http(s) remotes are
+// accepted, and the target must not exist yet
+message CloneRepositoryRequest {
+  RepositoryPath repository = 1;
+  string url = 2;
+  uint32 depth = 3;          // 0 = full history
+  bool single_branch = 4;
+  string ref = 5;            // Branch to clone (empty = the remote's HEAD)
+}
+
+message CloneRepositoryResponse {
+  bool cloned = 1;
 }
 
 // ============================================================================
@@ -200,6 +228,20 @@ message DeleteTagResponse {
   bool deleted = 1;
 }
 
+// Record a stacked-change merge intent as refs/arbor/merge-intent/{change_id}.
+// Create-only: never moves an existing intent and never touches a branch or tag
+message RecordMergeIntentRequest {
+  RepositoryPath repository = 1;
+  string change_id = 2;
+  string oid = 3;
+}
+
+message RecordMergeIntentResponse {
+  // True when the intent now points at oid (newly written, or already there);
+  // false when an intent for change_id already points at another commit
+  bool recorded = 1;
+}
+
 // ============================================================================
 // Commit Messages
 // ============================================================================
@@ -237,6 +279,18 @@ message GetCommitAncestorsRequest {
   RepositoryPath repository = 1;
   string oid = 2;
   uint32 limit = 3;
+}
+
+message GetMergeBaseRequest {
+  RepositoryPath repository = 1;
+  string ref_a = 2;          // Branch, tag, or OID
+  string ref_b = 3;
+}
+
+message GetMergeBaseResponse {
+  string oid = 1;
+  // False when either ref does not resolve to a commit or they share no history
+  bool found = 2;
 }
 
 // ============================================================================
@@ -398,20 +452,27 @@ message MergeResponse {
   repeated ConflictInfo conflicts = 3;
 }
 
-// Land a stacked change onto a target branch, taking the change's tree wholesale
-// (fast-forward, or a merge commit parented on both). Not a 3-way content merge.
+// Land a change onto a target branch by fast-forward only. Never a merge commit
+// (no 3-way content merge exists), so no work only the target has is dropped.
 message MergeChangeRequest {
   RepositoryPath repository = 1;
   string commit_oid = 2;      // the change commit to land
   string target_branch = 3;   // short branch name to advance
   string author_name = 4;
   string author_email = 5;
-  string message = 6;         // merge commit message (used when a merge commit is created)
+  string message = 6;         // unused: landing never writes a merge commit
+  // Landing is always fast-forward only (a diverged target is refused as
+  // "out-of-date" rather than given a merge commit taking the change's tree,
+  // which would drop work only the target has). Accepted for compatibility
+  bool fast_forward_only = 7;
 }
 
 message MergeChangeResponse {
-  string sha = 1;             // the target's tip after landing
-  string mode = 2;            // "fast-forward" | "merge-commit" | "already-merged"
+  string sha = 1;             // the target's tip after landing (empty when refused)
+  // "fast-forward" | "already-merged", or a refusal that left the target
+  // untouched: "out-of-date" (diverged) or "unrelated-histories" (no common
+  // ancestor)
+  string mode = 2;
 }
 
 message ConflictInfo {

@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { credentials, loadPackageDefinition } from "@grpc/grpc-js";
+import { credentials, loadPackageDefinition, status } from "@grpc/grpc-js";
 import { loadSync } from "@grpc/proto-loader";
 
 import { GIT_SERVICE_URL, useArborGit } from "lib/config/env.config";
@@ -205,10 +205,13 @@ export const relocateRepositoryViaBackend = (
   );
 
 /**
- * Land a stacked change onto a target branch through the backend (MergeChange).
- * Returns the resulting tip and the mode, or null on error so the caller can
- * surface a generic failure. The backend takes the change's tree wholesale,
- * matching the in-process stack-landing semantics.
+ * Land a change onto a target branch through the backend (MergeChange).
+ * Returns the resulting tip and the mode, or null on a backend error so the
+ * caller can surface a generic failure. A refusal that left the target
+ * untouched comes back with an empty sha and mode "out-of-date" (diverged) or
+ * "unrelated-histories" (no common ancestor). Landing is fast-forward only;
+ * every caller passes `fastForwardOnly` so an older backend that still had a
+ * merge-commit path is held to it too.
  */
 export const mergeChangeViaBackend = (
   client: Client,
@@ -218,6 +221,7 @@ export const mergeChangeViaBackend = (
   targetBranch: string,
   author: { name: string; email: string },
   message: string,
+  fastForwardOnly = false,
 ): Promise<{ sha: string; mode: string } | null> =>
   new Promise((resolve) => {
     (
@@ -238,12 +242,13 @@ export const mergeChangeViaBackend = (
         authorName: author.name,
         authorEmail: author.email,
         message,
+        fastForwardOnly,
       },
       (error, response) => {
         resolve(
-          error || !response?.sha
+          error || !response?.mode
             ? null
-            : { sha: response.sha, mode: response.mode ?? "" },
+            : { sha: response.sha ?? "", mode: response.mode },
         );
       },
     );
@@ -660,3 +665,174 @@ export const uploadPackViaBackend = (
     call.write({ data: input });
     call.end();
   });
+
+/** Whether a backend call failed because the thing asked for does not exist */
+export const isBackendNotFound = (error: unknown): boolean =>
+  (error as { code?: number } | null)?.code === status.NOT_FOUND;
+
+/** Invoke a unary GitService method, rejecting on any backend error */
+const unary = <T>(
+  client: Client,
+  method: string,
+  request: unknown,
+): Promise<T> =>
+  new Promise((resolve, reject) => {
+    const call = (
+      client as unknown as Record<
+        string,
+        (
+          request: unknown,
+          callback: (error: Error | null, response?: T) => void,
+        ) => void
+      >
+    )[method];
+    if (!call) {
+      reject(new Error(`arbor-git client has no ${method} method`));
+      return;
+    }
+    call.call(client, request, (error, response) => {
+      if (error || response === undefined) reject(error ?? new Error(method));
+      else resolve(response);
+    });
+  });
+
+/** Create a branch at a start point through the backend (CreateBranch); rejects on error */
+export const createBranchViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  name: string,
+  startPoint: string,
+): Promise<void> => {
+  await unary(client, "createBranch", {
+    repository: { owner, name: repo },
+    name,
+    startPoint,
+  });
+};
+
+/**
+ * Delete a branch through the backend (DeleteBranch, never forced, so the
+ * backend also refuses the default branch); rejects on error
+ */
+export const deleteBranchViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  name: string,
+): Promise<boolean> => {
+  const response = await unary<{ deleted?: boolean }>(client, "deleteBranch", {
+    repository: { owner, name: repo },
+    name,
+    force: false,
+  });
+  return Boolean(response.deleted);
+};
+
+/**
+ * Merge base of two refs through the backend (GetMergeBase). Null when either
+ * ref names no commit or they share no history; rejects on a backend error
+ */
+export const getMergeBaseViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  refA: string,
+  refB: string,
+): Promise<string | null> => {
+  const response = await unary<{ oid?: string; found?: boolean }>(
+    client,
+    "getMergeBase",
+    { repository: { owner, name: repo }, refA, refB },
+  );
+  return response.found && response.oid ? response.oid : null;
+};
+
+/**
+ * Record a stacked-change merge intent through the backend (RecordMergeIntent,
+ * create-only). False when an intent already points at another commit;
+ * rejects on a backend error
+ */
+export const recordMergeIntentViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  changeId: string,
+  oid: string,
+): Promise<boolean> => {
+  const response = await unary<{ recorded?: boolean }>(
+    client,
+    "recordMergeIntent",
+    { repository: { owner, name: repo }, changeId, oid },
+  );
+  return Boolean(response.recorded);
+};
+
+/**
+ * On-disk size of a repository on the backend's volume (GetRepositorySize). A
+ * repository the backend does not have occupies 0 bytes; any other backend
+ * error rejects, so a storage limit is never checked against a guess
+ */
+export const getRepositorySizeViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+): Promise<number> => {
+  try {
+    const response = await unary<{ sizeBytes?: string | number }>(
+      client,
+      "getRepositorySize",
+      { repository: { owner, name: repo } },
+    );
+    return Number(response.sizeBytes ?? 0);
+  } catch (error) {
+    if (isBackendNotFound(error)) return 0;
+    throw error;
+  }
+};
+
+/** Clone a remote into a new repository on the backend (CloneRepository); rejects on error */
+export const cloneRepositoryViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  url: string,
+  options: { depth?: number; singleBranch?: boolean; ref?: string },
+): Promise<void> => {
+  await unary(client, "cloneRepository", {
+    repository: { owner, name: repo },
+    url,
+    depth: options.depth ?? 0,
+    singleBranch: options.singleBranch ?? false,
+    ref: options.ref ?? "",
+  });
+};
+
+/** Create a lightweight tag at a target through the backend (CreateTag); rejects on error */
+export const createTagViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  name: string,
+  target: string,
+): Promise<void> => {
+  await unary(client, "createTag", {
+    repository: { owner, name: repo },
+    name,
+    target,
+  });
+};
+
+/** Delete a tag through the backend (DeleteTag), never a branch; rejects on error */
+export const deleteTagViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  name: string,
+): Promise<boolean> => {
+  const response = await unary<{ deleted?: boolean }>(client, "deleteTag", {
+    repository: { owner, name: repo },
+    name,
+  });
+  return Boolean(response.deleted);
+};

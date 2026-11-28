@@ -6,7 +6,7 @@ import {
 } from "lib/auth/organizationRoles";
 import { repositoryTable } from "lib/db/schema";
 import { isWithinLimit } from "lib/entitlements";
-import { repositoryService } from "lib/git";
+import { repositoryService, resolveStorageOwner } from "lib/git";
 import {
   FEATURE_KEYS,
   billingBypassOrgIds,
@@ -156,7 +156,7 @@ export const createRepository = async ({
 
   // Storage is keyed by the owning user's username: an organization repository
   // is still addressed as {ownerUsername}/{slug}
-  const ownerSlug = fullRepository.owner?.username;
+  const ownerSlug = await resolveStorageOwner(fullRepository, db);
   if (!ownerSlug) return failure("Invalid owner");
 
   if (!(await initStorage(ownerSlug, fullRepository.slug))) {

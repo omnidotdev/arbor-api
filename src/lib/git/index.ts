@@ -4,3 +4,4 @@ export * from "./grpcClient";
 export * from "./repository.service";
 export * from "./smart-http.service";
 export * from "./storage.config";
+export * from "./storageOwner";

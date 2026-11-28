@@ -3,9 +3,15 @@ import { EXPORTABLE } from "graphile-export";
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
+import { evaluatePullRequestMergeGate } from "lib/branchProtection/pullRequestMergeGate";
 import { dbPool } from "lib/db/db";
 import { pullRequestTable } from "lib/db/schema";
-import { gitService, repositoryService } from "lib/git";
+import {
+  gitService,
+  parseRefName,
+  repositoryService,
+  resolveStorageOwner,
+} from "lib/git";
 import events from "lib/providers";
 
 import type { FieldArgs } from "postgraphile/grafast";
@@ -265,7 +271,7 @@ const GitMutationsPlugin = extendSchema((_build) => {
       Mutation: {
         plans: {
           initializeRepository: EXPORTABLE(
-            (lambda, object, context, repositoryService) =>
+            (lambda, object, context, repositoryService, resolveStorageOwner) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
@@ -322,9 +328,9 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       };
                     }
 
-                    const ownerSlug =
-                      repository.organization?.slug ||
-                      repository.owner?.username;
+                    // Storage is keyed by the owning user's username, for
+                    // organization repositories too
+                    const ownerSlug = await resolveStorageOwner(repository, db);
 
                     if (!ownerSlug) {
                       return {
@@ -351,11 +357,20 @@ const GitMutationsPlugin = extendSchema((_build) => {
                   },
                 );
               },
-            [lambda, object, context, repositoryService],
+            [lambda, object, context, repositoryService, resolveStorageOwner],
           ),
 
           createRef: EXPORTABLE(
-            (lambda, object, context, repositoryService, gitService, events) =>
+            (
+              lambda,
+              object,
+              context,
+              repositoryService,
+              gitService,
+              events,
+              parseRefName,
+              resolveStorageOwner,
+            ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
@@ -412,9 +427,9 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       return { ref: null, error: "Unauthorized" };
                     }
 
-                    const ownerSlug =
-                      repository.organization?.slug ||
-                      repository.owner?.username;
+                    // Storage is keyed by the owning user's username, for
+                    // organization repositories too
+                    const ownerSlug = await resolveStorageOwner(repository, db);
 
                     if (!ownerSlug) {
                       return { ref: null, error: "Invalid owner" };
@@ -428,21 +443,19 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       return { ref: null, error: "Repository not initialized" };
                     }
 
-                    let prefix: string;
-                    let shortName: string;
-
-                    if (name.startsWith("refs/heads/")) {
-                      prefix = "refs/heads/";
-                      shortName = name.slice(11);
-                    } else {
-                      prefix = "refs/tags/";
-                      shortName = name.slice(10);
+                    // A refs/tags/* name creates a tag, never a branch
+                    const parsed = parseRefName(name);
+                    if (!parsed) {
+                      return { ref: null, error: "Invalid ref name" };
                     }
+                    const prefix =
+                      parsed.kind === "branch" ? "refs/heads/" : "refs/tags/";
+                    const shortName = parsed.shortName;
 
-                    const success = await gitService.createBranch(
+                    const success = await gitService.createRef(
                       ownerSlug,
                       repository.slug,
-                      shortName,
+                      name,
                       oid,
                     );
 
@@ -485,11 +498,29 @@ const GitMutationsPlugin = extendSchema((_build) => {
                   },
                 );
               },
-            [lambda, object, context, repositoryService, gitService, events],
+            [
+              lambda,
+              object,
+              context,
+              repositoryService,
+              gitService,
+              events,
+              parseRefName,
+              resolveStorageOwner,
+            ],
           ),
 
           deleteRef: EXPORTABLE(
-            (lambda, object, context, repositoryService, gitService, events) =>
+            (
+              lambda,
+              object,
+              context,
+              repositoryService,
+              gitService,
+              events,
+              parseRefName,
+              resolveStorageOwner,
+            ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
@@ -546,9 +577,9 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       return { success: false, error: "Unauthorized" };
                     }
 
-                    const ownerSlug =
-                      repository.organization?.slug ||
-                      repository.owner?.username;
+                    // Storage is keyed by the owning user's username, for
+                    // organization repositories too
+                    const ownerSlug = await resolveStorageOwner(repository, db);
 
                     if (!ownerSlug) {
                       return { success: false, error: "Invalid owner" };
@@ -565,13 +596,14 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       };
                     }
 
-                    const shortName = name.startsWith("refs/heads/")
-                      ? name.slice(11)
-                      : name.slice(10);
+                    const parsed = parseRefName(name);
+                    if (!parsed) {
+                      return { success: false, error: "Invalid ref name" };
+                    }
 
                     if (
-                      name.startsWith("refs/heads/") &&
-                      shortName === repository.defaultBranch
+                      parsed.kind === "branch" &&
+                      parsed.shortName === repository.defaultBranch
                     ) {
                       return {
                         success: false,
@@ -579,10 +611,12 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       };
                     }
 
-                    const success = await gitService.deleteBranch(
+                    // A refs/tags/* name deletes only the tag, never a
+                    // same-named branch
+                    const success = await gitService.deleteRef(
                       ownerSlug,
                       repository.slug,
-                      shortName,
+                      name,
                     );
 
                     if (!success) {
@@ -605,7 +639,16 @@ const GitMutationsPlugin = extendSchema((_build) => {
                   },
                 );
               },
-            [lambda, object, context, repositoryService, gitService, events],
+            [
+              lambda,
+              object,
+              context,
+              repositoryService,
+              gitService,
+              events,
+              parseRefName,
+              resolveStorageOwner,
+            ],
           ),
 
           mergePullRequest: EXPORTABLE(
@@ -619,6 +662,8 @@ const GitMutationsPlugin = extendSchema((_build) => {
               pullRequestTable,
               eq,
               events,
+              resolveStorageOwner,
+              evaluatePullRequestMergeGate,
             ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
@@ -694,9 +739,9 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       };
                     }
 
-                    const ownerSlug =
-                      repository.organization?.slug ||
-                      repository.owner?.username;
+                    // Storage is keyed by the owning user's username, for
+                    // organization repositories too
+                    const ownerSlug = await resolveStorageOwner(repository, db);
 
                     if (!ownerSlug) {
                       return {
@@ -716,6 +761,22 @@ const GitMutationsPlugin = extendSchema((_build) => {
                         success: false,
                         mergeCommitSha: null,
                         error: "Repository not initialized",
+                      };
+                    }
+
+                    // Enforce the target branch's protection rules (required
+                    // approvals and passing checks), the same policy a stack
+                    // merge is held to
+                    const protection = await evaluatePullRequestMergeGate(db, {
+                      pullRequestId,
+                      repositoryId: repository.id,
+                      targetBranch: pullRequest.targetBranch,
+                    });
+                    if (!protection.allowed) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: `Branch is protected: ${protection.reasons.join("; ")}`,
                       };
                     }
 
@@ -793,6 +854,8 @@ const GitMutationsPlugin = extendSchema((_build) => {
               pullRequestTable,
               eq,
               events,
+              resolveStorageOwner,
+              evaluatePullRequestMergeGate,
             ],
           ),
         },

@@ -469,9 +469,18 @@ const gitRoutes = new Elysia({ prefix: "/git" })
       // Resolve `ref` as a commit ref plus path first; fall back to treating it
       // as a blob oid directly (diff image bytes are addressed by blob oid, and
       // the path segment is only carried for content-type detection)
-      const content =
-        (await gitService.getFileRaw(owner, repo, ref, path)) ??
-        (await gitService.getBlobRawByOid(owner, repo, ref));
+      let content: Uint8Array | null;
+      try {
+        content =
+          (await gitService.getFileRaw(owner, repo, ref, path)) ??
+          (await gitService.getBlobRawByOid(owner, repo, ref));
+      } catch (error) {
+        // The git backend could not answer: fail rather than 404 a file that
+        // may exist, without leaking the backend error
+        console.error("[git] raw file read failed:", error);
+        set.status = 503;
+        return { error: "File is temporarily unavailable, try again shortly" };
+      }
 
       if (content === null) {
         set.status = 404;
@@ -618,10 +627,21 @@ const gitRoutes = new Elysia({ prefix: "/git" })
 
       // Check storage limits for organization repos
       if (repository.organizationId) {
-        const currentBytes = await getOrganizationStorageBytes(
-          repository.organizationId,
-          dbPool,
-        );
+        // Measured where the repositories live; if that cannot be measured the
+        // push is refused rather than let through unchecked
+        let currentBytes: number;
+        try {
+          currentBytes = await getOrganizationStorageBytes(
+            repository.organizationId,
+            dbPool,
+          );
+        } catch (error) {
+          console.error("[git] storage usage check failed:", error);
+          set.status = 503;
+          return {
+            error: "Push is temporarily unavailable, try again shortly",
+          };
+        }
 
         const withinLimit = await isWithinLimit(
           { organizationId: repository.organizationId },

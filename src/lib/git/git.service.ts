@@ -4,15 +4,22 @@ import { diffLines } from "diff";
 import git, { TREE } from "isomorphic-git";
 
 import {
+  createBranchViaBackend,
+  createTagViaBackend,
+  deleteBranchViaBackend,
+  deleteTagViaBackend,
   getArborGitClient,
   getBlobViaBackend,
   getCommitLogViaBackend,
   getCommitViaBackend,
   getDiffViaBackend,
+  getMergeBaseViaBackend,
   getTreeViaBackend,
   isArborGitEnabled,
+  isBackendNotFound,
   listRefsViaBackend,
   mergeChangeViaBackend,
+  recordMergeIntentViaBackend,
   resolveRefViaBackend,
   setDefaultBranchViaBackend,
 } from "./grpcClient";
@@ -81,6 +88,27 @@ const resolveBlobViaBackend = async (
   return getBlobViaBackend(client, owner, repo, entry.oid);
 };
 
+/**
+ * {@link resolveBlobViaBackend}, but a path, ref or blob the backend reports
+ * missing reads as null, while any other backend error still rejects. Lets a
+ * caller treat an absent file (the base side of an added file, say) as absent
+ * and fail closed on a backend that could not answer
+ */
+const resolveBlobOrAbsentViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  ref: string,
+  path: string,
+): Promise<Buffer | null> => {
+  try {
+    return await resolveBlobViaBackend(client, owner, repo, ref, path);
+  } catch (error) {
+    if (isBackendNotFound(error)) return null;
+    throw error;
+  }
+};
+
 /** arbor-git TreeEntryMode enum -> git mode string. */
 const BACKEND_TREE_MODE: Record<string, string> = {
   TREE_ENTRY_MODE_FILE: "100644",
@@ -139,6 +167,80 @@ export interface BranchInfo {
   name: string;
   sha: string;
   isDefault: boolean;
+}
+
+/** A fully qualified branch or tag ref name, split into its kind and short name */
+export interface ParsedRefName {
+  kind: "branch" | "tag";
+  shortName: string;
+}
+
+/**
+ * Whether a fully qualified ref name is valid, by git's `check-ref-format`
+ * rules: no empty, `.`-leading or `.lock`-ending component, no `..`, `@{`,
+ * `//`, control character, space or any of `~ ^ : ? * [ \`, not ending in `/`
+ * or `.`, and not `@`.
+ */
+export function isValidRefName(name: string): boolean {
+  if (!name || name === "@" || name.endsWith("/") || name.endsWith(".")) {
+    return false;
+  }
+  if (name.includes("..") || name.includes("@{") || name.includes("//")) {
+    return false;
+  }
+  for (const char of name) {
+    const code = char.codePointAt(0) ?? 0;
+    if (code < 0x20 || code === 0x7f || " ~^:?*[\\".includes(char)) {
+      return false;
+    }
+  }
+  return name
+    .split("/")
+    .every(
+      (component) =>
+        component.length > 0 &&
+        !component.startsWith(".") &&
+        !component.endsWith(".lock"),
+    );
+}
+
+/**
+ * Parse `refs/heads/{name}` or `refs/tags/{name}`. Anything else is null:
+ * another namespace, an empty short name, a short name that is itself
+ * qualified (`refs/tags/refs/heads/master` must never address the default
+ * branch), `HEAD`, an option-like name, or an invalid ref name. So a caller
+ * can never mistake one kind of ref for the other.
+ */
+export function parseRefName(name: string): ParsedRefName | null {
+  for (const [prefix, kind] of [
+    ["refs/heads/", "branch"],
+    ["refs/tags/", "tag"],
+  ] as const) {
+    if (!name.startsWith(prefix)) continue;
+
+    const shortName = name.slice(prefix.length);
+    if (
+      !shortName ||
+      shortName.startsWith("refs/") ||
+      shortName === "HEAD" ||
+      shortName.startsWith("-") ||
+      !isValidRefName(name)
+    ) {
+      return null;
+    }
+    return { kind, shortName };
+  }
+  return null;
+}
+
+/**
+ * Whether a short branch or tag name stays within its own kind once qualified
+ * (see {@link parseRefName}). The short-name git operations refuse anything
+ * else, so no caller can reach another ref through them.
+ */
+function isShortRefName(kind: "branch" | "tag", shortName: string): boolean {
+  const prefix = kind === "branch" ? "refs/heads/" : "refs/tags/";
+  return parseRefName(`${prefix}${shortName}`)?.shortName === shortName;
 }
 
 export interface TagInfo {
@@ -248,6 +350,45 @@ async function readBlobBytes(
 const decoder = new TextDecoder();
 
 /**
+ * Client-facing reasons a pull request merge was refused with the target left
+ * untouched, keyed by the landing mode that refused it.
+ */
+const MERGE_REFUSALS: Record<string, string> = {
+  "already-merged": "Source branch is already merged",
+  "out-of-date":
+    "The branch is out of date with its target, update it first and try again",
+  "unrelated-histories": "No common ancestor found",
+};
+
+/**
+ * Shape one file's old and new bytes into a FileDiffContent, or null when the
+ * path exists on neither side.
+ */
+function buildFileDiffContent(
+  path: string,
+  oldBytes: Uint8Array | null,
+  newBytes: Uint8Array | null,
+): FileDiffContent | null {
+  if (!newBytes && !oldBytes) return null;
+
+  let status: DiffStatus;
+  if (!oldBytes) status = "ADDED";
+  else if (!newBytes) status = "DELETED";
+  else status = "MODIFIED";
+
+  const sample = newBytes ?? oldBytes;
+  const isBinary = sample ? isBinaryContent(sample) : false;
+
+  return {
+    path,
+    status,
+    isBinary,
+    oldText: isBinary || !oldBytes ? null : decoder.decode(oldBytes),
+    newText: isBinary || !newBytes ? null : decoder.decode(newBytes),
+  };
+}
+
+/**
  * Collect the set of blob paths that changed between a base and head tree.
  *
  * A null baseOid is treated as an empty tree, so every blob path is returned
@@ -298,7 +439,13 @@ async function collectChangedPaths(
 }
 
 /**
- * Core git operations service using isomorphic-git.
+ * Core git operations service.
+ *
+ * With arbor-git configured (`USE_ARBOR_GIT` plus `GIT_SERVICE_URL`) every
+ * operation goes to it over gRPC and none reads or writes the local
+ * `GIT_REPOS_PATH` copy, which is not the repository of record; a backend
+ * error fails the operation instead of falling back. Without it (local dev)
+ * operations run in-process with isomorphic-git.
  *
  * NOTE: We use `gitdir` instead of `dir` for all isomorphic-git calls
  * because our repositories are bare (no working tree).
@@ -810,6 +957,17 @@ export const gitService = {
     repo: string,
     oid: string,
   ): Promise<Uint8Array | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      // A missing blob is a 404; a backend that cannot answer rejects
+      try {
+        return await getBlobViaBackend(client, owner, repo, oid);
+      } catch (error) {
+        if (isBackendNotFound(error)) return null;
+        throw error;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
     return readBlobBytes(gitdir, oid);
   },
@@ -916,6 +1074,19 @@ export const gitService = {
     branchName: string,
     ref: string,
   ): Promise<boolean> {
+    if (!isShortRefName("branch", branchName)) return false;
+
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        await createBranchViaBackend(client, owner, repo, branchName, ref);
+        return true;
+      } catch (error) {
+        console.error("[gitService.createBranch] arbor-git failed:", error);
+        return false;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -940,6 +1111,18 @@ export const gitService = {
     repo: string,
     branchName: string,
   ): Promise<boolean> {
+    if (!isShortRefName("branch", branchName)) return false;
+
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        return await deleteBranchViaBackend(client, owner, repo, branchName);
+      } catch (error) {
+        console.error("[gitService.deleteBranch] arbor-git failed:", error);
+        return false;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -948,6 +1131,102 @@ export const gitService = {
     } catch {
       return false;
     }
+  },
+
+  /**
+   * Create a lightweight tag pointing at a ref or oid. Never touches a branch.
+   */
+  async createTag(
+    owner: string,
+    repo: string,
+    tagName: string,
+    target: string,
+  ): Promise<boolean> {
+    if (!isShortRefName("tag", tagName)) return false;
+
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        await createTagViaBackend(client, owner, repo, tagName, target);
+        return true;
+      } catch (error) {
+        console.error("[gitService.createTag] arbor-git failed:", error);
+        return false;
+      }
+    }
+
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      await git.tag({ fs, gitdir, ref: tagName, object: target });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Delete a tag. Only `refs/tags/{tagName}` is removed, so a branch of the same
+   * name is never touched.
+   */
+  async deleteTag(
+    owner: string,
+    repo: string,
+    tagName: string,
+  ): Promise<boolean> {
+    if (!isShortRefName("tag", tagName)) return false;
+
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        return await deleteTagViaBackend(client, owner, repo, tagName);
+      } catch (error) {
+        console.error("[gitService.deleteTag] arbor-git failed:", error);
+        return false;
+      }
+    }
+
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      // deleteTag removes only refs/tags/{ref}; confirm it existed first so a
+      // missing tag reports failure like the backend does
+      await git.resolveRef({ fs, gitdir, ref: `refs/tags/${tagName}` });
+      await git.deleteTag({ fs, gitdir, ref: tagName });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Create a fully qualified `refs/heads/*` or `refs/tags/*` ref, as a branch
+   * or a tag respectively. Any other name is refused (false).
+   */
+  async createRef(
+    owner: string,
+    repo: string,
+    name: string,
+    target: string,
+  ): Promise<boolean> {
+    const parsed = parseRefName(name);
+    if (!parsed) return false;
+    return parsed.kind === "branch"
+      ? this.createBranch(owner, repo, parsed.shortName, target)
+      : this.createTag(owner, repo, parsed.shortName, target);
+  },
+
+  /**
+   * Delete a fully qualified `refs/heads/*` or `refs/tags/*` ref. A tag name
+   * only ever deletes the tag, never a same-named branch; any other name is
+   * refused (false).
+   */
+  async deleteRef(owner: string, repo: string, name: string): Promise<boolean> {
+    const parsed = parseRefName(name);
+    if (!parsed) return false;
+    return parsed.kind === "branch"
+      ? this.deleteBranch(owner, repo, parsed.shortName)
+      : this.deleteTag(owner, repo, parsed.shortName);
   },
 
   /**
@@ -991,12 +1270,14 @@ export const gitService = {
   },
 
   /**
-   * Merge source branch into target branch.
-   * Returns the merge commit SHA on success, null on failure.
+   * Merge a pull request's source branch into its target branch.
+   * Returns the new target tip on success, or a null sha with an error.
    *
-   * NOTE: isomorphic-git's merge requires a working directory, but we use bare repos.
-   * For bare repos, we perform a fast-forward merge when possible, or create a
-   * merge commit by writing the tree and commit objects directly.
+   * Fast-forward only: until a real three-way merge exists, a target that has
+   * diverged from the source is refused ("out of date") rather than given a
+   * merge commit taking the source tree, which would silently drop work only
+   * the target has. Histories with no common ancestor are refused too. The
+   * target is never rewritten.
    */
   async merge(
     owner: string,
@@ -1006,6 +1287,41 @@ export const gitService = {
     author: { name: string; email: string },
     message: string,
   ): Promise<{ sha: string | null; error?: string }> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      // MergeChange in fast-forward-only mode, the same landing as the
+      // in-process path below. arbor-git's Merge RPC is a stub that never
+      // writes a commit or moves the branch, so it is not used
+      const sourceSha = await resolveRefViaBackend(
+        client,
+        owner,
+        repo,
+        `refs/heads/${sourceBranch}`,
+      );
+      if (!sourceSha) {
+        return { sha: null, error: "Source branch could not be resolved" };
+      }
+
+      const result = await mergeChangeViaBackend(
+        client,
+        owner,
+        repo,
+        sourceSha,
+        targetBranch,
+        author,
+        message,
+        true,
+      );
+      if (!result) return { sha: null, error: "Merge failed" };
+      if (result.mode !== "fast-forward") {
+        return {
+          sha: null,
+          error: MERGE_REFUSALS[result.mode] ?? "Merge failed",
+        };
+      }
+      return { sha: result.sha };
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -1021,8 +1337,9 @@ export const gitService = {
         ref: `refs/heads/${targetBranch}`,
       });
 
-      // Read source commit to get its tree for merge commit
-      const sourceCommit = await git.readCommit({ fs, gitdir, oid: sourceSha });
+      if (sourceSha === targetSha) {
+        return { sha: null, error: MERGE_REFUSALS["already-merged"] };
+      }
 
       // Check if it's a fast-forward (source is descendant of target)
       const isAncestor = await git.isDescendent({
@@ -1053,54 +1370,26 @@ export const gitService = {
       });
 
       if (isAlreadyMerged) {
-        return { sha: null, error: "Source branch is already merged" };
+        return { sha: null, error: MERGE_REFUSALS["already-merged"] };
       }
 
-      // Non-fast-forward merge: create a merge commit
-      // Find the merge base
+      // Diverged: never replace the target with the source tree
       const [mergeBase] = await git.findMergeBase({
         fs,
         gitdir,
         oids: [sourceSha, targetSha],
       });
 
-      if (!mergeBase) {
-        return { sha: null, error: "No common ancestor found" };
-      }
-
-      // For simplicity, we'll use the source tree if there are no conflicts
-      // A full merge would require tree diffing and conflict detection
-      // For MVP, we'll do a simple merge that takes the source tree
-      const mergeCommitSha = await git.commit({
-        fs,
-        gitdir,
-        message,
-        tree: sourceCommit.commit.tree,
-        parent: [targetSha, sourceSha],
-        author: {
-          name: author.name,
-          email: author.email,
-        },
-        committer: {
-          name: author.name,
-          email: author.email,
-        },
-      });
-
-      // Update the target branch to point to the merge commit
-      await git.writeRef({
-        fs,
-        gitdir,
-        ref: `refs/heads/${targetBranch}`,
-        value: mergeCommitSha,
-        force: true,
-      });
-
-      return { sha: mergeCommitSha };
+      return {
+        sha: null,
+        error: mergeBase
+          ? MERGE_REFUSALS["out-of-date"]
+          : MERGE_REFUSALS["unrelated-histories"],
+      };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      return { sha: null, error: errorMessage };
+      // Logged server-side only: the raw git error is not for the client
+      console.error(`[Git] Failed to merge ${owner}/${repo}:`, error);
+      return { sha: null, error: "Merge failed" };
     }
   },
 
@@ -1122,6 +1411,25 @@ export const gitService = {
     changeId: string,
     oid: string,
   ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        return await recordMergeIntentViaBackend(
+          client,
+          owner,
+          repo,
+          changeId,
+          oid,
+        );
+      } catch (error) {
+        console.error(
+          `[Git] Failed to record merge intent for ${owner}/${repo} change ${changeId}:`,
+          error,
+        );
+        return false;
+      }
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
     const ref = `refs/arbor/merge-intent/${changeId}`;
 
@@ -1147,13 +1455,14 @@ export const gitService = {
   /**
    * Land a change commit onto its base branch and return the resulting tip.
    *
-   * Advances refs/heads/{targetBranch} forward to the change: a fast-forward
-   * when the base is an ancestor of the change, otherwise a merge commit whose
-   * parents are the base tip and the change commit. Both only move the branch
-   * forward, so no history is rewritten and no commits are lost; this is the
-   * same operation a pull request merge performs. Conflict resolution takes the
-   * change tree (the same simplification the pull request merge uses). Returns
-   * the new tip and the mode, or a typed error with details logged server-side.
+   * Fast-forward only, like a pull request merge: refs/heads/{targetBranch}
+   * advances to the change only when the base tip is an ancestor of it. A base
+   * that has moved on without the change is refused ("out-of-date") rather
+   * than given a merge commit taking the change's tree, which would silently
+   * drop work only the base has; histories with no common ancestor are refused
+   * ("unrelated-histories"). A refusal leaves the base untouched and carries
+   * `refusal` plus a client-facing `error`; other failures are logged
+   * server-side and return a generic error.
    */
   async mergeChangeIntoBranch(
     owner: string,
@@ -1164,7 +1473,8 @@ export const gitService = {
     message: string,
   ): Promise<{
     sha: string | null;
-    mode: "fast-forward" | "merge-commit" | "already-merged" | null;
+    mode: "fast-forward" | "already-merged" | null;
+    refusal?: "out-of-date" | "unrelated-histories";
     error?: string;
   }> {
     const client = getArborGitClient();
@@ -1177,12 +1487,25 @@ export const gitService = {
         targetBranch,
         author,
         message,
+        true,
       );
       if (!result) return { sha: null, mode: null, error: "merge failed" };
-      return {
-        sha: result.sha,
-        mode: result.mode as "fast-forward" | "merge-commit" | "already-merged",
-      };
+      if (result.mode === "fast-forward" || result.mode === "already-merged") {
+        return { sha: result.sha, mode: result.mode };
+      }
+      // A refusal left the base untouched
+      if (
+        result.mode === "out-of-date" ||
+        result.mode === "unrelated-histories"
+      ) {
+        return {
+          sha: null,
+          mode: null,
+          refusal: result.mode,
+          error: MERGE_REFUSALS[result.mode],
+        };
+      }
+      return { sha: null, mode: null, error: "merge failed" };
     }
 
     const gitdir = getRepositoryPath(owner, repo);
@@ -1212,25 +1535,20 @@ export const gitService = {
         return { sha: commitOid, mode: "fast-forward" };
       }
 
-      // Diverged, create a merge commit taking the change tree, parented on both
-      const changeCommit = await git.readCommit({ fs, gitdir, oid: commitOid });
-      const mergeCommitSha = await git.commit({
+      // Diverged: never replace the base with the change's tree. Refused as
+      // out of date, or as unrelated when the histories share nothing
+      const [mergeBase] = await git.findMergeBase({
         fs,
         gitdir,
-        message,
-        tree: changeCommit.commit.tree,
-        parent: [targetSha, commitOid],
-        author,
-        committer: author,
+        oids: [commitOid, targetSha],
       });
-      await git.writeRef({
-        fs,
-        gitdir,
-        ref,
-        value: mergeCommitSha,
-        force: true,
-      });
-      return { sha: mergeCommitSha, mode: "merge-commit" };
+      const refusal = mergeBase ? "out-of-date" : "unrelated-histories";
+      return {
+        sha: null,
+        mode: null,
+        refusal,
+        error: MERGE_REFUSALS[refusal],
+      };
     } catch (error) {
       console.error(
         `[Git] Failed to merge change ${commitOid} into ${owner}/${repo} ${targetBranch}:`,
@@ -1243,6 +1561,8 @@ export const gitService = {
   /**
    * Find the merge base (most recent common ancestor) of two refs.
    * Returns null when either ref is unresolvable or no common ancestor exists.
+   * With arbor-git configured a backend error rejects rather than reading as
+   * "no merge base", so a diff is never computed against the wrong base.
    */
   async getMergeBase(
     owner: string,
@@ -1250,6 +1570,11 @@ export const gitService = {
     refA: string,
     refB: string,
   ): Promise<string | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      return getMergeBaseViaBackend(client, owner, repo, refA, refB);
+    }
+
     const gitdir = getRepositoryPath(owner, repo);
 
     try {
@@ -1408,6 +1733,10 @@ export const gitService = {
    * add/delete is null, and binary files return null on both sides (their bytes
    * are served separately over the raw HTTP endpoint). A null baseRef is treated
    * as an empty tree. Returns null when the path exists on neither side.
+   *
+   * With arbor-git configured a side the backend reports missing is absent,
+   * but any other backend error rejects, so a failed read never shows up as a
+   * spurious add or delete.
    */
   async getFileDiffContent(
     owner: string,
@@ -1416,6 +1745,28 @@ export const gitService = {
     headRef: string,
     path: string,
   ): Promise<FileDiffContent | null> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      const newBytes = await resolveBlobOrAbsentViaBackend(
+        client,
+        owner,
+        repo,
+        headRef,
+        path,
+      );
+      const oldBytes =
+        baseRef === null
+          ? null
+          : await resolveBlobOrAbsentViaBackend(
+              client,
+              owner,
+              repo,
+              baseRef,
+              path,
+            );
+      return buildFileDiffContent(path, oldBytes, newBytes);
+    }
+
     try {
       const newBytes = await this.getFileRaw(owner, repo, headRef, path);
       const oldBytes =
@@ -1423,23 +1774,7 @@ export const gitService = {
           ? null
           : await this.getFileRaw(owner, repo, baseRef, path);
 
-      if (!newBytes && !oldBytes) return null;
-
-      let status: DiffStatus;
-      if (!oldBytes) status = "ADDED";
-      else if (!newBytes) status = "DELETED";
-      else status = "MODIFIED";
-
-      const sample = newBytes ?? oldBytes;
-      const isBinary = sample ? isBinaryContent(sample) : false;
-
-      return {
-        path,
-        status,
-        isBinary,
-        oldText: isBinary || !oldBytes ? null : decoder.decode(oldBytes),
-        newText: isBinary || !newBytes ? null : decoder.decode(newBytes),
-      };
+      return buildFileDiffContent(path, oldBytes, newBytes);
     } catch {
       return null;
     }

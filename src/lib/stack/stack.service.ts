@@ -3,7 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { evaluateBranchProtection } from "lib/branchProtection/branchProtection";
 import { dbPool } from "lib/db/db";
 import { changeTable, stackTable } from "lib/db/schema";
-import { gitService, repositoryService } from "lib/git";
+import { gitService, repositoryService, resolveStorageOwner } from "lib/git";
 import events from "lib/providers";
 import { extractIssueReferences } from "lib/references/issueReferences";
 
@@ -33,6 +33,8 @@ type MergeChangeErrorReason =
   | "branch-protected"
   | "parent-unmerged"
   | "repository-unavailable"
+  | "out-of-date"
+  | "unrelated-histories"
   | "git-error";
 
 /**
@@ -40,7 +42,8 @@ type MergeChangeErrorReason =
  *
  * - fast-forward: the base branch is an ancestor of the change commit (or the
  *   change is already contained), so landing only advances the base branch
- * - merge-commit: base and change have diverged, so landing needs a merge commit
+ * - merge-commit: kept for the API's landing-shape contract; never produced now
+ *   that landing is fast-forward only (a diverged base is refused instead)
  */
 type MergeMode = "fast-forward" | "merge-commit";
 
@@ -65,28 +68,6 @@ export type MergeChangeOutcome =
       reason: MergeChangeErrorReason;
       blockingChecks?: string[];
     };
-
-/**
- * Resolve the on-disk owner directory for a repository row.
- *
- * Bare repositories are always stored under the owning user's username, for
- * personal and organization repositories alike (organization slug identity
- * lives in the IDP, not the database), matching deleteRepositoryStorageById and
- * the Smart-HTTP routes. Returns null when the username cannot be resolved.
- */
-async function resolveOwnerSlug(repository: {
-  ownerId: string;
-  owner?: { username?: string | null } | null;
-}): Promise<string | null> {
-  if (repository.owner?.username) return repository.owner.username;
-
-  const owner = await dbPool.query.userTable.findFirst({
-    where: (table, { eq }) => eq(table.id, repository.ownerId),
-    columns: { username: true },
-  });
-
-  return owner?.username ?? null;
-}
 
 /**
  * Distinct approving reviewers on a change's linked pull request (0 when the
@@ -159,16 +140,13 @@ export const stackService = {
    * - the change is the bottom unmerged change of its stack (its parent is null
    *   or already merged), so the stack lands in dependency order
    *
-   * Git behaviour (non-destructive by design): the change commit is compared
-   * against the base branch tip with the existing git helpers (resolveRef +
-   * getMergeBase) to classify the landing as a fast-forward or a merge-commit,
-   * then the intent is recorded as a NEW namespaced ref
-   * (refs/arbor/merge-intent/{changeId}) pointing at the change commit. The
-   * actual base-branch ref advance is DEFERRED and never performed here: arbor
-   * serves live repositories that auto-deploy on branch updates, so advancing a
-   * user branch (even a fast-forward) is left to the controlled merge-queue path
-   * rather than done as a side effect of this call. Nothing is force-updated,
-   * deleted or rewritten, so this can never corrupt a repository.
+   * Git behaviour (non-destructive by design): the base branch advances to the
+   * change commit by fast-forward only (gitService.mergeChangeIntoBranch). A
+   * base that has moved on without the change is refused as "out-of-date"
+   * (update the change first), and one sharing no history as
+   * "unrelated-histories"; either way the base is left untouched, so no work
+   * only the base has is ever dropped. Nothing is force-updated, deleted or
+   * rewritten.
    *
    * On success the change status transitions to "merged" and, when it was the
    * stack's last open change, the stack status transitions to "merged". Any git
@@ -251,7 +229,7 @@ export const stackService = {
       return { ok: false, reason: "git-error" };
     }
 
-    const ownerSlug = await resolveOwnerSlug(change.repository);
+    const ownerSlug = await resolveStorageOwner(change.repository, dbPool);
     if (!ownerSlug) {
       return { ok: false, reason: "repository-unavailable" };
     }
@@ -283,8 +261,8 @@ export const stackService = {
       email: actor?.email ?? "merge@arbor.omni.dev",
     };
 
-    // Land the change onto the base branch. This only advances the branch
-    // forward (fast-forward or a merge commit) and never rewrites history
+    // Land the change onto the base branch by fast-forward only, never
+    // rewriting history or dropping work the base has
     const merged = await gitService.mergeChangeIntoBranch(
       ownerSlug,
       repoSlug,
@@ -294,11 +272,12 @@ export const stackService = {
       `Merge change: ${change.title}`,
     );
     if (!merged.sha) {
-      return { ok: false, reason: "git-error" };
+      // A base that moved on (or shares no history) is refused untouched
+      return { ok: false, reason: merged.refusal ?? "git-error" };
     }
 
-    const mode: MergeMode =
-      merged.mode === "merge-commit" ? "merge-commit" : "fast-forward";
+    // Landing is fast-forward only, so the base never gets a merge commit
+    const mode: MergeMode = "fast-forward";
 
     // Transition the change to merged, and the stack too when this was its last
     // open change

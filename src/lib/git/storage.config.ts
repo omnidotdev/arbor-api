@@ -1,6 +1,13 @@
 import { mkdir, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 
+import {
+  getArborGitClient,
+  getRepositorySizeViaBackend,
+  isArborGitEnabled,
+} from "./grpcClient";
+import { resolveStorageOwner } from "./storageOwner";
+
 import type { dbPool } from "lib/db/db";
 
 /**
@@ -73,6 +80,10 @@ async function getDirectorySize(dirPath: string): Promise<number> {
 /**
  * Get the on-disk size of a single repository in bytes.
  * Results are cached for 30 seconds to avoid expensive traversals on every push.
+ *
+ * With arbor-git configured the size is measured on its volume, where the
+ * repositories live; a backend error rejects so a storage limit is never
+ * checked against the stale local copy (or a guessed 0).
  */
 export async function getRepositorySize(
   owner: string,
@@ -84,6 +95,13 @@ export async function getRepositorySize(
   const cached = sizeCache.get(repoPath);
   if (cached && cached.expiresAt > now) {
     return cached.bytes;
+  }
+
+  const client = getArborGitClient();
+  if (isArborGitEnabled() && client) {
+    const bytes = await getRepositorySizeViaBackend(client, owner, repo);
+    sizeCache.set(repoPath, { bytes, expiresAt: now + SIZE_CACHE_TTL_MS });
+    return bytes;
   }
 
   try {
@@ -114,7 +132,10 @@ export async function getOrganizationStorageBytes(
   });
 
   const sizes = await Promise.all(
-    repos.map((repo) => getRepositorySize(repo.owner.username, repo.slug)),
+    repos.map(async (repo) => {
+      const owner = await resolveStorageOwner(repo, db);
+      return owner ? getRepositorySize(owner, repo.slug) : 0;
+    }),
   );
 
   return sizes.reduce((sum, size) => sum + size, 0);

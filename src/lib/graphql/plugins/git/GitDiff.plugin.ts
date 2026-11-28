@@ -1,8 +1,7 @@
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
-import { gitService, repositoryService } from "lib/git";
-import { getOwnerSlug } from "./GitTypes.plugin";
+import { gitService, repositoryService, resolveStorageOwner } from "lib/git";
 
 import type { ChangedFile, FileDiffContent } from "lib/git";
 import type { ExecutableStep, FieldArgs } from "postgraphile/grafast";
@@ -39,7 +38,7 @@ async function resolvePrRefs(
   });
   if (!pr?.repository) return null;
 
-  const owner = await getOwnerSlug(pr.repository, db);
+  const owner = await resolveStorageOwner(pr.repository, db);
   if (!owner) return null;
   const repo = pr.repository.slug;
 
@@ -83,8 +82,8 @@ const prop =
  * - ChangedFile: the cheap per-file list (status, oids, counts, binary/image)
  * - FileDiffContent: per-file old/new text, fetched lazily
  *
- * Diffs are computed in-process with isomorphic-git via gitService. Plans close
- * over gitService directly (the schema is built at boot with makeSchema, so no
+ * Diffs are computed by gitService (arbor-git when configured, in-process
+ * isomorphic-git otherwise). Plans close over gitService directly (the schema is built at boot with makeSchema, so no
  * EXPORTABLE wrapping is required).
  */
 const GitDiffPlugin = extendSchema((_build) => {
