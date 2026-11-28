@@ -70,7 +70,8 @@ export class GraphTierError extends Error {
  * Prevents hard failures for orgs that haven't been provisioned in Aether.
  */
 const DEFAULT_LIMITS: Record<string, Record<string, number>> = {
-  max_collaborators: { free: 5, pro: -1, team: -1 },
+  // -1 = unlimited: every tier includes unlimited collaborators
+  max_collaborators: { free: -1, pro: -1, team: -1 },
   max_private_repos: { free: -1, pro: -1, team: -1 },
   max_storage_bytes: {
     // Mirrors the omni-api catalog SSOT (planConfigs.ts): 1 GB / 25 GB / 100 GB
