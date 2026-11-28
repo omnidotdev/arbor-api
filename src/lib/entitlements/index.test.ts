@@ -263,3 +263,21 @@ describe("requireUserGraphLevel", () => {
     ).rejects.toThrow("This feature is available on the Team plan");
   });
 });
+
+describe("max_collaborators", () => {
+  test("is unlimited on every tier, with or without a billing account", async () => {
+    const { isWithinLimit } = await importEntitlements();
+
+    for (const tier of [null, "free", "pro", "team"]) {
+      entitlementsResponse = tier === null ? null : withTier(tier);
+
+      expect(
+        await isWithinLimit(
+          { organizationId: "org-1" },
+          "max_collaborators",
+          100_000,
+        ),
+      ).toBe(true);
+    }
+  });
+});

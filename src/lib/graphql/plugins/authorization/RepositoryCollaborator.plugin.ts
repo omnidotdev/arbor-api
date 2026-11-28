@@ -73,9 +73,7 @@ const validatePermissions = (inputPath: string[], scope: "create" | "update") =>
               );
 
               if (!withinLimit) {
-                throw new Error(
-                  "Collaborator limit reached. Upgrade your plan for more collaborators",
-                );
+                throw new Error("Collaborator limit reached");
               }
             }
           }
