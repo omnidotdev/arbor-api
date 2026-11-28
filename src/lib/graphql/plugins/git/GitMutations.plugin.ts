@@ -3,6 +3,7 @@ import { EXPORTABLE } from "graphile-export";
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
+import { evaluatePullRequestMergeGate } from "lib/branchProtection/pullRequestMergeGate";
 import { dbPool } from "lib/db/db";
 import { pullRequestTable } from "lib/db/schema";
 import {
@@ -662,6 +663,7 @@ const GitMutationsPlugin = extendSchema((_build) => {
               eq,
               events,
               resolveStorageOwner,
+              evaluatePullRequestMergeGate,
             ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
@@ -762,6 +764,22 @@ const GitMutationsPlugin = extendSchema((_build) => {
                       };
                     }
 
+                    // Enforce the target branch's protection rules (required
+                    // approvals and passing checks), the same policy a stack
+                    // merge is held to
+                    const protection = await evaluatePullRequestMergeGate(db, {
+                      pullRequestId,
+                      repositoryId: repository.id,
+                      targetBranch: pullRequest.targetBranch,
+                    });
+                    if (!protection.allowed) {
+                      return {
+                        success: false,
+                        mergeCommitSha: null,
+                        error: `Branch is protected: ${protection.reasons.join("; ")}`,
+                      };
+                    }
+
                     // Build merge commit message
                     const defaultMessage = `Merge pull request #${pullRequest.number} from ${pullRequest.sourceBranch}\n\n${pullRequest.title}`;
                     const mergeMessage = commitMessage || defaultMessage;
@@ -837,6 +855,7 @@ const GitMutationsPlugin = extendSchema((_build) => {
               eq,
               events,
               resolveStorageOwner,
+              evaluatePullRequestMergeGate,
             ],
           ),
         },

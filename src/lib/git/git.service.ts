@@ -350,6 +350,17 @@ async function readBlobBytes(
 const decoder = new TextDecoder();
 
 /**
+ * Client-facing reasons a pull request merge was refused with the target left
+ * untouched, keyed by the landing mode that refused it.
+ */
+const MERGE_REFUSALS: Record<string, string> = {
+  "already-merged": "Source branch is already merged",
+  "out-of-date":
+    "The branch is out of date with its target, update it first and try again",
+  "unrelated-histories": "No common ancestor found",
+};
+
+/**
  * Shape one file's old and new bytes into a FileDiffContent, or null when the
  * path exists on neither side.
  */
@@ -1259,12 +1270,14 @@ export const gitService = {
   },
 
   /**
-   * Merge source branch into target branch.
-   * Returns the merge commit SHA on success, null on failure.
+   * Merge a pull request's source branch into its target branch.
+   * Returns the new target tip on success, or a null sha with an error.
    *
-   * NOTE: isomorphic-git's merge requires a working directory, but we use bare repos.
-   * For bare repos, we perform a fast-forward merge when possible, or create a
-   * merge commit by writing the tree and commit objects directly.
+   * Fast-forward only: until a real three-way merge exists, a target that has
+   * diverged from the source is refused ("out of date") rather than given a
+   * merge commit taking the source tree, which would silently drop work only
+   * the target has. Histories with no common ancestor are refused too. The
+   * target is never rewritten.
    */
   async merge(
     owner: string,
@@ -1276,10 +1289,9 @@ export const gitService = {
   ): Promise<{ sha: string | null; error?: string }> {
     const client = getArborGitClient();
     if (isArborGitEnabled() && client) {
-      // The in-process merge below lands the source tip onto the target with
-      // exactly MergeChange's semantics (fast-forward, else a merge commit
-      // taking the source tree, parented on both). arbor-git's Merge RPC is a
-      // stub that never writes a commit or moves the branch, so it is not used
+      // MergeChange in fast-forward-only mode, the same landing as the
+      // in-process path below. arbor-git's Merge RPC is a stub that never
+      // writes a commit or moves the branch, so it is not used
       const sourceSha = await resolveRefViaBackend(
         client,
         owner,
@@ -1298,10 +1310,14 @@ export const gitService = {
         targetBranch,
         author,
         message,
+        true,
       );
       if (!result) return { sha: null, error: "Merge failed" };
-      if (result.mode === "already-merged") {
-        return { sha: null, error: "Source branch is already merged" };
+      if (result.mode !== "fast-forward") {
+        return {
+          sha: null,
+          error: MERGE_REFUSALS[result.mode] ?? "Merge failed",
+        };
       }
       return { sha: result.sha };
     }
@@ -1321,8 +1337,9 @@ export const gitService = {
         ref: `refs/heads/${targetBranch}`,
       });
 
-      // Read source commit to get its tree for merge commit
-      const sourceCommit = await git.readCommit({ fs, gitdir, oid: sourceSha });
+      if (sourceSha === targetSha) {
+        return { sha: null, error: MERGE_REFUSALS["already-merged"] };
+      }
 
       // Check if it's a fast-forward (source is descendant of target)
       const isAncestor = await git.isDescendent({
@@ -1353,54 +1370,26 @@ export const gitService = {
       });
 
       if (isAlreadyMerged) {
-        return { sha: null, error: "Source branch is already merged" };
+        return { sha: null, error: MERGE_REFUSALS["already-merged"] };
       }
 
-      // Non-fast-forward merge: create a merge commit
-      // Find the merge base
+      // Diverged: never replace the target with the source tree
       const [mergeBase] = await git.findMergeBase({
         fs,
         gitdir,
         oids: [sourceSha, targetSha],
       });
 
-      if (!mergeBase) {
-        return { sha: null, error: "No common ancestor found" };
-      }
-
-      // For simplicity, we'll use the source tree if there are no conflicts
-      // A full merge would require tree diffing and conflict detection
-      // For MVP, we'll do a simple merge that takes the source tree
-      const mergeCommitSha = await git.commit({
-        fs,
-        gitdir,
-        message,
-        tree: sourceCommit.commit.tree,
-        parent: [targetSha, sourceSha],
-        author: {
-          name: author.name,
-          email: author.email,
-        },
-        committer: {
-          name: author.name,
-          email: author.email,
-        },
-      });
-
-      // Update the target branch to point to the merge commit
-      await git.writeRef({
-        fs,
-        gitdir,
-        ref: `refs/heads/${targetBranch}`,
-        value: mergeCommitSha,
-        force: true,
-      });
-
-      return { sha: mergeCommitSha };
+      return {
+        sha: null,
+        error: mergeBase
+          ? MERGE_REFUSALS["out-of-date"]
+          : MERGE_REFUSALS["unrelated-histories"],
+      };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      return { sha: null, error: errorMessage };
+      // Logged server-side only: the raw git error is not for the client
+      console.error(`[Git] Failed to merge ${owner}/${repo}:`, error);
+      return { sha: null, error: "Merge failed" };
     }
   },
 
@@ -1498,10 +1487,19 @@ export const gitService = {
         message,
       );
       if (!result) return { sha: null, mode: null, error: "merge failed" };
-      return {
-        sha: result.sha,
-        mode: result.mode as "fast-forward" | "merge-commit" | "already-merged",
-      };
+      // Unrelated histories are refused with the target untouched
+      if (
+        result.mode !== "fast-forward" &&
+        result.mode !== "merge-commit" &&
+        result.mode !== "already-merged"
+      ) {
+        return {
+          sha: null,
+          mode: null,
+          error: MERGE_REFUSALS[result.mode] ?? "merge failed",
+        };
+      }
+      return { sha: result.sha, mode: result.mode };
     }
 
     const gitdir = getRepositoryPath(owner, repo);
@@ -1529,6 +1527,21 @@ export const gitService = {
       if (isFastForward) {
         await git.writeRef({ fs, gitdir, ref, value: commitOid, force: true });
         return { sha: commitOid, mode: "fast-forward" };
+      }
+
+      // Histories with no common ancestor are never merged: the target's tree
+      // would be replaced wholesale
+      const [mergeBase] = await git.findMergeBase({
+        fs,
+        gitdir,
+        oids: [commitOid, targetSha],
+      });
+      if (!mergeBase) {
+        return {
+          sha: null,
+          mode: null,
+          error: MERGE_REFUSALS["unrelated-histories"],
+        };
       }
 
       // Diverged, create a merge commit taking the change tree, parented on both

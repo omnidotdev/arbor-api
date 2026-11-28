@@ -89,11 +89,22 @@ const startFakeBackend = async (fail: boolean) => {
     })),
     deleteTag: unary("deleteTag", () => ({ deleted: true })),
     resolveRef: unary("resolveRef", () => ({ oid: SOURCE_TIP })),
-    mergeChange: unary("mergeChange", (request) =>
-      request.targetBranch === "done"
-        ? { sha: LANDED, mode: "already-merged" }
-        : { sha: LANDED, mode: "merge-commit" },
-    ),
+    // Keyed on the target: "done" holds the change already, "diverged" moved
+    // on without it, "unrelated" shares no history; "main" can fast-forward
+    mergeChange: unary("mergeChange", (request) => {
+      switch (request.targetBranch) {
+        case "done":
+          return { sha: LANDED, mode: "already-merged" };
+        case "diverged":
+          return request.fastForwardOnly
+            ? { sha: "", mode: "out-of-date" }
+            : { sha: LANDED, mode: "merge-commit" };
+        case "unrelated":
+          return { sha: "", mode: "unrelated-histories" };
+        default:
+          return { sha: LANDED, mode: "fast-forward" };
+      }
+    }),
     recordMergeIntent: unary("recordMergeIntent", () => ({ recorded: true })),
     getMergeBase: unary("getMergeBase", () => ({
       oid: MERGE_BASE,
@@ -205,6 +216,15 @@ const SCRIPT = `
     mergeAlreadyMerged: await run(() =>
       gitService.merge("o", "r", "feature", "done", author, "land"),
     ),
+    mergeOutOfDate: await run(() =>
+      gitService.merge("o", "r", "feature", "diverged", author, "land"),
+    ),
+    mergeUnrelated: await run(() =>
+      gitService.merge("o", "r", "feature", "unrelated", author, "land"),
+    ),
+    landUnrelated: await run(() =>
+      gitService.mergeChangeIntoBranch("o", "r", HEAD, "unrelated", author, "land"),
+    ),
     createBranch: await run(() => gitService.createBranch("o", "r", "x", HEAD)),
     clone: await run(() =>
       repositoryService.clone("o", "cloned", "https://example.invalid/r.git"),
@@ -217,6 +237,19 @@ const SCRIPT = `
     ),
     deleteOtherRef: await run(() =>
       gitService.deleteRef("o", "r", "refs/remotes/origin/main"),
+    ),
+    // Crafted names that would address a ref of the other kind
+    deleteTagNamedLikeDefault: await run(() =>
+      gitService.deleteRef("o", "r", "refs/tags/refs/heads/main"),
+    ),
+    deleteBranchNamedLikeTag: await run(() =>
+      gitService.deleteRef("o", "r", "refs/heads/refs/tags/v2"),
+    ),
+    deleteTagShortQualified: await run(() =>
+      gitService.deleteTag("o", "r", "refs/heads/main"),
+    ),
+    deleteBranchShortQualified: await run(() =>
+      gitService.deleteBranch("o", "r", "refs/tags/v2"),
     ),
     deleteBranch: await run(() => gitService.deleteBranch("o", "r", "feature")),
   };
@@ -282,6 +315,19 @@ beforeAll(() => {
   git(["commit", "-q", "-m", "c"], work);
   const head = git(["rev-parse", "HEAD"], work);
   git(["push", "-q", bare, "feature:feature"], work);
+  // A target that moved on without the feature, and one sharing no history
+  git(["checkout", "-q", "-b", "diverged", base], work);
+  writeFileSync(join(work, "d.txt"), "d\n");
+  git(["add", "."], work);
+  git(["commit", "-q", "-m", "d"], work);
+  const diverged = git(["rev-parse", "HEAD"], work);
+  git(["push", "-q", bare, "diverged:diverged"], work);
+  git(["checkout", "-q", "--orphan", "unrelated"], work);
+  git(["rm", "-rq", "--cached", "."], work);
+  git(["commit", "-q", "--allow-empty", "-m", "u"], work);
+  const unrelated = git(["rev-parse", "HEAD"], work);
+  git(["push", "-q", bare, "unrelated:unrelated"], work);
+  git(["checkout", "-q", "-f", "feature"], work);
   // A tag and a branch sharing one name, so deleting the tag can be shown to
   // leave the branch alone
   git(["push", "-q", bare, `${base}:refs/heads/release`], work);
@@ -289,7 +335,14 @@ beforeAll(() => {
   const blob = git(["rev-parse", "HEAD:c.txt"], work);
   rmSync(work, { recursive: true, force: true });
 
-  localEnv = { GIT_REPOS_PATH: reposPath, BASE: base, HEAD: head, BLOB: blob };
+  localEnv = {
+    GIT_REPOS_PATH: reposPath,
+    BASE: base,
+    HEAD: head,
+    BLOB: blob,
+    DIVERGED: diverged,
+    UNRELATED: unrelated,
+  };
 });
 
 afterAll(() => {
@@ -328,6 +381,20 @@ describe("git operations with arbor-git configured", () => {
       expect(out.getRepositorySizeMissing).toEqual({ value: 0 });
       expect(out.recordMergeIntent).toEqual({ value: true });
       expect(out.merge).toEqual({ value: { sha: LANDED } });
+      // a diverged or unrelated target is refused, never rewritten
+      expect(out.mergeOutOfDate).toEqual({
+        value: {
+          sha: null,
+          error:
+            "The branch is out of date with its target, update it first and try again",
+        },
+      });
+      expect(out.mergeUnrelated).toEqual({
+        value: { sha: null, error: "No common ancestor found" },
+      });
+      expect(out.landUnrelated).toMatchObject({
+        value: { sha: null, error: "No common ancestor found" },
+      });
       expect(out.mergeAlreadyMerged).toEqual({
         value: { sha: null, error: "Source branch is already merged" },
       });
@@ -337,6 +404,22 @@ describe("git operations with arbor-git configured", () => {
       expect(out.createTagRef).toEqual({ value: true });
       expect(out.deleteTagRef).toEqual({ value: true });
       expect(out.deleteOtherRef).toEqual({ value: false });
+      for (const op of [
+        "deleteTagNamedLikeDefault",
+        "deleteBranchNamedLikeTag",
+        "deleteTagShortQualified",
+        "deleteBranchShortQualified",
+      ]) {
+        expect({ op, ...out[op] }).toEqual({ op, value: false });
+      }
+      // none of the crafted names reached the backend
+      expect(
+        backend.calls.filter(
+          (call) =>
+            (call.method === "deleteTag" || call.method === "deleteBranch") &&
+            String(call.request.name).includes("refs/"),
+        ),
+      ).toEqual([]);
       // the org repository is measured under its owner's username
       expect(out.getOrganizationStorageBytes).toEqual({ value: 4096 });
 
@@ -370,10 +453,12 @@ describe("git operations with arbor-git configured", () => {
       });
       // the PR merge lands the resolved source tip onto the target branch
       expect(find("resolveRef")).toMatchObject({ ref: "refs/heads/feature" });
+      // pull request merges are fast-forward only
       expect(find("mergeChange")).toMatchObject({
         commitOid: SOURCE_TIP,
         targetBranch: "main",
         message: "land",
+        fastForwardOnly: true,
       });
       expect(find("recordMergeIntent")).toMatchObject({
         changeId: "chg",
@@ -476,6 +561,37 @@ describe("git operations with arbor-git configured", () => {
       localEnv.HEAD ?? "",
     );
     expect(out.deleteOtherRef).toEqual({ value: false });
+    // crafted names are refused and the default branch and tag v2 survive
+    for (const op of [
+      "deleteTagNamedLikeDefault",
+      "deleteBranchNamedLikeTag",
+      "deleteTagShortQualified",
+      "deleteBranchShortQualified",
+    ]) {
+      expect({ op, ...out[op] }).toEqual({ op, value: false });
+    }
+    expect(git(["--git-dir", bare, "rev-parse", "refs/tags/v2"])).toBe(
+      localEnv.HEAD ?? "",
+    );
+    // the in-process merge is fast-forward only too, and leaves a diverged or
+    // unrelated target exactly where it was
+    expect(out.mergeOutOfDate).toMatchObject({ value: { sha: null } });
+    expect(out.mergeUnrelated).toEqual({
+      value: { sha: null, error: "No common ancestor found" },
+    });
+    expect(out.landUnrelated).toMatchObject({
+      value: { sha: null, error: "No common ancestor found" },
+    });
+    expect(git(["--git-dir", bare, "rev-parse", "refs/heads/diverged"])).toBe(
+      localEnv.DIVERGED ?? "",
+    );
+    expect(git(["--git-dir", bare, "rev-parse", "refs/heads/unrelated"])).toBe(
+      localEnv.UNRELATED ?? "",
+    );
+    // the fast-forward merge moved main to the feature tip
+    expect(git(["--git-dir", bare, "rev-parse", "refs/heads/main"])).toBe(
+      localEnv.HEAD ?? "",
+    );
     expect(out.createBranch).toEqual({ value: true });
     expect(git(["--git-dir", bare, "rev-parse", "refs/heads/x"])).toBe(
       localEnv.HEAD ?? "",

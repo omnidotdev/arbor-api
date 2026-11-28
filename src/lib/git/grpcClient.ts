@@ -205,10 +205,13 @@ export const relocateRepositoryViaBackend = (
   );
 
 /**
- * Land a stacked change onto a target branch through the backend (MergeChange).
- * Returns the resulting tip and the mode, or null on error so the caller can
- * surface a generic failure. The backend takes the change's tree wholesale,
- * matching the in-process stack-landing semantics.
+ * Land a change onto a target branch through the backend (MergeChange).
+ * Returns the resulting tip and the mode, or null on a backend error so the
+ * caller can surface a generic failure. A refusal that left the target
+ * untouched comes back with an empty sha and mode "out-of-date" (diverged,
+ * with `fastForwardOnly`) or "unrelated-histories" (no common ancestor).
+ * Without `fastForwardOnly` a diverged target gets a merge commit taking the
+ * change's tree, the stack-landing semantics.
  */
 export const mergeChangeViaBackend = (
   client: Client,
@@ -218,6 +221,7 @@ export const mergeChangeViaBackend = (
   targetBranch: string,
   author: { name: string; email: string },
   message: string,
+  fastForwardOnly = false,
 ): Promise<{ sha: string; mode: string } | null> =>
   new Promise((resolve) => {
     (
@@ -238,12 +242,13 @@ export const mergeChangeViaBackend = (
         authorName: author.name,
         authorEmail: author.email,
         message,
+        fastForwardOnly,
       },
       (error, response) => {
         resolve(
-          error || !response?.sha
+          error || !response?.mode
             ? null
-            : { sha: response.sha, mode: response.mode ?? "" },
+            : { sha: response.sha ?? "", mode: response.mode },
         );
       },
     );
