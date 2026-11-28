@@ -5,7 +5,9 @@ import git, { TREE } from "isomorphic-git";
 
 import {
   createBranchViaBackend,
+  createTagViaBackend,
   deleteBranchViaBackend,
+  deleteTagViaBackend,
   getArborGitClient,
   getBlobViaBackend,
   getCommitLogViaBackend,
@@ -165,6 +167,30 @@ export interface BranchInfo {
   name: string;
   sha: string;
   isDefault: boolean;
+}
+
+/** A fully qualified branch or tag ref name, split into its kind and short name */
+export interface ParsedRefName {
+  kind: "branch" | "tag";
+  shortName: string;
+}
+
+/**
+ * Parse `refs/heads/{name}` or `refs/tags/{name}`. Anything else (another
+ * namespace, or an empty short name) is null, so a caller can never mistake
+ * one kind of ref for the other.
+ */
+export function parseRefName(name: string): ParsedRefName | null {
+  for (const [prefix, kind] of [
+    ["refs/heads/", "branch"],
+    ["refs/tags/", "tag"],
+  ] as const) {
+    if (name.startsWith(prefix)) {
+      const shortName = name.slice(prefix.length);
+      return shortName ? { kind, shortName } : null;
+    }
+  }
+  return null;
 }
 
 export interface TagInfo {
@@ -1040,6 +1066,98 @@ export const gitService = {
     } catch {
       return false;
     }
+  },
+
+  /**
+   * Create a lightweight tag pointing at a ref or oid. Never touches a branch.
+   */
+  async createTag(
+    owner: string,
+    repo: string,
+    tagName: string,
+    target: string,
+  ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        await createTagViaBackend(client, owner, repo, tagName, target);
+        return true;
+      } catch (error) {
+        console.error("[gitService.createTag] arbor-git failed:", error);
+        return false;
+      }
+    }
+
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      await git.tag({ fs, gitdir, ref: tagName, object: target });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Delete a tag. Only `refs/tags/{tagName}` is removed, so a branch of the same
+   * name is never touched.
+   */
+  async deleteTag(
+    owner: string,
+    repo: string,
+    tagName: string,
+  ): Promise<boolean> {
+    const client = getArborGitClient();
+    if (isArborGitEnabled() && client) {
+      try {
+        return await deleteTagViaBackend(client, owner, repo, tagName);
+      } catch (error) {
+        console.error("[gitService.deleteTag] arbor-git failed:", error);
+        return false;
+      }
+    }
+
+    const gitdir = getRepositoryPath(owner, repo);
+
+    try {
+      // deleteTag removes only refs/tags/{ref}; confirm it existed first so a
+      // missing tag reports failure like the backend does
+      await git.resolveRef({ fs, gitdir, ref: `refs/tags/${tagName}` });
+      await git.deleteTag({ fs, gitdir, ref: tagName });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Create a fully qualified `refs/heads/*` or `refs/tags/*` ref, as a branch
+   * or a tag respectively. Any other name is refused (false).
+   */
+  async createRef(
+    owner: string,
+    repo: string,
+    name: string,
+    target: string,
+  ): Promise<boolean> {
+    const parsed = parseRefName(name);
+    if (!parsed) return false;
+    return parsed.kind === "branch"
+      ? this.createBranch(owner, repo, parsed.shortName, target)
+      : this.createTag(owner, repo, parsed.shortName, target);
+  },
+
+  /**
+   * Delete a fully qualified `refs/heads/*` or `refs/tags/*` ref. A tag name
+   * only ever deletes the tag, never a same-named branch; any other name is
+   * refused (false).
+   */
+  async deleteRef(owner: string, repo: string, name: string): Promise<boolean> {
+    const parsed = parseRefName(name);
+    if (!parsed) return false;
+    return parsed.kind === "branch"
+      ? this.deleteBranch(owner, repo, parsed.shortName)
+      : this.deleteTag(owner, repo, parsed.shortName);
   },
 
   /**

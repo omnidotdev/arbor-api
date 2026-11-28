@@ -2,7 +2,7 @@ import { EXPORTABLE } from "graphile-export";
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
-import { gitService } from "lib/git";
+import { gitService, resolveStorageOwner } from "lib/git";
 import events from "lib/providers";
 import { pullRequestService } from "lib/pullRequest";
 
@@ -108,7 +108,15 @@ const OpenPullRequestPlugin = extendSchema(() => {
       Mutation: {
         plans: {
           openPullRequest: EXPORTABLE(
-            (lambda, object, context, gitService, pullRequestService, events) =>
+            (
+              lambda,
+              object,
+              context,
+              gitService,
+              pullRequestService,
+              events,
+              resolveStorageOwner,
+            ) =>
               (_$root: any, fieldArgs: FieldArgs) => {
                 const $input = fieldArgs.getRaw("input");
                 const $db = context().get("db");
@@ -186,7 +194,7 @@ const OpenPullRequestPlugin = extendSchema(() => {
 
                     // Bare repositories are stored under the owning user's
                     // username, for personal and organization repos alike
-                    const ownerSlug = repository.owner?.username;
+                    const ownerSlug = await resolveStorageOwner(repository, db);
                     if (!ownerSlug) {
                       return {
                         rowId: null,
@@ -267,7 +275,15 @@ const OpenPullRequestPlugin = extendSchema(() => {
                   },
                 );
               },
-            [lambda, object, context, gitService, pullRequestService, events],
+            [
+              lambda,
+              object,
+              context,
+              gitService,
+              pullRequestService,
+              events,
+              resolveStorageOwner,
+            ],
           ),
         },
       },

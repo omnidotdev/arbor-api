@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -84,6 +84,10 @@ const startFakeBackend = async (fail: boolean) => {
       branch: { name: `refs/heads/${request.name}`, oid: SOURCE_TIP },
     })),
     deleteBranch: unary("deleteBranch", () => ({ deleted: true })),
+    createTag: unary("createTag", (request) => ({
+      tag: { name: `refs/tags/${request.name}`, oid: SOURCE_TIP },
+    })),
+    deleteTag: unary("deleteTag", () => ({ deleted: true })),
     resolveRef: unary("resolveRef", () => ({ oid: SOURCE_TIP })),
     mergeChange: unary("mergeChange", (request) =>
       request.targetBranch === "done"
@@ -137,7 +141,12 @@ const startFakeBackend = async (fail: boolean) => {
 
 /** Every operation under test, run against the gate the env selects */
 const SCRIPT = `
-  const { gitService, repositoryService, getRepositorySize } = await import(
+  const {
+    gitService,
+    repositoryService,
+    getRepositorySize,
+    getOrganizationStorageBytes,
+  } = await import(
     ${JSON.stringify(`${import.meta.dir}/index.ts`)}
   );
   const { BASE, HEAD, BLOB } = process.env;
@@ -151,6 +160,23 @@ const SCRIPT = `
   };
   const author = { name: "t", email: "t@t" };
   const backend = process.env.USE_ARBOR_GIT === "true";
+  // An organization repository: its org slug differs from the owning member's
+  // username, and storage is keyed by the username
+  const orgDb = {
+    query: {
+      repositoryTable: {
+        findMany: async () => [
+          {
+            slug: "r",
+            ownerId: "u1",
+            organizationId: "org1",
+            owner: { username: "o" },
+            organization: { slug: "omni" },
+          },
+        ],
+      },
+    },
+  };
   const out = {
     getMergeBase: await run(() =>
       gitService.getMergeBase("o", "r", "refs/heads/main", "refs/heads/feature"),
@@ -167,6 +193,9 @@ const SCRIPT = `
     ),
     getRepositorySize: await run(() => getRepositorySize("o", "r")),
     getRepositorySizeMissing: await run(() => getRepositorySize("o", "missing")),
+    getOrganizationStorageBytes: await run(() =>
+      getOrganizationStorageBytes("org1", orgDb),
+    ),
     recordMergeIntent: await run(() =>
       gitService.recordMergeIntent("o", "r", "chg", HEAD),
     ),
@@ -179,6 +208,15 @@ const SCRIPT = `
     createBranch: await run(() => gitService.createBranch("o", "r", "x", HEAD)),
     clone: await run(() =>
       repositoryService.clone("o", "cloned", "https://example.invalid/r.git"),
+    ),
+    createTagRef: await run(() =>
+      gitService.createRef("o", "r", "refs/tags/v2", HEAD),
+    ),
+    deleteTagRef: await run(() =>
+      gitService.deleteRef("o", "r", "refs/tags/release"),
+    ),
+    deleteOtherRef: await run(() =>
+      gitService.deleteRef("o", "r", "refs/remotes/origin/main"),
     ),
     deleteBranch: await run(() => gitService.deleteBranch("o", "r", "feature")),
   };
@@ -239,11 +277,15 @@ beforeAll(() => {
   const base = git(["rev-parse", "HEAD"], work);
   git(["push", "-q", bare, "main:main"], work);
   git(["checkout", "-q", "-b", "feature"], work);
-  Bun.write(join(work, "c.txt"), "c\n");
+  writeFileSync(join(work, "c.txt"), "c\n");
   git(["add", "."], work);
   git(["commit", "-q", "-m", "c"], work);
   const head = git(["rev-parse", "HEAD"], work);
   git(["push", "-q", bare, "feature:feature"], work);
+  // A tag and a branch sharing one name, so deleting the tag can be shown to
+  // leave the branch alone
+  git(["push", "-q", bare, `${base}:refs/heads/release`], work);
+  git(["push", "-q", bare, `${head}:refs/tags/release`], work);
   const blob = git(["rev-parse", "HEAD:c.txt"], work);
   rmSync(work, { recursive: true, force: true });
 
@@ -292,6 +334,11 @@ describe("git operations with arbor-git configured", () => {
       expect(out.createBranch).toEqual({ value: true });
       expect(out.clone).toEqual({ value: true });
       expect(out.deleteBranch).toEqual({ value: true });
+      expect(out.createTagRef).toEqual({ value: true });
+      expect(out.deleteTagRef).toEqual({ value: true });
+      expect(out.deleteOtherRef).toEqual({ value: false });
+      // the org repository is measured under its owner's username
+      expect(out.getOrganizationStorageBytes).toEqual({ value: 4096 });
 
       const methods = new Set(backend.calls.map((call) => call.method));
       for (const method of [
@@ -336,6 +383,29 @@ describe("git operations with arbor-git configured", () => {
         refA: "refs/heads/main",
         refB: "refs/heads/feature",
       });
+      // a refs/tags/* name goes to the tag RPCs and never deletes a branch
+      expect(find("createTag")).toMatchObject({
+        name: "v2",
+        target: localEnv.HEAD,
+      });
+      expect(find("deleteTag")).toMatchObject({ name: "release" });
+      expect(
+        backend.calls.filter(
+          (call) =>
+            call.method === "deleteBranch" && call.request.name !== "feature",
+        ),
+      ).toEqual([]);
+      expect(
+        backend.calls
+          .filter((call) => call.method === "getRepositorySize")
+          .map((call) => call.request.repository),
+      ).toContainEqual({ owner: "o", name: "r" });
+      expect(
+        backend.calls.some(
+          (call) =>
+            (call.request.repository as { owner?: string })?.owner === "omni",
+        ),
+      ).toBe(false);
       expect(find("cloneRepository")).toMatchObject({
         repository: { owner: "o", name: "cloned" },
         url: "https://example.invalid/r.git",
@@ -374,6 +444,9 @@ describe("git operations with arbor-git configured", () => {
       expect(out.createBranch).toEqual({ value: false });
       expect(out.deleteBranch).toEqual({ value: false });
       expect(out.clone).toEqual({ value: false });
+      expect(out.createTagRef).toEqual({ value: false });
+      expect(out.deleteTagRef).toEqual({ value: false });
+      expect(out.getOrganizationStorageBytes).toEqual({ threw: true });
       expect(out.merge).toMatchObject({ value: { sha: null } });
 
       // every operation reached the backend, and none wrote the local copy
@@ -392,6 +465,17 @@ describe("git operations with arbor-git configured", () => {
     expect(out.getFileDiffContent).toMatchObject({
       value: { status: "ADDED" },
     });
+    // deleting refs/tags/release removed only the tag; branch release is intact
+    expect(out.deleteTagRef).toEqual({ value: true });
+    expect(git(["--git-dir", bare, "tag", "--list", "release"])).toBe("");
+    expect(git(["--git-dir", bare, "rev-parse", "refs/heads/release"])).toBe(
+      localEnv.BASE ?? "",
+    );
+    expect(out.createTagRef).toEqual({ value: true });
+    expect(git(["--git-dir", bare, "rev-parse", "refs/tags/v2"])).toBe(
+      localEnv.HEAD ?? "",
+    );
+    expect(out.deleteOtherRef).toEqual({ value: false });
     expect(out.createBranch).toEqual({ value: true });
     expect(git(["--git-dir", bare, "rev-parse", "refs/heads/x"])).toBe(
       localEnv.HEAD ?? "",

@@ -6,6 +6,7 @@ import {
   getRepositorySizeViaBackend,
   isArborGitEnabled,
 } from "./grpcClient";
+import { resolveStorageOwner } from "./storageOwner";
 
 import type { dbPool } from "lib/db/db";
 
@@ -131,7 +132,10 @@ export async function getOrganizationStorageBytes(
   });
 
   const sizes = await Promise.all(
-    repos.map((repo) => getRepositorySize(repo.owner.username, repo.slug)),
+    repos.map(async (repo) => {
+      const owner = await resolveStorageOwner(repo, db);
+      return owner ? getRepositorySize(owner, repo.slug) : 0;
+    }),
   );
 
   return sizes.reduce((sum, size) => sum + size, 0);

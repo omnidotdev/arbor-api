@@ -3,7 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { evaluateBranchProtection } from "lib/branchProtection/branchProtection";
 import { dbPool } from "lib/db/db";
 import { changeTable, stackTable } from "lib/db/schema";
-import { gitService, repositoryService } from "lib/git";
+import { gitService, repositoryService, resolveStorageOwner } from "lib/git";
 import events from "lib/providers";
 import { extractIssueReferences } from "lib/references/issueReferences";
 
@@ -65,28 +65,6 @@ export type MergeChangeOutcome =
       reason: MergeChangeErrorReason;
       blockingChecks?: string[];
     };
-
-/**
- * Resolve the on-disk owner directory for a repository row.
- *
- * Bare repositories are always stored under the owning user's username, for
- * personal and organization repositories alike (organization slug identity
- * lives in the IDP, not the database), matching deleteRepositoryStorageById and
- * the Smart-HTTP routes. Returns null when the username cannot be resolved.
- */
-async function resolveOwnerSlug(repository: {
-  ownerId: string;
-  owner?: { username?: string | null } | null;
-}): Promise<string | null> {
-  if (repository.owner?.username) return repository.owner.username;
-
-  const owner = await dbPool.query.userTable.findFirst({
-    where: (table, { eq }) => eq(table.id, repository.ownerId),
-    columns: { username: true },
-  });
-
-  return owner?.username ?? null;
-}
 
 /**
  * Distinct approving reviewers on a change's linked pull request (0 when the
@@ -251,7 +229,7 @@ export const stackService = {
       return { ok: false, reason: "git-error" };
     }
 
-    const ownerSlug = await resolveOwnerSlug(change.repository);
+    const ownerSlug = await resolveStorageOwner(change.repository, dbPool);
     if (!ownerSlug) {
       return { ok: false, reason: "repository-unavailable" };
     }

@@ -802,3 +802,32 @@ export const cloneRepositoryViaBackend = async (
     ref: options.ref ?? "",
   });
 };
+
+/** Create a lightweight tag at a target through the backend (CreateTag); rejects on error */
+export const createTagViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  name: string,
+  target: string,
+): Promise<void> => {
+  await unary(client, "createTag", {
+    repository: { owner, name: repo },
+    name,
+    target,
+  });
+};
+
+/** Delete a tag through the backend (DeleteTag), never a branch; rejects on error */
+export const deleteTagViaBackend = async (
+  client: Client,
+  owner: string,
+  repo: string,
+  name: string,
+): Promise<boolean> => {
+  const response = await unary<{ deleted?: boolean }>(client, "deleteTag", {
+    repository: { owner, name: repo },
+    name,
+  });
+  return Boolean(response.deleted);
+};

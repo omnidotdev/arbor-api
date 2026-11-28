@@ -2,8 +2,7 @@ import { EXPORTABLE } from "graphile-export";
 import { context, sideEffect } from "postgraphile/grafast";
 import { wrapPlans } from "postgraphile/utils";
 
-import { gitService } from "lib/git";
-import { getOwnerSlug } from "./GitTypes.plugin";
+import { gitService, resolveStorageOwner } from "lib/git";
 
 import type { Step } from "postgraphile/grafast";
 import type { PlanWrapperFn } from "postgraphile/utils";
@@ -21,11 +20,11 @@ import type { PlanWrapperFn } from "postgraphile/utils";
  * gitService.setDefaultBranch, which also refuses a nonexistent branch).
  *
  * The schema is built at boot with makeSchema, so the plan closes over
- * gitService and getOwnerSlug directly.
+ * gitService and resolveStorageOwner directly.
  */
 const syncDefaultBranchOnUpdate = (): PlanWrapperFn =>
   EXPORTABLE(
-    (context, sideEffect, gitService, getOwnerSlug): PlanWrapperFn =>
+    (context, sideEffect, gitService, resolveStorageOwner): PlanWrapperFn =>
       (plan, _, fieldArgs) => {
         const $rowId = fieldArgs.getRaw([
           "input",
@@ -55,7 +54,7 @@ const syncDefaultBranchOnUpdate = (): PlanWrapperFn =>
 
               if (!repository) return;
 
-              const owner = await getOwnerSlug(repository, db);
+              const owner = await resolveStorageOwner(repository, db);
               if (!owner) return;
 
               await gitService.setDefaultBranch(
@@ -74,7 +73,7 @@ const syncDefaultBranchOnUpdate = (): PlanWrapperFn =>
 
         return $result;
       },
-    [context, sideEffect, gitService, getOwnerSlug],
+    [context, sideEffect, gitService, resolveStorageOwner],
   );
 
 /**

@@ -20,6 +20,7 @@ import {
   getRepositoryPath,
   gitStorageConfig,
 } from "./storage.config";
+import { resolveStorageOwner } from "./storageOwner";
 
 import type { dbPool } from "lib/db/db";
 
@@ -386,7 +387,8 @@ export const deleteRepositoryStorageById = async (
       with: { owner: { columns: { username: true } } },
     });
 
-    const ownerUsername = repository?.owner?.username;
+    if (!repository) return;
+    const ownerUsername = await resolveStorageOwner(repository, db);
 
     if (!ownerUsername) return;
 

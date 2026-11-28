@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import { projectRepositoryTable } from "lib/db/schema";
-import { gitService } from "lib/git";
+import { gitService, resolveStorageOwner } from "lib/git";
 import {
   parseProjectDescriptor,
   resolveDescriptorProjectIds,
@@ -73,8 +73,9 @@ export const reconcileProjectMembership = async (args: {
   });
   if (!repository) throw new Error("Repository not found");
 
-  const ownerSlug =
-    repository.organization?.slug ?? repository.owner?.username ?? null;
+  // Storage is keyed by the owning user's username, for organization
+  // repositories too
+  const ownerSlug = await resolveStorageOwner(repository, db);
   if (!ownerSlug) return { linkedProjects: 0, error: null };
 
   const content = await gitService.getFileContent(

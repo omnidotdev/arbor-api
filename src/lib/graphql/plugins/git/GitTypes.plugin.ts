@@ -2,53 +2,9 @@ import { EXPORTABLE } from "graphile-export";
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
-import { gitService, repositoryService } from "lib/git";
+import { gitService, repositoryService, resolveStorageOwner } from "lib/git";
 
 import type { FieldArgs } from "postgraphile/grafast";
-
-// Helper to get owner slug from repository - exported for EXPORTABLE
-// This function queries the database when relations are not loaded
-export async function getOwnerSlug(
-  repository: any,
-  db: any,
-): Promise<string | null> {
-  // Try organization slug first
-  if (repository.organization?.slug) {
-    return repository.organization.slug;
-  }
-  // Try owner username from loaded relation
-  if (repository.owner?.username) {
-    return repository.owner.username;
-  }
-  if (repository.owner?.slug) {
-    return repository.owner.slug;
-  }
-
-  // If organizationId is set, fetch the organization slug from DB
-  if (repository.organizationId && db) {
-    const org = await db.query.organizationTable.findFirst({
-      where: (table: any, { eq }: any) =>
-        eq(table.id, repository.organizationId),
-      columns: { slug: true },
-    });
-    if (org?.slug) {
-      return org.slug;
-    }
-  }
-
-  // Fetch the owner username from DB using ownerId
-  if (repository.ownerId && db) {
-    const user = await db.query.userTable.findFirst({
-      where: (table: any, { eq }: any) => eq(table.id, repository.ownerId),
-      columns: { username: true },
-    });
-    if (user?.username) {
-      return user.username;
-    }
-  }
-
-  return null;
-}
 
 // Type definitions for internal data structures
 interface RefData {
@@ -773,7 +729,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ) =>
@@ -795,7 +751,7 @@ const GitTypesPlugin = extendSchema((_build) => {
                     if (!slug || !qualifiedName) return null;
                     const repository = { slug, ownerId, organizationId };
 
-                    const owner = await getOwnerSlug(repository, db);
+                    const owner = await resolveStorageOwner(repository, db);
                     if (!owner) return null;
                     const repo = repository.slug;
 
@@ -830,7 +786,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ],
@@ -841,7 +797,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ) =>
@@ -873,7 +829,7 @@ const GitTypesPlugin = extendSchema((_build) => {
                     }
                     const repository = { slug, ownerId, organizationId };
 
-                    const owner = await getOwnerSlug(repository, db);
+                    const owner = await resolveStorageOwner(repository, db);
                     if (!owner) {
                       return { nodes: [], totalCount: 0 };
                     }
@@ -925,7 +881,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ],
@@ -936,7 +892,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ) =>
@@ -962,7 +918,7 @@ const GitTypesPlugin = extendSchema((_build) => {
                     const r = { slug, ownerId, organizationId };
                     if (!slug) return null;
 
-                    const owner = await getOwnerSlug(r, db);
+                    const owner = await resolveStorageOwner(r, db);
                     if (!owner) return null;
                     const repo = r.slug;
                     const defaultBranch = defaultBranchCol || "master";
@@ -991,7 +947,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ],
@@ -1002,7 +958,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ) =>
@@ -1024,7 +980,7 @@ const GitTypesPlugin = extendSchema((_build) => {
                     if (!slug || !sha) return null;
                     const repository = { slug, ownerId, organizationId };
 
-                    const owner = await getOwnerSlug(repository, db);
+                    const owner = await resolveStorageOwner(repository, db);
                     if (!owner) return null;
                     const repo = repository.slug;
 
@@ -1051,7 +1007,7 @@ const GitTypesPlugin = extendSchema((_build) => {
               lambda,
               object,
               context,
-              getOwnerSlug,
+              resolveStorageOwner,
               repositoryService,
               gitService,
             ],

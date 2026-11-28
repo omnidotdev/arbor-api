@@ -1,8 +1,7 @@
 import { context, lambda, object } from "postgraphile/grafast";
 import { extendSchema } from "postgraphile/utils";
 
-import { gitService, repositoryService } from "lib/git";
-import { getOwnerSlug } from "./GitTypes.plugin";
+import { gitService, repositoryService, resolveStorageOwner } from "lib/git";
 
 import type { ChangedFile, FileDiffContent } from "lib/git";
 import type { ExecutableStep, FieldArgs } from "postgraphile/grafast";
@@ -39,7 +38,7 @@ async function resolvePrRefs(
   });
   if (!pr?.repository) return null;
 
-  const owner = await getOwnerSlug(pr.repository, db);
+  const owner = await resolveStorageOwner(pr.repository, db);
   if (!owner) return null;
   const repo = pr.repository.slug;
 
